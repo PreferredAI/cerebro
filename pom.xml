@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 	
-	<properties>
+    <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     
@@ -47,15 +47,15 @@
     </developers>
     
     <scm>
-        <connection>scm:git:git://github.com/PreferredAI/venom.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:PreferredAI/venom.git</developerConnection>
-        <url>http://github.com/PreferredAI/venom</url>
+        <connection>scm:git:git://github.com/PreferredAI/cerebro.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:PreferredAI/cerebro.git</developerConnection>
+        <url>http://github.com/PreferredAI/cerebro</url>
     </scm>
     
     
     <build>
         <plugins>
-        	 <plugin>
+            <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.6.8</version>
