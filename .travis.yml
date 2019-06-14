@@ -10,9 +10,8 @@ install: mvn -s .mvn.xml install -DskipTests=true -Dgpg.skip -Dmaven.javadoc.ski
 script: mvn clean test jacoco:report coveralls:report
 
 before_deploy:
-
-- openssl aes-256-cbc -K $encrypted_9d72b2b7184c_key -iv $encrypted_9d72b2b7184c_iv -in my-private-key.asc.enc -out my-private-key.asc -d
-- gpg --import my-private-key.asc
+- openssl aes-256-cbc -K $encrypted_72f0bb93708b_key -iv $encrypted_72f0bb93708b_iv -in my-private-key.asc..enc -out my-private-key.asc. -d
+- gpg --import my-private-key.asc.
 
 deploy:
   provider: script
