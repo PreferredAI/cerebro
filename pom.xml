@@ -8,7 +8,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     
-    <groupId>preferred.ai</groupId>
+    <groupId>ai.preferred</groupId>
     <artifactId>cerebro</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
@@ -21,6 +21,13 @@
         <name>Preferred.AI</name>
         <url>https://preferred.ai</url>
     </organization>
+    
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
     
     <developers>
         <developer>
