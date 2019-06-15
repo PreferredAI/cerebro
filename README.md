@@ -13,12 +13,12 @@ Our goal is to create a closed-loop engine for recommendations with blazingly fa
 ### Features
 - Session Management
 - Efficient Retrieval of Personalized Search
-- Closed-lopp Recommendation Engine
+- Closed-loop Recommendation Engine
 
 ## Getting started
 
 #### Add a dependency
-If you already have a project then just add Venom as a dependency to your pom.xml:
+If you already have a project then just add Cerebro as a dependency to your pom.xml:
 ```xml
 <dependency>
     <!-- Cerebro: Your personalized retrieval engine @ https://cerebro.preferred.ai/ -->
