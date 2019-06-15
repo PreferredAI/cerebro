@@ -17,16 +17,15 @@ Our goal is to create a closed-loop engine for recommendations with blazingly fa
 
 ## Getting started
 
-### Example
-Get started quickly with these few lines of code.
-Look into file Demo.java in test package.
+#### Add a dependency
+If you already have a project then just add Venom as a dependency to your pom.xml:
+```xml
+<dependency>
+    <!-- Cerebro: Your personalized retrieval engine @ https://cerebro.preferred.ai/ -->
+    <groupId>ai.preferred</groupId>
+  	<artifactId>cerebro</artifactId>
+  	<version>1.0</version>
+</dependency>
+```
 
-Links to down load Demo data:
-- [Vec Data](https://drive.google.com/drive/folders/1xKAExwp09pH1RuJ7Rlo9PiXxpFG8FshK?usp=sharing)
-This link includes:
-    - item vector set of 10 million vectors: itemVec_10M.o
-    - hashing vectors: splitVec.o
-    - query vectors and the ids of their associated true top 20 vec: query_top20_10M.o
-
-- [Document Data](https://drive.google.com/open?id=1KVFtMcmqvYsR0yTzqtfBKVupocNh0fn3)
 
