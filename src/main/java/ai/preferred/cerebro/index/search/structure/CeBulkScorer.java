@@ -9,6 +9,8 @@ import java.io.IOException;
 
 /**
  * Cerebro internal scorer.
+ *
+ * @author hpminh@apcs.vn
  */
 
 public class CeBulkScorer extends BulkScorer {

@@ -4,8 +4,11 @@ import org.apache.lucene.search.ScoreDoc;
 
 
 /**
+ *
  * A data construct to get out the top k document
  * according a specific score measurement.
+ *
+ * @author hpminh@apcs.vn
  */
 public class DocArray extends Container<ScoreDoc> {
 

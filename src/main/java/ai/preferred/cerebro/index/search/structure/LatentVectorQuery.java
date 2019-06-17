@@ -18,8 +18,11 @@ import java.util.Set;
 
 
 /**
+ *
  * A Query that matches Documents by the hashcode
  * produced by their latent vector.
+ *
+ * @author hpminh@apcs.vn
  */
 public class LatentVectorQuery extends Query {
     private final Term term;

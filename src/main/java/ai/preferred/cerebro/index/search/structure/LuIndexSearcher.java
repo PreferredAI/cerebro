@@ -26,11 +26,13 @@ import java.util.concurrent.Future;
  * Inherited from Lucene's IndexSearcher, this class extends
  * Lucene's traditional full-text search to vector similarity
  * search also.
- *
+ * <p>
  * As such it shares almost all of Lucene's IndexSearcher; from
  * thread-safety to I/O speed. Use it as you would use a Lucene
  * searcher. Plus, it now supports vector similarity search via
  * {@link #queryVector(double[], int)}.
+ *
+ * @author hpminh@apcs.vn
  */
 public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
     protected final ExecutorService executor;
@@ -212,8 +214,8 @@ public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
      *
      * @param queryParser if null the searcher will by default carry search on
      *                    the field named {@link IndexConst#CONTENTS}.
-     * @param sQuery
-     * @param resultSize
+     * @param sQuery String query.
+     * @param resultSize Top result size.
      * @return A set of {@link ScoreDoc} of Document matching with the query.
      * @throws Exception
      */
@@ -230,8 +232,8 @@ public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
 
     /**
      *
-     * @param vQuery
-     * @param resultSize
+     * @param vQuery The vector query.
+     * @param resultSize Top result size.
      * @return A set of {@link ScoreDoc} of Document having latent vector producing.
      * the highest inner product with the query vector.
      * @throws Exception

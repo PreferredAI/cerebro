@@ -22,27 +22,32 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
+ *
  * Wrapper class containing an instance of Lucene's {@link IndexWriter}
  * that facilitates the indexing of both text objects and latent feature
- * vectors.
- *
+ * vectors.\n
+ * <p>
  * Note that Right now LuIndexWriter is not thread-safe due to the way it
  * uses PersonalizedDocFactory. This will be fixed in a near future version.
+ *
+ * @author hpminh@apcs.vn
  */
 public abstract class LuIndexWriter implements VersatileIndexing{
     protected IndexWriter writer;
     protected PersonalizedDocFactory docFactory = null;
 
     /**
+     * Constructor using an existing LSHash Vector object. This will try to allocate
+     * as much memory as possible for the writing buffer.\n
+     * <p>
+     * In case a path LSH vectors object is not specify the indexwriter will still load,
+     * but any operation involving latent item vector will throw a {@link NullPointerException}.\n
+     *
      * @param indexDirectoryPath directory to the folder containing the index files.
      * @param splitVecPath path to the object file containing the LSH vectors.
      * @throws IOException this is triggered when a path or file does not exist.
      *
-     * Constructor using an existing LSHash Vector object. This will try to allocate
-     * as much memory as possible for the writing buffer.
-     *
-     * In case a path LSH vectors object is not specify the indexwriter will still load,
-     * but any operation involving latent item vector will throw a {@link NullPointerException}.
+
      */
     public LuIndexWriter(String indexDirectoryPath, String splitVecPath) throws IOException {
         //Get the maximum amount of memory for indexWriter
@@ -67,18 +72,18 @@ public abstract class LuIndexWriter implements VersatileIndexing{
 
 
     /**
-     *
+     * Constructor randomizing a new hashtable, then save it to the same folder
+     * containing the index file and save metadata to database.\n
+     * <p>
+     * Note that this is intented to worked with other unreleased components of
+     * Cerebro. As such it is not recommended to instantiate {@link LuIndexWriter}
+     * this way.
      * @param indexDirectoryPath directory to the folder containing the index files.
      * @param model model ID to decide which configuration to get from the database.
      * @param numHash number hashing vector to randomize.
      * @throws IOException this is triggered when a path or file does not exist.
      *
-     * Constructor randomizing a new hashtable, then save it to the same folder
-     * containing the index file and save metadata to database.
-     *
-     * Note that this is intented to worked with other unreleased components of
-     * Cerebro. As such it is not recommended to instantiate {@link LuIndexWriter}
-     * this way.
+
      */
     public LuIndexWriter(String indexDirectoryPath, int model, int numHash) throws IOException {
         this(indexDirectoryPath, null);
@@ -185,14 +190,15 @@ public abstract class LuIndexWriter implements VersatileIndexing{
 
 
     /**
-     *
-     * @param ID ID of the document to delete
-     * @throws IOException
-     * @throws UnsupportedDataType
      * Delete a document by its unique ID. Note that
      * you should let Cerebro handle the ID field
      * automatically, only passing in the ID value
      * either as an integer or a string.
+     *
+     * @param ID ID of the document to delete
+     * @throws IOException
+     * @throws UnsupportedDataType thrown when the ID arg is not an instance of {@link String} or an int
+     *
      */
     public void deleteByID(Object ID) throws IOException, UnsupportedDataType {
         Term term = null;
@@ -207,11 +213,12 @@ public abstract class LuIndexWriter implements VersatileIndexing{
     }
 
     /**
-     *
-     * @throws IOException
      * With multithreading trying to get all of the index
      * in one segment has no advantage. You should let Lucene
      * decide when to carry out the index optimization.
+     *
+     * @throws IOException
+     *
      */
     public void optimize() throws IOException {
         writer.getConfig().setUseCompoundFile(true);
@@ -221,15 +228,16 @@ public abstract class LuIndexWriter implements VersatileIndexing{
     }
 
     /**
+     * This method lists all the acceptable files in the given directory
+     * and pass them individually to {@link #indexFile(File)} to index
+     * the file content.
      *
      * @param dataDirPath directory to the folder containing the data
      * @param filter an object to filter out all the type of file we
      *               don't want to read.
      * @throws IOException
      *
-     * This method lists all the acceptable files in the given directory
-     * and pass them individually to {@link #indexFile(File)} to index
-     * the file content.
+     *
      */
     final public void createIndexFromDir(String dataDirPath, FileFilter filter)
             throws IOException {
@@ -253,22 +261,21 @@ public abstract class LuIndexWriter implements VersatileIndexing{
      * Self-implement this function to parse information from your file to be indexed.
      * If you are utilizing personalized search function, plz use docFactory to create your Documents.
      * Do not try to create Lucene document directly if you want to use personalized search.
-     * See the deprecated function {@link #createIndexFromVecData(double[][])} as an example
+     * See the deprecated function {@link #createIndexFromVecData(double[][])} as an main
      * of how to work with docFactory.
      */
     abstract public void indexFile(File file) throws IOException;
 
 
     /**
+     * This method indexes the given set of vectors, using the
+     * order number of a document as ID.
+     *
      * @param itemVecs the set of item latent vector to be indexes.
      * @throws IOException
      * @throws DocNotClearedException this exception is triggered when
      * a call to {@link PersonalizedDocFactory#create(Object, double[])}
      * is not paired with a call to {@link PersonalizedDocFactory#getDoc()}.
-     *
-     * This method indexes the given set of vectors, using the
-     * order number of a document as ID, this
-     * may vary from use-case to use-case.
      */
     public void createIndexFromVecData(double[][] itemVecs) throws Exception {
         for(int i = 0; i < itemVecs.length; i++){

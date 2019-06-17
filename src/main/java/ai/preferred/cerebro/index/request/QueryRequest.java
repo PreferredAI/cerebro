@@ -2,11 +2,14 @@ package ai.preferred.cerebro.index.request;
 
 
 /**
+ *
  * This class is a search request to be passed into
  * {@link ai.preferred.cerebro.index.search.processor.QueryProcessor}
  * and get the result. The extra steps are to handle communication
  * between the index and other unreleased Cerebro components. Create your
  * queries and pass them directly via your searcher if you want to.
+ *
+ * @author hpminh@apcs.vn
  */
 public class QueryRequest {
     //private int modelId;
@@ -29,6 +32,13 @@ public class QueryRequest {
         VECTOR
     }
 
+    /**
+     * Create a query with type info, top result size and data to be queried.
+     *
+     * @param queryData data to be queried.
+     * @param type query's type.
+     * @param topK top result size.
+     */
     public QueryRequest(/*int modelId,*/ Object queryData, QueryType type ,int topK) {
         //check type compatibility
         assert checkType(queryData, type);
@@ -38,22 +48,30 @@ public class QueryRequest {
         this.type = type;
     }
 
-
+    /**
+     * Get this request query's data.
+     * @return this request query's data.
+     */
     public Object getQueryData() {
         return queryData;
-    }
-
-    public void setQueryData(Object queryData) {
-        //check type compatibility
-        assert checkType(queryData, type);
-        this.queryData = queryData;
     }
 
     /*public int getModelId() { return modelId; }
     public void setModelId(int modelId) { this.modelId = modelId; }*/
 
+    /**
+     * Get this request top result size.
+     * @return The result size.
+     */
     public int getTopK() { return topK; }
 
+    /**
+     * Check the consistency between the type and the actual query data passed in.
+     *
+     * @param queryData query data
+     * @param type query type
+     * @return false if the type and the actual data don't match. True otherwise.
+     */
     private static boolean checkType(Object queryData, QueryType type){
         switch (type){
             case VECTOR:

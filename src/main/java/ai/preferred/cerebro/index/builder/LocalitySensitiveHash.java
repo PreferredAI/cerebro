@@ -10,6 +10,8 @@ import java.util.BitSet;
  * This class calculate the hashcode of a vector
  * given which set of hashing vectors it was
  * created with.
+ *
+ * @author hpminh@apcs.vn
  */
 public class LocalitySensitiveHash {
     protected final int numHashBit;
@@ -17,7 +19,7 @@ public class LocalitySensitiveHash {
     protected final double [][] splitVecs;
 
     /**
-     *
+     * Instantiate with a set of hashing vectors.
      * @param splitVecs the set of hashing vectors.
      */
     public LocalitySensitiveHash(double [][] splitVecs){
@@ -28,6 +30,7 @@ public class LocalitySensitiveHash {
     }
 
     /**
+     * Calculate the hashcode of a vector.
      *
      * @param features the vector to compute hashcode.
      * @return the hashcode of the vector.

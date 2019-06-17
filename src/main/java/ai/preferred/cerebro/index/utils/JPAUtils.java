@@ -15,6 +15,7 @@ import ai.preferred.cerebro.core.jpa.util.LatentVectorUtils;
 import ai.preferred.cerebro.core.jpa.util.PersistenceUtils;
 
 /**
+ * @author ddle.2015
  * Handle communication with Cerebro's other unreleased
  * modules
  */

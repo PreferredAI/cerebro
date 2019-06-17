@@ -7,6 +7,8 @@ import java.io.FileFilter;
  * A Filter class that only accept .txt files.
  * Example on how to apply {@link FileFilter}
  * to read only files that you want.
+ *
+ * @author hpminh@apcs.vn
  */
 public class TextFileFilter implements FileFilter {
     @Override

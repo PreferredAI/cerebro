@@ -12,9 +12,12 @@ import java.util.function.Supplier;
 
 
 /**
+ *
  * Base class to contain, rank and retrieve top K objects
  * based on their score. This implementation use a modified
  * version of the Quickselect algorithm.
+ *
+ * @author hpminh@apcs.vn
  *
  * @param <T> Type of object to be scored and retrieved.
  */

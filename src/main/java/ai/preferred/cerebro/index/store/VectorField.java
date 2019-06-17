@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 
 /**
  * Cerebro's class to store a vector into Lucene's index.
+ *
+ * @author hpminh@apcs.vn
  */
 public class VectorField extends StoredField {
 
@@ -21,10 +23,10 @@ public class VectorField extends StoredField {
     }
 
     /**
-     * @param doublearr
-     * @return byte encoding of the vector.
-     *
      * Encoding a vector into an array of byte.
+     *
+     * @param doublearr The vector to be encoded to bytes.
+     * @return byte encoding of the vector.
      */
     public static byte[] vecToBytes(double[] doublearr){
         byte[] arr = new byte[doublearr.length * Double.BYTES];
@@ -37,10 +39,12 @@ public class VectorField extends StoredField {
     }
 
     /**
-     * @param data
+     * Decode a byte array back into a vector.
+     *
+     * @param data The data to be decoded back to a vector.
      * @return vector values of a byte array.
      *
-     * Decode a byte array back into a vector.
+     *
      */
     public static double[] getFeatureVector(byte[] data){
         assert data.length % Double.BYTES == 0;

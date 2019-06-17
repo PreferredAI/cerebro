@@ -1,7 +1,10 @@
 package ai.preferred.cerebro.index.exception;
 
 /**
+ *
  * Thrown when you are trying to use a closed {@link ai.preferred.cerebro.index.builder.LuIndexWriter}.
+ *
+ * @author hpminh@apcs.vn
  */
 public class ClosedException extends Exception {
     public ClosedException(){

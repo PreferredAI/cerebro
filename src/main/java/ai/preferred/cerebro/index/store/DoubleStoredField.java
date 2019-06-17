@@ -8,7 +8,10 @@ import ai.preferred.cerebro.index.utils.IndexConst;
 import java.nio.ByteBuffer;
 
 /**
+ *
  * Cerebro's class to store a double number into Lucene's index.
+ *
+ * @author hpminh@apcs.vn
  */
 public class DoubleStoredField extends StoredField {
     private DoubleStoredField(String name, double d){

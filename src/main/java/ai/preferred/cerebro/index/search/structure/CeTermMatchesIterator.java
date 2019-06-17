@@ -7,7 +7,10 @@ import org.apache.lucene.search.MatchesIterator;
 import org.apache.lucene.search.Query;
 
 /**
+ *
  * A {@link MatchesIterator} over a single term's postings list.
+ *
+ * @author hpminh@apcs.vn
  */
 class CeTermMatchesIterator implements MatchesIterator {
 

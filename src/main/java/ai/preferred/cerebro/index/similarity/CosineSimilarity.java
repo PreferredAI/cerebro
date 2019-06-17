@@ -18,7 +18,10 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ *
  * Class to compute cosine similarity.
+ *
+ * @author hpminh@apcs.vn
  */
 public class CosineSimilarity extends Similarity {
 

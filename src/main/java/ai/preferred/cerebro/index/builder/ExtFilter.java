@@ -6,6 +6,8 @@ import java.io.FileFilter;
 /**
  * This class acts as a filter to rule out all the file
  * extension that should not be read for indexing.
+ *
+ * @author hpminh@apcs.vn
  */
 public class ExtFilter implements FileFilter {
     final String [] extensions;
