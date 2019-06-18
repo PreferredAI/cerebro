@@ -12,6 +12,8 @@ import java.io.IOException;
 /**
  * Class to handle Cerebro internal retrieving and ranking
  * of Document Objects.
+ *
+ * @author hpminh@apcs.vn
  */
 public class CeTopScoreDocCollector extends CeCollector<ScoreDoc> {
 

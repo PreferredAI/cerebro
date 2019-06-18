@@ -12,6 +12,8 @@ import java.io.IOException;
 /**
  * Scorer using {@link ai.preferred.cerebro.index.similarity.CosineSimilarity}
  * to score similarity between latent vectors.
+ *
+ * @author hpminh@apcs.vn
  */
 public class LatentVecScorer extends Scorer {
     private final PostingsEnum postingsEnum;

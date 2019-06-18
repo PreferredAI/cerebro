@@ -87,7 +87,7 @@ public class Demo {
     }
 
     public static void demoSearchText() throws Exception {
-        //example query
+        //main query
         String queryText = "Lord of the Rings";
 
         //get a searcher through a LoadSearcherRequest

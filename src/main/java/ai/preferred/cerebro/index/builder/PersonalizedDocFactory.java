@@ -19,26 +19,32 @@ import java.util.Iterator;
  * This class handles the creation of Document object
  * to ensure that there is no conflict in field name
  * and that all the hashcoding behaves as intended.
+ *
+ * @author hpminh@apcs.vn
  */
 public class PersonalizedDocFactory {
     private LocalitySensitiveHash hashFunc = null;
     private Document doc;
 
+    /**
+     * Instantiate with a set of hashing vectors.
+     * @param splitVecs
+     */
     PersonalizedDocFactory(double [][] splitVecs){
         hashFunc = new LocalitySensitiveHash(splitVecs);
     }
 
     PersonalizedDocFactory(){}
     /**
+     * Only use this function to construct a Document containing latent vector.
+     * To add additional fields to the Document, use {@link #addField(IndexableField...)}.
+     * Call {@link #getDoc()} to pass the Document to IndexWriter or before creating a new Document.
+     *
      * @param ID unique ID of the document.
      * @param features the latent feature vector to index.
      * @throws DocNotClearedException this exception is triggered when
      * a call to {@link #create(Object, double[])} is not paired with a
      * call to {@link #getDoc()}.
-     *
-     * Only use this function to construct a Document containing latent vector.
-     * To add additional fields to the Document, use {@link #addField(IndexableField...)}.
-     * Call {@link #getDoc()} to pass the Document to IndexWriter or before creating a new Document.
      */
     public void create(Object ID, double[] features) throws Exception {
         if(this.doc != null)
@@ -63,6 +69,9 @@ public class PersonalizedDocFactory {
 
 
     /**
+     * Call this function to construct a generic text-only Document.
+     * Should you need to add latent vector later call getDoc
+     * and start anew with the other create method.
      *
      * @param ID unique ID of the document
      * @param fields the custom fields
@@ -72,9 +81,7 @@ public class PersonalizedDocFactory {
      * a call to {@link #create(Object, double[])} is not paired with a
      * call to {@link #getDoc()}.
      *
-     * Call this function to construct a generic text-only Document.
-     * Should you need to add latent vector later call getDoc
-     * and start anew with the other create method.
+     *
      */
     public void create(Object ID, IndexableField... fields) throws SameNameException, DocNotClearedException {
         if(this.doc != null){
@@ -96,13 +103,16 @@ public class PersonalizedDocFactory {
     }
 
     /**
+     * After calling {@link #create(Object, double[])} to create a document with latent vector
+     * if you still want add more custom fields to a Document then use this function.
      *
-     * @param fields
+     * @param fields fields to add to the {@link Document}
+     *               instance at the pointer {@link PersonalizedDocFactory#doc}
      * @throws SameNameException this is triggered when one of your custom field has name
      * identical to Cerebro reserved word. See more detail at {@link IndexConst}.
      *
-     * After calling {@link #create(Object, double[])} to create a document with latent vector
-     * if you still want add more custom fields to a Document then use this function.
+     *
+     *
      */
     public void addField(IndexableField... fields) throws SameNameException {
         for(IndexableField f : fields){
@@ -114,11 +124,12 @@ public class PersonalizedDocFactory {
     }
 
     /**
+     * After calling this function the pointer doc become null again.
      *
      * @return the Document object being built since the last {@link #create(Object, double[])}
      * or {@link #create(Object, IndexableField...)} call.
      *
-     * After calling this function the pointer doc become null again.
+     *
      */
     public Document getDoc(){
         Document t = this.doc;
@@ -127,7 +138,9 @@ public class PersonalizedDocFactory {
     }
 
     /**
-     * @param fieldname
+     * Check if fieldname is similar to any of Cerebro's reserved keywords.
+     *
+     * @param fieldname the field's name to be checked.
      * @return true if the fieldname is the similar to one of the reserved words.
      */
     public boolean checkReservedFieldName(String fieldname){

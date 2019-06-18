@@ -13,6 +13,8 @@ import java.util.List;
 /**
  * This interface enforces the functionality of a searcher used by other
  * Cerebro components.
+ *
+ * @author hpminh@apcs.vn
  */
 public interface VersatileSearcher {
     ScoreDoc[] queryKeyWord(QueryParser queryParser, String sQuery, int resultSize) throws Exception;

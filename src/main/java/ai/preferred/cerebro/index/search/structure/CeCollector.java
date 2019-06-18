@@ -13,8 +13,10 @@ import java.io.IOException;
 
 /**
  * Cerebro's internal Scoring functionality.
- * @param <T> Type of Object to rank against each others.
  *
+ * @author hpminh@apcs.vn
+ *
+ * @param <T> Type of Object to rank against each others.
  */
 public abstract class CeCollector <T extends ScoreDoc> implements Collector {
 

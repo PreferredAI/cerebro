@@ -11,18 +11,21 @@ import ai.preferred.cerebro.index.search.structure.VersatileSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 
 /**
+ *
  * This class process a {@link QueryRequest} into suitable
  * query for a {@link VersatileSearcher} then pass it to carry
  * out the search and return result.
+ *
+ * @author hpminh@apcs.vn
  */
 public class LuQueryProcessor implements QueryProcessor {
     /**
-     * @param searcher
-     * @param qRequest
-     * @return
-     * @throws Exception
-     *
      * Process both type of query text and vector.
+     *
+     * @param searcher Searcher loaded with the index to carry search on.
+     * @param qRequest Request carrying the query to be executed.
+     * @return The wrapper object containing the query's result;
+     * @throws Exception
      */
     @Override
     public QueryResponse process(VersatileSearcher searcher, QueryRequest qRequest) throws Exception {
@@ -37,16 +40,18 @@ public class LuQueryProcessor implements QueryProcessor {
     }
 
     /**
+     * Handle the case when we want to query a field with a custom name,
+     * not the default {@link IndexConst#CONTENTS}.
+     *
      * @param searcher
      * @param queryData
      * @param topK
      * @return
      * @throws Exception
      *
-     * Handle the case when we want to query a field with a custom name,
-     * not the default {@link IndexConst#CONTENTS}.
+     *
      */
-    public ScoreDoc[] processKeyword(VersatileSearcher searcher, Object queryData, int topK) throws Exception {
+    private ScoreDoc[] processKeyword(VersatileSearcher searcher, Object queryData, int topK) throws Exception {
         //assume field name is contents
         if (queryData instanceof String){
             return searcher.queryKeyWord(null, (String) queryData, topK);

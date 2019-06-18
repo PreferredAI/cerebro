@@ -12,7 +12,9 @@ import java.util.*;
 
 /**
  * Utility class to facilitate all necessary function
- * in cerebro.index like I/O, vector computations..., etc
+ * in cerebro.index like I/O, vector computations..., etc.
+ *
+ * @author hpminh@apcs.vn
  */
 public class IndexUtils {
 
@@ -27,14 +29,14 @@ public class IndexUtils {
 
     /**
      *
-     * @param n the number of vector to generate
-     * @param nFeatures the number of dimension each vector has
+     * @param n the number of vector to generate.
+     * @param nFeatures the number of dimension each vector has.
      * @param splitFeature flag to specify whether the vector to
      *                     be used as hashing function or not.
      *                     If so the range of distribution range
-     *                     from -1 to 1
+     *                     from -1 to 1.
      * @param cosineSimilarity
-     * @return A set of randomized vectors
+     * @return A set of randomized vectors.
      */
     public static double[][] randomizeFeatureVectors(int n, int nFeatures, boolean splitFeature, boolean cosineSimilarity){
         Random random = new Random();
