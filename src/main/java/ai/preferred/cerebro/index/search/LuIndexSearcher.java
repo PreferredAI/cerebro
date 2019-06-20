@@ -1,17 +1,17 @@
-package ai.preferred.cerebro.index.search.structure;
+package ai.preferred.cerebro.index.search;
 
 
+import ai.preferred.cerebro.index.exception.UnsupportedDataType;
+import ai.preferred.cerebro.index.request.QueryRequest;
+import ai.preferred.cerebro.index.response.QueryResponse;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.NIOFSDirectory;
 import org.apache.lucene.util.ThreadInterruptedException;
 
-import ai.preferred.cerebro.core.entity.TopKItem;
 import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
-import ai.preferred.cerebro.index.similarity.CosineSimilarity;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
@@ -34,7 +34,7 @@ import java.util.concurrent.Future;
  *
  * @author hpminh@apcs.vn
  */
-public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
+public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc> {
     protected final ExecutorService executor;
     protected final LeafSlice[] leafSlices;
     protected IndexReader reader;
@@ -84,11 +84,11 @@ public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
         int count = 0;
         for (LeafReaderContext leaf : reader.leaves())
             count += leaf.reader().docFreq(t);
-        if(count < topK){
+        if(count == 0){
             return null;
         }
         LatentVectorQuery query = new LatentVectorQuery(vQuery, t);
-        return search(query, topK);
+        return search(query, topK < count ? topK : count);
         //return pSearch(query, count, topK);
     }
 
@@ -211,7 +211,6 @@ public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
     }
 
     /**
-     *
      * @param queryParser if null the searcher will by default carry search on
      *                    the field named {@link IndexConst#CONTENTS}.
      * @param sQuery String query.
@@ -219,7 +218,6 @@ public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
      * @return A set of {@link ScoreDoc} of Document matching with the query.
      * @throws Exception
      */
-    @Override
     public ScoreDoc[] queryKeyWord(QueryParser queryParser, String sQuery, int resultSize) throws Exception {
         Query query = null;
         if(queryParser == null)
@@ -238,10 +236,50 @@ public class LuIndexSearcher extends IndexSearcher implements VersatileSearcher{
      * the highest inner product with the query vector.
      * @throws Exception
      */
-    @Override
     public ScoreDoc[] queryVector(double[] vQuery, int resultSize) throws Exception {
         TopDocs hits = personalizedSearch(vQuery, resultSize);
         return hits == null ? null : hits.scoreDocs;
+    }
+
+    /**
+     * Process both type of query text and vector
+     * and carry out searching.
+     * @param qRequest
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public QueryResponse<ScoreDoc> query(QueryRequest qRequest) throws Exception {
+        switch (qRequest.getType()){
+            case KEYWORD:
+                return new QueryResponse<ScoreDoc>(processKeyword(qRequest.getQueryData(), qRequest.getTopK()));
+            case VECTOR:
+                return new QueryResponse<ScoreDoc>(queryVector((double[])qRequest.getQueryData(), qRequest.getTopK()));
+            default:
+                throw new UnsupportedDataType();
+        }
+    }
+
+    /**
+     * Handle the case when we want to query a field with a custom name,
+     * not the default {@link IndexConst#CONTENTS}.
+     * @param queryData
+     * @param topK
+     * @return
+     * @throws Exception
+     */
+    private ScoreDoc[] processKeyword(Object queryData, int topK) throws Exception {
+        //assume field name is contents
+        if (queryData instanceof String){
+            return queryKeyWord(null, (String) queryData, topK);
+        }
+        //assume [0] is fieldname, [1] is query string
+        else if(queryData instanceof String[]){
+            String[] fieldnameAndQuery = (String[])queryData;
+            QueryParser parser = new QueryParser(fieldnameAndQuery[0], new StandardAnalyzer());
+            return queryKeyWord(parser, fieldnameAndQuery[1], topK);
+        }
+        throw new UnsupportedDataType();
     }
 }
 

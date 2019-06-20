@@ -1,18 +1,19 @@
 package ai.preferred.cerebro.index.request;
 
+import ai.preferred.cerebro.index.search.Searcher;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
-import ai.preferred.cerebro.index.search.structure.LuIndexSearcher;
-import ai.preferred.cerebro.index.search.structure.VersatileSearcher;
+import ai.preferred.cerebro.index.search.LuIndexSearcher;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
- * A class to streamline the creation of a {@link VersatileSearcher}.
+ * A class to streamline the creation of a {@link LuceneBasedSearching}.
  *
  * @author hpminh@apcs.vn
  */
@@ -47,11 +48,11 @@ public class LoadSearcherRequest {
     }
 
     /**
-     * Load index on hard disk and create a {@link VersatileSearcher} object.
+     * Load index on hard disk and create a {@link ai.preferred.cerebro.index.search.Searcher} object.
      * @return Searcher on the index in the provided directory
      * @throws IOException thrown if the index is corrupted or can not be read.
      */
-    public VersatileSearcher getSearcher() throws IOException {
+    public Searcher<ScoreDoc> getSearcher() throws IOException {
         Directory indexDirectory;
         if(loadToRAM){
             indexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(indexDir)), null);
