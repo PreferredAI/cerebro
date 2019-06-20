@@ -36,7 +36,7 @@ public class TestFullFlow {
     static String textDataDir = "E:\\Lucene\\imdb_data";
     static String vecDataDir = TestConst.DIM_50_PATH + "itemVec_10M.o";
 
-    @org.junit.jupiter.api.Test
+    //@org.junit.jupiter.api.Test
     public void createTextIndex() throws Exception {
         //fileExt signify what file extension to read and index
         String fileExt = ".txt";
@@ -77,7 +77,7 @@ public class TestFullFlow {
         Assertions.assertNotNull(writer);
         writer.indexKeyWords(textDataDir, fileExt);
     }
-    @org.junit.jupiter.api.Test
+    //@org.junit.jupiter.api.Test
     public void demoSearchText() throws Exception {
         //main query
         String queryText = "Lord of the Rings";
@@ -96,7 +96,7 @@ public class TestFullFlow {
             System.out.println("File: " + doc.get(TestConst.FilePathField) + "; DocID:" + scoreDoc.doc);
         }
     }
-    @org.junit.jupiter.api.Test
+    //@org.junit.jupiter.api.Test
     public void createVecIndex() throws Exception {
         String hashTablePath = TestConst.DIM_50_PATH + "\\splitVec_32bits\\splitVec.o";
         LuIndexWriter writer = new LuIndexWriter(vecIndexDir, hashTablePath) {
@@ -119,7 +119,7 @@ public class TestFullFlow {
         writer.indexLatentVectors(vecDataDir);
     }
 
-    @org.junit.jupiter.api.Test
+    //@org.junit.jupiter.api.Test
     public void demoSearchVec() throws Exception {
         //get a searcher through a LoadSearcherRequest
         String hashTablePath = TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o";
