@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.builder;
 
+import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -8,12 +9,9 @@ import org.apache.lucene.util.BytesRef;
 
 import ai.preferred.cerebro.index.exception.DocNotClearedException;
 import ai.preferred.cerebro.index.exception.SameNameException;
-import ai.preferred.cerebro.index.store.DoubleStoredField;
 import ai.preferred.cerebro.index.store.VectorField;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
-
-import java.util.Iterator;
 
 /**
  * This class handles the creation of Document object
@@ -43,10 +41,12 @@ public class PersonalizedDocFactory {
      * @param ID unique ID of the document.
      * @param features the latent feature vector to index.
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link #create(Object, double[])} is not paired with a
+     * a call to {@link #createPersonalizedDoc(Object, double[])} is not paired with a
      * call to {@link #getDoc()}.
+     * @throws UnsupportedDataType thrown when the ID is not either a String or integer
+     * (or Integer)
      */
-    public void create(Object ID, double[] features) throws Exception {
+    public void createPersonalizedDoc(Object ID, double[] features) throws Exception {
         if(this.doc != null)
             throw new DocNotClearedException();
         if(this.hashFunc == null)
@@ -58,6 +58,8 @@ public class PersonalizedDocFactory {
         else if(ID instanceof Integer)
             idField = new StringField(IndexConst.IDFieldName,
                     new BytesRef(IndexUtils.intToByte(((Integer) ID).intValue())), Field.Store.YES);
+        else
+            throw new UnsupportedDataType();
         doc.add(idField);
         /* Storing double vector */
         VectorField vecField = new VectorField(features);
@@ -71,19 +73,21 @@ public class PersonalizedDocFactory {
     /**
      * Call this function to construct a generic text-only Document.
      * Should you need to add latent vector later call getDoc
-     * and start anew with the other create method.
+     * and start anew with the other createPersonalizedDoc method.
      *
      * @param ID unique ID of the document
      * @param fields the custom fields
      * @throws SameNameException this is triggered when one of your custom field has name
      * identical to Cerebro reserved word. See more detail at {@link IndexConst}.
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link #create(Object, double[])} is not paired with a
+     * a call to {@link #createPersonalizedDoc(Object, double[])} is not paired with a
      * call to {@link #getDoc()}.
+     * @throws UnsupportedDataType thrown when the ID is not either a String or integer
+     * (or Integer)
      *
      *
      */
-    public void create(Object ID, IndexableField... fields) throws SameNameException, DocNotClearedException {
+    public void createTextDoc(Object ID, IndexableField... fields) throws SameNameException, DocNotClearedException, UnsupportedDataType {
         if(this.doc != null){
             throw new DocNotClearedException();
         }
@@ -94,6 +98,8 @@ public class PersonalizedDocFactory {
         else if(ID instanceof Integer)
             idField = new StringField(IndexConst.IDFieldName,
                     new BytesRef(IndexUtils.intToByte(((Integer) ID).intValue())), Field.Store.YES);
+        else
+            throw new UnsupportedDataType();
         doc.add(idField);
         for(IndexableField field : fields){
             if(checkReservedFieldName(field.name()))
@@ -103,7 +109,7 @@ public class PersonalizedDocFactory {
     }
 
     /**
-     * After calling {@link #create(Object, double[])} to create a document with latent vector
+     * After calling {@link #createPersonalizedDoc(Object, double[])} to createPersonalizedDoc a document with latent vector
      * if you still want add more custom fields to a Document then use this function.
      *
      * @param fields fields to add to the {@link Document}
@@ -126,10 +132,8 @@ public class PersonalizedDocFactory {
     /**
      * After calling this function the pointer doc become null again.
      *
-     * @return the Document object being built since the last {@link #create(Object, double[])}
-     * or {@link #create(Object, IndexableField...)} call.
-     *
-     *
+     * @return the Document object being built since the last {@link #createPersonalizedDoc(Object, double[])}
+     * or {@link #createTextDoc(Object, IndexableField...)} call.
      */
     public Document getDoc(){
         Document t = this.doc;

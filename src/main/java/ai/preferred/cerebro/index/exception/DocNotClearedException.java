@@ -4,8 +4,8 @@ import ai.preferred.cerebro.index.builder.PersonalizedDocFactory;
 
 /**
  *
- * Thrown when you call {@link ai.preferred.cerebro.index.builder.PersonalizedDocFactory}'s create functions
- * but forget to pair a {@link PersonalizedDocFactory#getDoc()} with a previous create call.
+ * Thrown when you call {@link ai.preferred.cerebro.index.builder.PersonalizedDocFactory}'s createPersonalizedDoc functions
+ * but forget to pair a {@link PersonalizedDocFactory#getDoc()} with a previous createPersonalizedDoc call.
  *
  * @author hpminh@apcs.vn
  */

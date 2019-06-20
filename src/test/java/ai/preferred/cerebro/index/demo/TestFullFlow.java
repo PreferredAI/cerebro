@@ -8,16 +8,13 @@ import org.apache.lucene.document.TextField;
 import org.apache.lucene.search.ScoreDoc;
 import ai.preferred.cerebro.index.builder.ExtFilter;
 import ai.preferred.cerebro.index.builder.LuIndexWriter;
-import ai.preferred.cerebro.index.exception.DocNotClearedException;
-import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import ai.preferred.cerebro.index.request.QueryRequest;
 import ai.preferred.cerebro.index.response.QueryResponse;
-import ai.preferred.cerebro.index.search.processor.LuQueryProcessor;
-import ai.preferred.cerebro.index.search.processor.QueryProcessor;
-import ai.preferred.cerebro.index.search.structure.LuIndexSearcher;
+import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.File;
 import java.io.FileReader;
@@ -27,24 +24,20 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class Demo {
+public class TestFullFlow {
 
     //Change the DataDirs to where you store the downloaded data in README file.
     //Make an empty folder where you want to store the index file and modify
     //the IndexDirs to these folder directory.
     //Text and Vec data can share the same Index directory
     //but it is preferable that you seperate the two
-    static String textIndexDir = null;
+    static String textIndexDir = "E:\\Lucene\\Index";;
     static String vecIndexDir = TestConst.DIM_50_PATH + "index_32bits";
-    static String textDataDir = null;
-    static String vecDataDir = null;
-    public static void main(String[] args) throws Exception {
+    static String textDataDir = "E:\\Lucene\\imdb_data";
+    static String vecDataDir = TestConst.DIM_50_PATH + "itemVec_10M.o";
 
-
-
-    }
-
-    public static void createTextIndex() throws Exception {
+    @org.junit.jupiter.api.Test
+    public void createTextIndex() throws Exception {
         //fileExt signify what file extension to read and index
         String fileExt = ".txt";
         LuIndexWriter writer = new LuIndexWriter(textIndexDir, null) {
@@ -61,14 +54,12 @@ public class Demo {
                 //we add all these fields to a document through
                 //an intance of PersonalizedDocFactory
                 try {
-                    docFactory.create(writer.numDocs(), contentField, filePathField);
-                } catch (SameNameException e) {
-                    e.printStackTrace();
-                } catch (DocNotClearedException e) {
+                    docFactory.createTextDoc(writer.numDocs(), contentField, filePathField);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 //when using DocFactory always call getDoc()
-                //after calling create() to free up the pointer
+                //after calling createPersonalizedDoc() to free up the pointer
                 writer.addDocument(docFactory.getDoc());
             }
 
@@ -83,29 +74,31 @@ public class Demo {
                 createIndexFromDir(fileDir, filter);
             }
         };
+        Assertions.assertNotNull(writer);
         writer.indexKeyWords(textDataDir, fileExt);
     }
-
-    public static void demoSearchText() throws Exception {
+    @org.junit.jupiter.api.Test
+    public void demoSearchText() throws Exception {
         //main query
         String queryText = "Lord of the Rings";
 
         //get a searcher through a LoadSearcherRequest
         LoadSearcherRequest loadSearcher = new LoadSearcherRequest(textIndexDir, null, false);
         LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
-
+        Assertions.assertNotNull(searcher);
         //carry out searching
         QueryRequest request = new QueryRequest(queryText, QueryRequest.QueryType.KEYWORD, 20);
-        QueryProcessor processor = new LuQueryProcessor();
-        QueryResponse<ScoreDoc> res = processor.process(searcher, request);
+
+        QueryResponse<ScoreDoc> res = searcher.query(request);
+        Assertions.assertNotNull(res);
         for(ScoreDoc scoreDoc : res.getRankedItemList()) {
             Document doc = searcher.doc(scoreDoc.doc);
             System.out.println("File: " + doc.get(TestConst.FilePathField) + "; DocID:" + scoreDoc.doc);
         }
     }
-
-    public static void createVecIndex() throws Exception {
-        String hashTablePath = vecDataDir + "\\splitVec.o";
+    @org.junit.jupiter.api.Test
+    public void createVecIndex() throws Exception {
+        String hashTablePath = TestConst.DIM_50_PATH + "\\splitVec_32bits\\splitVec.o";
         LuIndexWriter writer = new LuIndexWriter(vecIndexDir, hashTablePath) {
             @Override
             public void indexFile(File file) throws IOException {
@@ -114,7 +107,7 @@ public class Demo {
 
             @Override
             public void indexLatentVectors(Object... params) throws Exception {
-                double[][] itemVec = IndexUtils.readVectors( params[0] + "\\itemVec_10M.o");
+                double[][] itemVec = IndexUtils.readVectors( (String) params[0]);
                 createIndexFromVecData(itemVec);
             }
 
@@ -126,8 +119,8 @@ public class Demo {
         writer.indexLatentVectors(vecDataDir);
     }
 
-    public static void demoSearchVec() throws Exception {
-
+    @org.junit.jupiter.api.Test
+    public void demoSearchVec() throws Exception {
         //get a searcher through a LoadSearcherRequest
         String hashTablePath = TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o";
         LoadSearcherRequest loadSearcher = new LoadSearcherRequest(vecIndexDir, hashTablePath, false);
@@ -135,13 +128,12 @@ public class Demo {
         //load query set
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
-            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_20M.o");
+            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_10M.o");
         }
         catch (IOException e) {
             e.printStackTrace();
         }
         //carry out search and measure time
-        QueryProcessor processor = new LuQueryProcessor();
         double totalTime = 0;
         double totalHit = 0;
         int totalMiss = 0;
@@ -157,7 +149,7 @@ public class Demo {
 
             //start querying
             long startTime = System.currentTimeMillis();
-            QueryResponse<ScoreDoc> res = processor.process(searcher, request);
+            QueryResponse<ScoreDoc> res = searcher.query(request);
             long endSearchTime = System.currentTimeMillis();
 
             //print search time and overlap with true top K

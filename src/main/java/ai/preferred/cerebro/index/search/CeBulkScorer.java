@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.search.structure;
+package ai.preferred.cerebro.index.search;
 
 import org.apache.lucene.search.*;
 import org.apache.lucene.util.Bits;

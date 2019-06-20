@@ -13,9 +13,7 @@ import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import ai.preferred.cerebro.index.request.QueryRequest;
 import ai.preferred.cerebro.index.response.QueryResponse;
-import ai.preferred.cerebro.index.search.processor.LuQueryProcessor;
-import ai.preferred.cerebro.index.search.processor.QueryProcessor;
-import ai.preferred.cerebro.index.search.structure.LuIndexSearcher;
+import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import ai.preferred.cerebro.core.util.CommandOptions;
@@ -33,6 +31,7 @@ import java.util.*;
  * necessary to carry out these examples
  */
 public class Main {
+    byte q = (byte) 0xff;
     static Scanner scanner = new Scanner(System.in);
     public static void main(String[] args) throws Exception{
         CommandOptions cmdOptions = new CommandOptions();
@@ -94,14 +93,14 @@ public class Main {
                 //we add all these fields to a document through
                 //an intance of PersonalizedDocFactory
                 try {
-                    docFactory.create(writer.numDocs(), contentField, filePathField);
+                    docFactory.createTextDoc(writer.numDocs(), contentField, filePathField);
                 } catch (SameNameException e) {
                     e.printStackTrace();
                 } catch (DocNotClearedException e) {
                     e.printStackTrace();
                 }
                 //when using DocFactory always call getDoc()
-                //after calling create() to free up the pointer
+                //after calling createPersonalizedDoc() to free up the pointer
                 writer.addDocument(docFactory.getDoc());
             }
 
@@ -213,8 +212,7 @@ public class Main {
         //the default is 20 top
         //results
         QueryRequest request = new QueryRequest(queryText, QueryRequest.QueryType.KEYWORD, 20);
-        QueryProcessor processor = new LuQueryProcessor();
-        QueryResponse<ScoreDoc> res = processor.process(searcher, request);
+        QueryResponse<ScoreDoc> res = searcher.query(request);
         //print out results
         for(ScoreDoc scoreDoc : res.getRankedItemList()) {
             Document doc = searcher.doc(scoreDoc.doc);
@@ -251,7 +249,6 @@ public class Main {
             e.printStackTrace();
         }
         //carry out search and measure time
-        QueryProcessor processor = new LuQueryProcessor();
         double totalTime = 0;
         double totalHit = 0;
         int totalMiss = 0;
@@ -267,7 +264,7 @@ public class Main {
 
             //start querying
             long startTime = System.currentTimeMillis();
-            QueryResponse<ScoreDoc> res = processor.process(searcher, request);
+            QueryResponse<ScoreDoc> res = searcher.query(request);
             long endSearchTime = System.currentTimeMillis();
 
             //print search time and overlap with true top K

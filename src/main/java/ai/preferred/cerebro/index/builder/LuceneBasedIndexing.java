@@ -6,7 +6,7 @@ package ai.preferred.cerebro.index.builder;
  *
  * @author hpminh@apcs.vn
  */
-public interface VersatileIndexing {
+public interface LuceneBasedIndexing {
     void indexLatentVectors(Object... params) throws Exception;
     void indexKeyWords(Object... params) throws Exception;
 }

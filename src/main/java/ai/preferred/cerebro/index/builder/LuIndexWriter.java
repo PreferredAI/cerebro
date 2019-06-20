@@ -32,7 +32,7 @@ import java.nio.file.Paths;
  *
  * @author hpminh@apcs.vn
  */
-public abstract class LuIndexWriter implements VersatileIndexing{
+public abstract class LuIndexWriter implements LuceneBasedIndexing {
     protected IndexWriter writer;
     protected PersonalizedDocFactory docFactory = null;
 
@@ -42,7 +42,7 @@ public abstract class LuIndexWriter implements VersatileIndexing{
      * <p>
      * In case a path LSH vectors object is not specify the indexwriter will still load,
      * but any operation involving latent item vector will throw a {@link NullPointerException}.\n
-     *
+     * <p>
      * @param indexDirectoryPath directory to the folder containing the index files.
      * @param splitVecPath path to the object file containing the LSH vectors.
      * @throws IOException this is triggered when a path or file does not exist.
@@ -117,17 +117,14 @@ public abstract class LuIndexWriter implements VersatileIndexing{
      * Determines the minimal number of documents required before the buffered
      * in-memory documents are flushed as a new Segment. Large values generally
      * give faster indexing.
-     *
      * <p>
      * When this is set, the writer will flush every maxBufferedDocs added
      * documents. Pass in {@link IndexWriterConfig#DISABLE_AUTO_FLUSH} to prevent
      * triggering a flush due to number of buffered documents. Note that if
      * flushing by RAM usage is also enabled, then the flush will be triggered by
      * whichever comes first.
-     *
      * <p>
      * Disabled by default (writer flushes by RAM usage).
-     *
      * <p>
      * Takes effect immediately, but only the next time a document is added,
      * updated or deleted.
@@ -259,8 +256,8 @@ public abstract class LuIndexWriter implements VersatileIndexing{
 
     /**
      * Self-implement this function to parse information from your file to be indexed.
-     * If you are utilizing personalized search function, plz use docFactory to create your Documents.
-     * Do not try to create Lucene document directly if you want to use personalized search.
+     * If you are utilizing personalized search function, plz use docFactory to createPersonalizedDoc your Documents.
+     * Do not try to createPersonalizedDoc Lucene document directly if you want to use personalized search.
      * See the deprecated function {@link #createIndexFromVecData(double[][])} as an main
      * of how to work with docFactory.
      */
@@ -274,12 +271,12 @@ public abstract class LuIndexWriter implements VersatileIndexing{
      * @param itemVecs the set of item latent vector to be indexes.
      * @throws IOException
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link PersonalizedDocFactory#create(Object, double[])}
+     * a call to {@link PersonalizedDocFactory#createPersonalizedDoc(Object, double[])}
      * is not paired with a call to {@link PersonalizedDocFactory#getDoc()}.
      */
     public void createIndexFromVecData(double[][] itemVecs) throws Exception {
         for(int i = 0; i < itemVecs.length; i++){
-            docFactory.create(writer.numDocs(), itemVecs[i]);
+            docFactory.createPersonalizedDoc(writer.numDocs(), itemVecs[i]);
             writer.addDocument(docFactory.getDoc());
         }
         writer.close();

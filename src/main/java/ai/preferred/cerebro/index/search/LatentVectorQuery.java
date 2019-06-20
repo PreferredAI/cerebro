@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.search.structure;
+package ai.preferred.cerebro.index.search;
 
 
 
@@ -144,7 +144,7 @@ public class LatentVectorQuery extends Query {
 
         @Override
         public Scorer scorer(LeafReaderContext context) throws IOException {
-            assert termStates == null || termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context)) : "The top-reader used to create Weight is not the same as the current reader's top-reader (" + ReaderUtil.getTopLevelContext(context);
+            assert termStates == null || termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context)) : "The top-reader used to createPersonalizedDoc Weight is not the same as the current reader's top-reader (" + ReaderUtil.getTopLevelContext(context);
             ;
             final TermsEnum termsEnum = getTermsEnum(context);
             if (termsEnum == null) {
@@ -167,7 +167,7 @@ public class LatentVectorQuery extends Query {
         private TermsEnum getTermsEnum(LeafReaderContext context) throws IOException {
             if (termStates != null) {
                 // TermQuery either used as a Query or the term states have been provided at construction time
-                assert termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context)) : "The top-reader used to create Weight is not the same as the current reader's top-reader (" + ReaderUtil.getTopLevelContext(context);
+                assert termStates.wasBuiltFor(ReaderUtil.getTopLevelContext(context)) : "The top-reader used to createPersonalizedDoc Weight is not the same as the current reader's top-reader (" + ReaderUtil.getTopLevelContext(context);
                 final TermState state = termStates.get(context.ord);
                 if (state == null) { // term is not present in that reader
                     assert termNotInReader(context.reader(), term) : "no termstate found but term exists in reader term=" + term;

@@ -1,10 +1,12 @@
 package ai.preferred.cerebro.index.request;
 
 
+import ai.preferred.cerebro.index.search.Searcher;
+
 /**
  *
  * This class is a search request to be passed into
- * {@link ai.preferred.cerebro.index.search.processor.QueryProcessor}
+ * {@link Searcher}
  * and get the result. The extra steps are to handle communication
  * between the index and other unreleased Cerebro components. Create your
  * queries and pass them directly via your searcher if you want to.

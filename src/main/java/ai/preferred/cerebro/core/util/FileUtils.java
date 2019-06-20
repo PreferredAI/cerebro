@@ -91,7 +91,7 @@ public class FileUtils {
 		File file = new File(path);
 		if (!file.exists()) {
 			if (!file.mkdirs()) {
-				throw new IOException("Cannot create directory " + path);
+				throw new IOException("Cannot createPersonalizedDoc directory " + path);
 			}
 		}
 	}

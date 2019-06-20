@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.search.structure;
+package ai.preferred.cerebro.index.search;
 
 import java.io.IOException;
 

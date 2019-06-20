@@ -7,7 +7,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
-import ai.preferred.cerebro.index.search.structure.LuIndexSearcher;
+import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.store.Container;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
