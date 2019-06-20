@@ -96,7 +96,7 @@ public class Main {
                     docFactory.createTextDoc(writer.numDocs(), contentField, filePathField);
                 } catch (SameNameException e) {
                     e.printStackTrace();
-                } catch (DocNotClearedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 //when using DocFactory always call getDoc()
