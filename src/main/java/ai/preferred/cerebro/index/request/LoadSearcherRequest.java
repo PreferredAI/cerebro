@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
- * A class to streamline the creation of a {@link LuceneBasedSearching}.
+ * A class to streamline the creation of a {@link Searcher}.
  *
  * @author hpminh@apcs.vn
  */

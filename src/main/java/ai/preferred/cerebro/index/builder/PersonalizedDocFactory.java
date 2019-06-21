@@ -103,7 +103,7 @@ public class PersonalizedDocFactory {
         doc.add(idField);
         for(IndexableField field : fields){
             if(checkReservedFieldName(field.name()))
-                throw new SameNameException("Same name exception");
+                throw new SameNameException();
             this.doc.add(field);
         }
     }
@@ -124,7 +124,7 @@ public class PersonalizedDocFactory {
         for(IndexableField f : fields){
             /* Name of any other fields must not coincide with the name of any reserved field */
             if(checkReservedFieldName(f.name()))
-                throw new SameNameException("Same name exception");
+                throw new SameNameException();
             this.doc.add(f);
         }
     }
@@ -147,7 +147,7 @@ public class PersonalizedDocFactory {
      * @param fieldname the field's name to be checked.
      * @return true if the fieldname is the similar to one of the reserved words.
      */
-    public boolean checkReservedFieldName(String fieldname){
+    public static boolean checkReservedFieldName(String fieldname){
         boolean a = fieldname.equals(IndexConst.IDFieldName);
         boolean b = fieldname.equals(IndexConst.VecFieldName);
         boolean c = fieldname.equals(IndexConst.HashFieldName);

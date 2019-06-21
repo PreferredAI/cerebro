@@ -12,9 +12,9 @@ import ai.preferred.cerebro.index.utils.IndexConst;
  */
 public class SameNameException extends Exception{
     public SameNameException(){
-        super("Field's name matches with preserved keyword exception");
+        super("Field's name matches with preserved keyword");
     }
-    public SameNameException(String message){
-        super(message);
-    }
+//    public SameNameException(String message){
+//        super(message);
+//    }
 }

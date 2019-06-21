@@ -13,7 +13,7 @@ public class DocNotClearedException extends Exception{
     public DocNotClearedException(){
         super("Doc not returned before being cleared for creating another doc");
     }
-    public DocNotClearedException(String message){
-        super(message);
-    }
+//    public DocNotClearedException(String message){
+//        super(message);
+//    }
 }

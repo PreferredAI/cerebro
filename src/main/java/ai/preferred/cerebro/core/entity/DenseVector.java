@@ -22,7 +22,7 @@ public class DenseVector extends AbstractVector {
 		
 		DenseVector v_cast = (DenseVector) v;
 		for(int i = 0; i < elements.length; i++)
-			elements[i] -= v_cast.getElements()[i];
+			elements[i] += v_cast.getElements()[i];
 	}
 
 	@Override
@@ -87,7 +87,7 @@ public class DenseVector extends AbstractVector {
 		double[] vals = new double[els.length];
 		for(String el: els){
 			String[] parts = el.split(":");
-			int index = NumberUtils.parseInt(parts[0]);
+			int index  = NumberUtils.parseInt(parts[0]);
 			double val = NumberUtils.parseDouble(parts[1]);
 			vals[index] = val;
 		}

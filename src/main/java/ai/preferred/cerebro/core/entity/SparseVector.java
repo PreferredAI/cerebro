@@ -53,6 +53,7 @@ public class SparseVector extends AbstractVector {
 			if(elements.containsKey(v_key))
 				sum += elements.get(v_key) * v_cast.getElements().get(v_key);
 		}
+		
 		return sum;
 	}
 
@@ -97,6 +98,7 @@ public class SparseVector extends AbstractVector {
 			double val = NumberUtils.parseDouble(parts[1]);
 			vals.put(parts[0], val);
 		}
+		
 		v.setElements(vals);
 		return v;
 	}

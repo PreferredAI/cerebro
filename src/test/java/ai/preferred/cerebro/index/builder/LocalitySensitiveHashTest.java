@@ -12,6 +12,7 @@ class LocalitySensitiveHashTest {
     byte[] code1 = {0x38};
     byte[] code2 = {0x39};
     byte[] code3 = {0x3d};
+    
     @Test
     void test(){
         LocalitySensitiveHash lsh = new LocalitySensitiveHash(TestConst.hashingVecs);
