@@ -76,7 +76,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
         }
     }
 
-    private TopDocs personalizedSearch(double [] vQuery, int topK)
+    protected TopDocs personalizedSearch(double [] vQuery, int topK)
             throws Exception{
         if(lsh == null)
             throw new Exception("LocalitySensitiveHash not initialized");
@@ -89,11 +89,11 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             return null;
         }
         LatentVectorQuery query = new LatentVectorQuery(vQuery, t);
-        //return search(query, topK < count ? topK : count);
-        return pSearch(query, count, topK);
+        return search(query, topK < count ? topK : count);
+        //return pSearch(query, count, topK);
     }
 
-    private TopDocs pSearch(Query query, int count, int topK)
+    protected TopDocs pSearch(Query query, int count, int topK)
             throws IOException {
         return pSearchAfter(null, query, count, topK);
     }
