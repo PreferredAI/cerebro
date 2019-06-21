@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.request;
 
 
+import ai.preferred.cerebro.core.entity.DenseVector;
 import ai.preferred.cerebro.index.search.Searcher;
 
 /**
@@ -77,7 +78,7 @@ public class QueryRequest {
     private static boolean checkType(Object queryData, QueryType type){
         switch (type){
             case VECTOR:
-                return queryData instanceof double[];
+                return queryData instanceof DenseVector || queryData instanceof double[];
             case KEYWORD:
                 return queryData instanceof String || queryData instanceof String[];
             default:

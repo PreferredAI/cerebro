@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.search;
 
 
+import ai.preferred.cerebro.core.entity.DenseVector;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.request.QueryRequest;
 import ai.preferred.cerebro.index.response.QueryResponse;
@@ -230,17 +231,22 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
 
     /**
      *
-     * @param vQuery The vector query.
+     * @param queryData The wrapper containing vector query.
      * @param resultSize Top result size.
      * @return A set of {@link ScoreDoc} of Document having latent vector producing.
      * the highest inner product with the query vector.
      * @throws Exception
      */
-    public ScoreDoc[] queryVector(double[] vQuery, int resultSize) throws Exception {
+    public ScoreDoc[] queryVector(DenseVector queryData, int resultSize) throws Exception {
+        double[] vQuery = queryData.getElements();
         TopDocs hits = personalizedSearch(vQuery, resultSize);
         return hits == null ? null : hits.scoreDocs;
     }
 
+    public ScoreDoc[] queryVector(double[] vQuery, int resultSize) throws Exception {
+        TopDocs hits = personalizedSearch(vQuery, resultSize);
+        return hits == null ? null : hits.scoreDocs;
+    }
     /**
      * Process both type of query text and vector
      * and carry out searching.
@@ -254,7 +260,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             case KEYWORD:
                 return new QueryResponse<ScoreDoc>(processKeyword(qRequest.getQueryData(), qRequest.getTopK()));
             case VECTOR:
-                return new QueryResponse<ScoreDoc>(queryVector((double[])qRequest.getQueryData(), qRequest.getTopK()));
+                return new QueryResponse<ScoreDoc>(queryVector((DenseVector)qRequest.getQueryData(), qRequest.getTopK()));
             default:
                 throw new UnsupportedDataType();
         }

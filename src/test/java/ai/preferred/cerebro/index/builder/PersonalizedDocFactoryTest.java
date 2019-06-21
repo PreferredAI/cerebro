@@ -41,6 +41,14 @@ class PersonalizedDocFactoryTest {
     }
 
     @Test
+    void createPersonalizedDocIntID(){
+        try {
+            docFactory.createPersonalizedDoc(1, TestConst.vec1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @Test
     void createTextDoc() {
         TextField content = new TextField(IndexConst.CONTENTS, TestConst.text2, Field.Store.NO);
         try {
@@ -50,6 +58,15 @@ class PersonalizedDocFactoryTest {
         }
     }
     
+    @Test
+    void createTextDocIntID() {
+        TextField content = new TextField(IndexConst.CONTENTS, TestConst.text2, Field.Store.NO);
+        try {
+            docFactory.createTextDoc(23, content);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     @Test
     void testDocNotCleared() {
         Assertions.assertThrows(DocNotClearedException.class, ()->{
@@ -65,12 +82,27 @@ class PersonalizedDocFactoryTest {
             TextField content = new TextField(IndexConst.VecFieldName, TestConst.text1, Field.Store.NO);
             docFactory.addField(content);
         });
+        Assertions.assertThrows(SameNameException.class, ()->{
+            TextField content = new TextField(IndexConst.CONTENTS, TestConst.text2, Field.Store.NO);
+            docFactory.createTextDoc("A01", content);
+            TextField fieldwitherrorname = new TextField(IndexConst.VecFieldName, TestConst.text1, Field.Store.NO);
+            docFactory.addField(fieldwitherrorname);
+        });
     }
-    
+
     @Test
     void testUnsupportedDataType(){
         Assertions.assertThrows(UnsupportedDataType.class, ()->{
             docFactory.createPersonalizedDoc(2.3, TestConst.vec1);
         });
     }
+
+    @Test
+    void testHashingVecNotProvided(){
+        Assertions.assertThrows(Exception.class, ()->{
+            PersonalizedDocFactory docFactory1 = new PersonalizedDocFactory();
+            docFactory1.createPersonalizedDoc(2, TestConst.vec1);
+        });
+    }
+
 }
