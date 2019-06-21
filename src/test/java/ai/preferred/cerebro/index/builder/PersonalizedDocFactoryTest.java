@@ -82,7 +82,7 @@ class PersonalizedDocFactoryTest {
             TextField content = new TextField(IndexConst.VecFieldName, TestConst.text1, Field.Store.NO);
             docFactory.addField(content);
         });
-        Assertions.assertThrows(SameNameException.class, ()->{
+        Assertions.assertThrows(DocNotClearedException.class, ()->{
             TextField content = new TextField(IndexConst.CONTENTS, TestConst.text2, Field.Store.NO);
             docFactory.createTextDoc("A01", content);
             TextField fieldwitherrorname = new TextField(IndexConst.VecFieldName, TestConst.text1, Field.Store.NO);
