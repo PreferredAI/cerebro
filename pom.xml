@@ -44,6 +44,13 @@
             <organizationUrl>https://preferred.ai/</organizationUrl>
             <timezone>+8</timezone>
         </developer>
+        <developer>
+            <name>LE Duc Trong</name>
+            <email>ductrong.le.2014 -at- smu.edu.sg</email>
+            <organization>Preferred.AI</organization>
+            <organizationUrl>https://preferred.ai/</organizationUrl>
+            <timezone>+8</timezone>
+        </developer>
     </developers>
     
     <scm>
@@ -244,6 +251,12 @@
             <version>5.4.0</version>
             <scope>test</scope>
         </dependency>
+      <!--   <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency> -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>

@@ -13,14 +13,17 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PersonalizedDocFactoryTest {
     PersonalizedDocFactory docFactory;
+    
     @BeforeAll
     void init(){
         docFactory = new PersonalizedDocFactory(TestConst.hashingVecs);
     }
+    
     @AfterEach
     void freeDoc(){
         docFactory.getDoc();
     }
+    
     @Test
     void createPersonalizedDoc(){
         try {
@@ -28,6 +31,7 @@ class PersonalizedDocFactoryTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
         TextField content = new TextField(IndexConst.CONTENTS, TestConst.text1, Field.Store.NO);
         try {
             docFactory.addField(content);
@@ -45,6 +49,7 @@ class PersonalizedDocFactoryTest {
             e.printStackTrace();
         }
     }
+    
     @Test
     void testDocNotCleared() {
         Assertions.assertThrows(DocNotClearedException.class, ()->{
@@ -52,6 +57,7 @@ class PersonalizedDocFactoryTest {
             docFactory.createPersonalizedDoc("A01", TestConst.vec2);
         });
     }
+    
     @Test
     void testSameName() {
         Assertions.assertThrows(SameNameException.class, ()->{
@@ -60,6 +66,7 @@ class PersonalizedDocFactoryTest {
             docFactory.addField(content);
         });
     }
+    
     @Test
     void testUnsupportedDataType(){
         Assertions.assertThrows(UnsupportedDataType.class, ()->{
