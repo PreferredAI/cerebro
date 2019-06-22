@@ -40,7 +40,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
     protected final LeafSlice[] leafSlices;
     protected IndexReader reader;
     QueryParser defaultParser;
-    private LocalitySensitiveHash lsh;
+    protected LocalitySensitiveHash lsh;
 
 
     /**
@@ -76,7 +76,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
         }
     }
 
-    private TopDocs personalizedSearch(double [] vQuery, int topK)
+    protected TopDocs personalizedSearch(double [] vQuery, int topK)
             throws Exception{
         if(lsh == null)
             throw new Exception("LocalitySensitiveHash not initialized");
@@ -93,7 +93,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
         //return pSearch(query, count, topK);
     }
 
-    private TopDocs pSearch(Query query, int count, int topK)
+    protected TopDocs pSearch(Query query, int count, int topK)
             throws IOException {
         return pSearchAfter(null, query, count, topK);
     }
@@ -231,17 +231,12 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
 
     /**
      *
-     * @param queryData The wrapper containing vector query.
+     * @param vQuery The vector query.
      * @param resultSize Top result size.
      * @return A set of {@link ScoreDoc} of Document having latent vector producing.
      * the highest inner product with the query vector.
      * @throws Exception
      */
-    public ScoreDoc[] queryVector(DenseVector queryData, int resultSize) throws Exception {
-        double[] vQuery = queryData.getElements();
-        TopDocs hits = personalizedSearch(vQuery, resultSize);
-        return hits == null ? null : hits.scoreDocs;
-    }
 
     public ScoreDoc[] queryVector(double[] vQuery, int resultSize) throws Exception {
         TopDocs hits = personalizedSearch(vQuery, resultSize);
@@ -260,7 +255,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             case KEYWORD:
                 return new QueryResponse<ScoreDoc>(processKeyword(qRequest.getQueryData(), qRequest.getTopK()));
             case VECTOR:
-                return new QueryResponse<ScoreDoc>(queryVector((DenseVector)qRequest.getQueryData(), qRequest.getTopK()));
+                return new QueryResponse<ScoreDoc>(processVec(qRequest.getQueryData(), qRequest.getTopK()));
             default:
                 throw new UnsupportedDataType();
         }
@@ -284,6 +279,19 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             String[] fieldnameAndQuery = (String[])queryData;
             QueryParser parser = new QueryParser(fieldnameAndQuery[0], new StandardAnalyzer());
             return queryKeyWord(parser, fieldnameAndQuery[1], topK);
+        }
+        throw new UnsupportedDataType();
+    }
+
+    private ScoreDoc[] processVec(Object queryData, int topK) throws Exception {
+        //assume field name is contents
+        if (queryData instanceof double[]){
+            return queryVector((double[]) queryData, topK);
+        }
+        //assume [0] is fieldname, [1] is query string
+        else if(queryData instanceof DenseVector){
+            double[] vec = ((DenseVector) queryData).getElements();
+            return queryVector(vec, topK);
         }
         throw new UnsupportedDataType();
     }

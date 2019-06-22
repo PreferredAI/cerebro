@@ -28,11 +28,11 @@ public class PersonalizedDocFactory {
      * Instantiate with a set of hashing vectors.
      * @param splitVecs
      */
-    PersonalizedDocFactory(double [][] splitVecs){
+    public PersonalizedDocFactory(double [][] splitVecs){
         hashFunc = new LocalitySensitiveHash(splitVecs);
     }
 
-    PersonalizedDocFactory(){}
+    public PersonalizedDocFactory(){}
     /**
      * Only use this function to construct a Document containing latent vector.
      * To add additional fields to the Document, use {@link #addField(IndexableField...)}.

@@ -143,8 +143,10 @@ public abstract class Container <T> implements Iterable<T>{
     }
 
     public void pullTopK(int k, boolean ordered, boolean trim){
-        assert k < size;
-        orderStatistic(0, size, size - k);
+        if(k < size)
+            orderStatistic(0, size, size - k);
+        else
+            k = size;
         if(ordered)
             quicksort(size - k, size);
         if(trim){
