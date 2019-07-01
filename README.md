@@ -17,7 +17,7 @@ Our goal is to create a closed-loop engine for recommendations with blazingly fa
 
 ## Getting started
 
-#### Add a dependency
+### Add a dependency
 If you already have a project then just add Cerebro as a dependency to your pom.xml:
 ```xml
 <dependency>
@@ -27,7 +27,7 @@ If you already have a project then just add Cerebro as a dependency to your pom.
   	<version>1.0</version>
 </dependency>
 ```
-#### Example
+### Example
 Clone the repository to your computer then build jar file with maven. Make sure in your build folder there is a file 
 "cerebro-1.0-jar-with-dependencies.jar". The configuration has been tweeted to build standalone jar file.
 
@@ -43,7 +43,7 @@ Look into the extracted folder from the vec file. It includes:
 
 Open your CLI and navigate to your build folder.
 
-##### Build text index
+#### Build text index
 ```ssh
 \..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 1
 Plz enter the path to the folder where you want to put the index:
@@ -60,7 +60,7 @@ Build index for text successfully
 
 \..\cerebro\target>_
 ```
-##### Text search on an index
+#### Text search on an index
 After building your index, you may want to check if it is functioning.
 
 ```ssh
@@ -96,7 +96,7 @@ File: E:\imdb_data\32157_0.txt; DocID:24618
 \..\cerebro\target>_
 ```
  
- ##### Build index for vector
+ #### Build index for vector
  Cerebro supports index-building for both text and latent vector.
  It uses the ANNS(approximate nearest neighbor search) approach LSH(Locality Sensitive Hashing) to build index 
  for vector.
@@ -125,7 +125,7 @@ Build index for vector successfully
 \..\cerebro\target>_
  ``` 
  
- ##### Vector search on an index
+#### Vector search on an index
 ```ssh
 \..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 4
 Plz enter the path to the folder where you put the index files:
