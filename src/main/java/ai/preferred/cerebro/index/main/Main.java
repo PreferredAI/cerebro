@@ -167,7 +167,7 @@ public class Main {
 
             @Override
             public void indexLatentVectors(Object... params) throws Exception {
-                double[][] itemVec = IndexUtils.readVectors( params[0] + "\\itemVec_10M.o");
+                double[][] itemVec = IndexUtils.readVectors( (String)params[0]);
                 createIndexFromVecData(itemVec);
             }
 
@@ -272,7 +272,7 @@ public class Main {
                 System.out.println("Top-20 query time: " +(endSearchTime-startTime)+" ms");
                 totalTime += endSearchTime - startTime;
                 ArrayList<Integer> setHash = new ArrayList<>();
-                for(int i = 0; i < 20; i++){
+                for(int i = 0; i < res.getRankedItemList().length; i++){
                     int id = res.getRankedItemList()[i].doc;
                     setHash.add(id);
                 }
