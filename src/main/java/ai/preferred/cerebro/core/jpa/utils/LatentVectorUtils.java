@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.core.jpa.util;
+package ai.preferred.cerebro.core.jpa.utils;
 
 import ai.preferred.cerebro.core.entity.AbstractVector;
 import ai.preferred.cerebro.core.entity.DenseVector;

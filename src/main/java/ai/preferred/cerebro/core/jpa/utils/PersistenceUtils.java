@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.core.jpa.util;
+package ai.preferred.cerebro.core.jpa.utils;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,7 +9,7 @@ import javax.persistence.Persistence;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import ai.preferred.cerebro.core.util.ConfigUtils;
+import ai.preferred.cerebro.core.utils.ConfigUtils;
 
 public class PersistenceUtils {
 	private static final Logger LOGGER = LogManager.getLogger(PersistenceUtils.class);

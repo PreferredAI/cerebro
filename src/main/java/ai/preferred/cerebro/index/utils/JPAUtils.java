@@ -11,8 +11,8 @@ import ai.preferred.cerebro.core.jpa.entitymanager.IndexMetadataManager;
 import ai.preferred.cerebro.core.jpa.entitymanager.IndexTypeManager;
 import ai.preferred.cerebro.core.jpa.entitymanager.ItemModelManager;
 import ai.preferred.cerebro.core.jpa.entitymanager.ModelManager;
-import ai.preferred.cerebro.core.jpa.util.LatentVectorUtils;
-import ai.preferred.cerebro.core.jpa.util.PersistenceUtils;
+import ai.preferred.cerebro.core.jpa.utils.LatentVectorUtils;
+import ai.preferred.cerebro.core.jpa.utils.PersistenceUtils;
 
 /**
  * @author ddle.2015

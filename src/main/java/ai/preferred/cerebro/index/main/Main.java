@@ -6,6 +6,8 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.search.ScoreDoc;
+
+import ai.preferred.cerebro.core.utils.CommandOptions;
 import ai.preferred.cerebro.index.builder.ExtFilter;
 import ai.preferred.cerebro.index.builder.LuIndexWriter;
 import ai.preferred.cerebro.index.exception.DocNotClearedException;
@@ -16,7 +18,6 @@ import ai.preferred.cerebro.index.response.QueryResponse;
 import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
-import ai.preferred.cerebro.core.util.CommandOptions;
 
 import java.io.File;
 import java.io.FileReader;

@@ -6,7 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import ai.preferred.cerebro.core.jpa.entity.ItemModel;
-import ai.preferred.cerebro.core.jpa.util.QueryUtils;
+import ai.preferred.cerebro.core.jpa.utils.QueryUtils;
 
 public class ItemModelManager extends AbstractManager<ItemModel> {
 

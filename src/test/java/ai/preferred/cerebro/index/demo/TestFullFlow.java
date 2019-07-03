@@ -43,6 +43,7 @@ public class TestFullFlow {
         writer.close();
 
     }
+    
     @org.junit.jupiter.api.Test
     public void demoSearch() throws Exception {
         //main query

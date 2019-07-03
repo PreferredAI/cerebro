@@ -8,9 +8,9 @@ import javax.persistence.Query;
 import javax.persistence.TemporalType;
 
 import ai.preferred.cerebro.core.jpa.entity.Session;
-import ai.preferred.cerebro.core.jpa.util.QueryUtils;
-import ai.preferred.cerebro.core.jpa.util.UUIDUtils;
-import ai.preferred.cerebro.core.util.DateUtils;
+import ai.preferred.cerebro.core.jpa.utils.QueryUtils;
+import ai.preferred.cerebro.core.jpa.utils.UUIDUtils;
+import ai.preferred.cerebro.core.utils.DateUtils;
 
 public class SessionManager extends AbstractManager<Session> {
 	public SessionManager(EntityManager entityManager) {

@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.core.util;
+package ai.preferred.cerebro.core.utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,10 +6,10 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import ai.preferred.cerebro.core.util.BooleanUtils;
-import ai.preferred.cerebro.core.util.NumberUtils;
-import ai.preferred.cerebro.core.util.ObjectUtils;
-import ai.preferred.cerebro.core.util.StringUtils;
+import ai.preferred.cerebro.core.utils.BooleanUtils;
+import ai.preferred.cerebro.core.utils.NumberUtils;
+import ai.preferred.cerebro.core.utils.ObjectUtils;
+import ai.preferred.cerebro.core.utils.StringUtils;
 /**
  * Command Options
  * @author ddle.2015
