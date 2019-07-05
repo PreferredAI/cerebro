@@ -85,9 +85,9 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
         int count = 0;
         for (LeafReaderContext leaf : reader.leaves())
             count += leaf.reader().docFreq(t);
-        if(count == 0){
+        if(count == 0)
             return null;
-        }
+
         LatentVectorQuery query = new LatentVectorQuery(vQuery, t);
         return search(query, topK < count ? topK : count);
         //return pSearch(query, count, topK);
@@ -294,6 +294,12 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             return queryVector(vec, topK);
         }
         throw new UnsupportedDataType();
+    }
+
+    public void close(){
+        if(executor != null){
+            executor.shutdown();
+        }
     }
 }
 

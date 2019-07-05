@@ -58,7 +58,7 @@ public abstract class LuIndexWriter implements LuceneBasedIndexing {
 
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
-        iwc.setRAMBufferSizeMB(size);
+        iwc.setRAMBufferSizeMB(256);
         writer = new IndexWriter(indexDirectory, iwc);
         if(splitVecPath != null){
             double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
@@ -218,9 +218,10 @@ public abstract class LuIndexWriter implements LuceneBasedIndexing {
      *
      */
     public void optimize() throws IOException {
+        int optimalNofSegments = Runtime.getRuntime().availableProcessors();
         writer.getConfig().setUseCompoundFile(true);
         writer.getConfig().getMergePolicy().setNoCFSRatio(1.0);
-        writer.forceMerge(1);
+        writer.forceMerge(optimalNofSegments);
         writer.close();
     }
 

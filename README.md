@@ -101,7 +101,7 @@ File: E:\imdb_data\32157_0.txt; DocID:24618
  It uses the ANNS(approximate nearest neighbor search) approach LSH(Locality Sensitive Hashing) to build index 
  for vector.
  
- Note that although in this example we are building indexes for text and vectors into two seperate folders, but a cerebro 
+ Note that although in this example we are building indexes for text and vectors into two seperate folders, a cerebro 
  index folder can incorporate both text and vectors. Try using the same directory for for both text and vector to see for 
  yourself.
  
