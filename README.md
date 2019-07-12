@@ -45,15 +45,10 @@ Open your CLI and navigate to your build folder.
 
 #### Build text index
 ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 1
-Plz enter the path to the folder where you want to put the index:
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 1 -idx E:\Index -data E:\imdb_data
 
-E:\Index    //Enter the path to the folder where you want to build index
-Plz enter the path to the folder where you put the data to be indexed:
 
-E:\imdb_data    //Enter the path to the folder where you extract you text files
-
-(Waiting...)
+Building index, plz wait
 
 Build index for text successfully
 
@@ -64,33 +59,28 @@ Build index for text successfully
 After building your index, you may want to check if it is functioning.
 
 ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 3
-Plz enter the path to the folder where you put the index files:
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 3 -idx E:\Index -q War
 
-E:\Index    //Enter the path to the folder that you specified where to build index earlier
-Plz enter your query:
-
-Lord of the Ring    //Enter whatever keyword you want to search
-File: E:\imdb_data\31327_0.txt; DocID:23696
-File: E:\imdb_data\31326_0.txt; DocID:23695
-File: E:\imdb_data\31315_0.txt; DocID:23683
-File: E:\imdb_data\21433_0.txt; DocID:12703
-File: E:\imdb_data\29690_0.txt; DocID:21876
-File: E:\imdb_data\31323_0.txt; DocID:23692
-File: E:\imdb_data\34899_0.txt; DocID:27663
-File: E:\imdb_data\31317_0.txt; DocID:23685
-File: E:\imdb_data\33447_0.txt; DocID:26051
-File: E:\imdb_data\31972_0.txt; DocID:24412
-File: E:\imdb_data\42686_0.txt; DocID:36316
-File: E:\imdb_data\28731_0.txt; DocID:20811
-File: E:\imdb_data\200_0.txt; DocID:11222
-File: E:\imdb_data\21424_0.txt; DocID:12693
-File: E:\imdb_data\216_0.txt; DocID:12999
-File: E:\imdb_data\21439_0.txt; DocID:12709
-File: E:\imdb_data\21428_0.txt; DocID:12697
-File: E:\imdb_data\28207_0.txt; DocID:20229
-File: E:\imdb_data\206_0.txt; DocID:11888
-File: E:\imdb_data\32157_0.txt; DocID:24618
+File: E:\imdb_data\24400_0.txt; DocID:16000
+File: E:\imdb_data\33526_0.txt; DocID:26139
+File: E:\imdb_data\23356_0.txt; DocID:14839
+File: E:\imdb_data\28656_0.txt; DocID:20727
+File: E:\imdb_data\38337_0.txt; DocID:31484
+File: E:\imdb_data\35539_0.txt; DocID:28375
+File: E:\imdb_data\26895_0.txt; DocID:18770
+File: E:\imdb_data\3715_0.txt; DocID:30176
+File: E:\imdb_data\28653_0.txt; DocID:20724
+File: E:\imdb_data\1822_0.txt; DocID:9143
+File: E:\imdb_data\26921_0.txt; DocID:18800
+File: E:\imdb_data\1820_0.txt; DocID:9121
+File: E:\imdb_data\26912_0.txt; DocID:18790
+File: E:\imdb_data\35547_0.txt; DocID:28384
+File: E:\imdb_data\10079_0.txt; DocID:87
+File: E:\imdb_data\24627_0.txt; DocID:16251
+File: E:\imdb_data\10514_0.txt; DocID:571
+File: E:\imdb_data\10533_0.txt; DocID:592
+File: E:\imdb_data\20105_0.txt; DocID:11228
+File: E:\imdb_data\11297_0.txt; DocID:1440
 //files containing keywords you entered
 
 \..\cerebro\target>_
@@ -106,45 +96,26 @@ File: E:\imdb_data\32157_0.txt; DocID:24618
  yourself.
  
  ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 2
-Plz enter the path to the folder where you want to put the index:
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 2 -idx E:\index_Vec -data E:\vec_data\itemVec_10M.o -hsh E:\vec_data\splitVec.o
 
-E:\index_Vec    //Enter the path to the folder where you want to build index
-Plz enter the path to the file object containing the data to be indexed:
-
-E:\VecData\itemVec_10M.o    //Note, this time a file objects, not a folder
-Plz enter the path to the folder where you put the file object that contains hashing vectors:
-
-E:\VecData\splitVec.o   //Path to the file containing hashing vectors splitVec.o
-
-(Waiting...)
+Building index, plz wait
 
 Build index for vector successfully
-
 
 \..\cerebro\target>_
  ``` 
  
 #### Vector search on an index
 ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 4
-Plz enter the path to the folder where you put the index files:
-
-E:\index_Vec    \\The folder you just entered earlier to build vec index
-Plz enter the path to the folder where you put the file object that contains hashing vectors:
-
-E:\VecData\splitVec.o   \\Directory to the file containing query vectors
-Plz enter the path to the query vectors file object:
-
-E:\VecData\query_top20_10M.o
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 4 -idx E:\index_Vec -hsh E:\vec_data\splitVec.o -qV E:\vec_data\query_top20_10M.o
 Top-20 query time: 173 ms
 Overlapp between brute and and hash (over top 20) is : 0
 
-Top-20 query time: 135 ms
+Top-20 query time: 71 ms
 Overlapp between brute and and hash (over top 20) is : 0
 
-Top-20 query time: 101 ms
-Overlapp between brute and and hash (over top 20) is : 0
+Top-20 query time: 23 ms
+Overlapp between brute and and hash (over top 20) is : 2
 .....
 ```
  

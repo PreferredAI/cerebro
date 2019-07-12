@@ -174,7 +174,7 @@ public class Statistic {
         writer.indexLatentVectors(TestConst.DIM_50_PATH + "itemVec_20M.o");
     }
 
-
+    @Test
     public void compareAccuracyAndSpeed() throws Exception {
         LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_16bits",
                                                                     TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o",
