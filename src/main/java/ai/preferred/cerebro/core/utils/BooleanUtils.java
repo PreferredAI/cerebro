@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.core.util;
+package ai.preferred.cerebro.core.utils;
 /**
  * BooleanUtils
  * @author ddle.2015

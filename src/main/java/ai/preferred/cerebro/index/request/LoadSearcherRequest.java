@@ -11,6 +11,8 @@ import ai.preferred.cerebro.index.search.LuIndexSearcher;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * A class to streamline the creation of a {@link Searcher}.
@@ -21,6 +23,7 @@ public class LoadSearcherRequest {
     String indexDir;
     String lshVecDir;
     boolean loadToRAM;
+    boolean multithreadEnabled;
 
     /**
      * Create a request to load searcher with RAM usage configuration.
@@ -46,6 +49,12 @@ public class LoadSearcherRequest {
         this.lshVecDir = lshVecDir;
         this.loadToRAM = loadToRAM;
     }
+    public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM, boolean multithreadEnabled) {
+        this.indexDir = indexDir;
+        this.lshVecDir = lshVecDir;
+        this.loadToRAM = loadToRAM;
+        this.multithreadEnabled = multithreadEnabled;
+    }
 
     /**
      * Load index on hard disk and create a {@link ai.preferred.cerebro.index.search.Searcher} object.
@@ -53,14 +62,18 @@ public class LoadSearcherRequest {
      * @throws IOException thrown if the index is corrupted or can not be read.
      */
     public Searcher<ScoreDoc> getSearcher() throws IOException {
+        ExecutorService executorService = null;
+        if(multithreadEnabled){
+            executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        }
         Directory indexDirectory;
         if(loadToRAM){
             indexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(indexDir)), null);
-            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), lshVecDir);
+            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
         else {
             indexDirectory = FSDirectory.open(Paths.get(indexDir));
-            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), lshVecDir);
+            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
 
     }

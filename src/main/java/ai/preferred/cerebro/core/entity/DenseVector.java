@@ -1,6 +1,6 @@
 package ai.preferred.cerebro.core.entity;
 
-import ai.preferred.cerebro.core.util.NumberUtils;
+import ai.preferred.cerebro.core.utils.NumberUtils;
 /**
  * Dense vector
  * @author ddle.2015

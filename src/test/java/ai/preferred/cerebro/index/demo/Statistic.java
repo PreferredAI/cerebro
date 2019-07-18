@@ -1,6 +1,8 @@
 package ai.preferred.cerebro.index.demo;
 
 //import com.preferred.ai.DumpIndexSearcher;
+import ai.preferred.cerebro.index.builder.LuIndexWriter;
+import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.Directory;
@@ -10,8 +12,10 @@ import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
 import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.store.Container;
 import ai.preferred.cerebro.index.utils.IndexUtils;
+import org.junit.jupiter.api.Test;
 
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
@@ -147,14 +151,36 @@ public class Statistic {
         IndexUtils.saveQueryAndTopK(queryAndTopK, TestConst.DIM_50_PATH +"ex.o");
     }
 
-    public static void compareAccuracyAndSpeed() throws Exception {
-//        DumpIndexSearcher searcher = new DumpIndexSearcher(CerebroConstants.DIM_50_PATH + "index_32bits",
-//                CerebroConstants.DIM_50_PATH + "splitVec_32bits\\splitVec.o", true);
-        //Directory indexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(CerebroConstants.DIM_50_PATH + "index_8bits")), null);
-        ExecutorService executorService = null; //Executors.newFixedThreadPool(10);
-        Directory indexDirectory = FSDirectory.open(Paths.get(TestConst.DIM_50_PATH + "index_16bits"));
-        LuIndexSearcher searcher = new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService
-                , TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o");
+
+    public void createIndex() throws Exception {
+        LuIndexWriter writer = new LuIndexWriter(TestConst.DIM_50_PATH + "index_16bits",
+                                                    TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o") {
+            @Override
+            public void indexFile(File file) throws IOException {
+
+            }
+
+            @Override
+            public void indexLatentVectors(Object... params) throws Exception {
+                double[][] itemVec = IndexUtils.readVectors( (String)params[0]);
+                createIndexFromVecData(itemVec);
+            }
+
+            @Override
+            public void indexKeyWords(Object... params) throws Exception {
+
+            }
+        };
+        writer.indexLatentVectors(TestConst.DIM_50_PATH + "itemVec_20M.o");
+    }
+
+    @Test
+    public void compareAccuracyAndSpeed() throws Exception {
+        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_16bits",
+                                                                    TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o",
+                                                                    false,
+                                                                true);
+        LuIndexSearcher searcher = (LuIndexSearcher) loadSearcherRequest.getSearcher();
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
             queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_20M.o");
@@ -172,13 +198,13 @@ public class Statistic {
             ArrayList<Integer> setBrute = (ArrayList<Integer>) entry.getValue();
             long startTime = System.currentTimeMillis();
             ScoreDoc[] res = searcher.queryVector(query, 20);
-            if(res != null){
+            if(res != null && res.length == 20){
                 long endSearchTime = System.currentTimeMillis();
                 System.out.println("Top-20 query time: " +(endSearchTime-startTime)+" ms");
                 totalTime += endSearchTime - startTime;
 
                 ArrayList<Integer> setHash = new ArrayList<>();
-                for(int i = 0; i < 20; i++){
+                for(int i = 0; i < res.length; i++){
                     //Document document = searcher.doc(res.scoreDocs[i].doc);
                     int id = res[i].doc; //IndexUtils.byteToInt(document.getField(IndexConst.IDFieldName).binaryValue().bytes);
                     setHash.add(id);
@@ -192,7 +218,7 @@ public class Statistic {
             else totalMiss++;
 
         }
-        executorService.shutdown();
+        searcher.close();
         System.out.println("Num of misses : " + totalMiss);
         System.out.println("Average search time :" + totalTime/(1000 - totalMiss));
         System.out.println("Average overlap :" + totalHit/(1000 - totalMiss));

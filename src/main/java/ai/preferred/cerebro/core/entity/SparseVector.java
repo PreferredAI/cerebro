@@ -2,8 +2,8 @@ package ai.preferred.cerebro.core.entity;
 
 import java.util.TreeMap;
 
-import ai.preferred.cerebro.core.util.NumberUtils;
-import ai.preferred.cerebro.core.util.StringUtils;
+import ai.preferred.cerebro.core.utils.NumberUtils;
+import ai.preferred.cerebro.core.utils.StringUtils;
 /**
  * Sparse vector
  * @author ddle.2015

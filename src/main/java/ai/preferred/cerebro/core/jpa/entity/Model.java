@@ -15,7 +15,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import ai.preferred.cerebro.core.entity.Parameter;
-import ai.preferred.cerebro.core.util.StringUtils;
+import ai.preferred.cerebro.core.utils.StringUtils;
 
 @NamedQueries({
 	@NamedQuery(name = Model.GET_MODEL_BY_CODE, query = "SELECT m FROM Model m "

@@ -30,7 +30,6 @@ import java.util.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestFullFlow {
-
     @BeforeAll
     public void createIndex() throws Exception {
         //fileExt signify what file extension to read and index
@@ -44,6 +43,7 @@ public class TestFullFlow {
         writer.close();
 
     }
+    
     @org.junit.jupiter.api.Test
     public void demoSearch() throws Exception {
         //main query
@@ -59,9 +59,10 @@ public class TestFullFlow {
 
         QueryRequest requestVec = new QueryRequest(TestConst.vec1, QueryRequest.QueryType.VECTOR, 1);
         QueryResponse<ScoreDoc> resVec = searcher.query(requestVec);
-        //Assertions.assertNotNull(resVec);
+        Assertions.assertNotNull(resVec);
 
     }
+
 //    @AfterAll
 //    public void tearDown(){
 //        HashSet<String> fileSet = new HashSet<String>();

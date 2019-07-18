@@ -51,18 +51,21 @@ public class CosineSimilarity extends Similarity {
     @Override
     public SimScorer simScorer(SimWeight stats, LeafReaderContext context) throws IOException {
         CosineStats cosineStats = (CosineStats) stats;
-        return new CosineDocScorer(cosineStats);
+        return new CosineDocScorer(cosineStats, context.docBase);
     }
 
     private class CosineDocScorer extends SimScorer{
         private final CosineStats stats;
-        CosineDocScorer(CosineStats stats){
+        private final int docBase;
+        CosineDocScorer(CosineStats stats, int docBase){
             this.stats = stats;
+            this.docBase = docBase;
         }
 
         @Override
         public float score(int doc, float freq) throws IOException {
             //Document document = stats.reader.document(doc, IndexConst.fieldsRetrieve);
+            doc += docBase;
             Document document = stats.reader.document(doc);
             double[] tarVec = VectorField.getFeatureVector(document.getField(IndexConst.VecFieldName).binaryValue().bytes);
             //double tarVecLen = DoubleStoredField.bytesToDouble(document.getField(IndexConst.VecLenFieldName).binaryValue().bytes);//IndexUtils.vecLength(tarVec);

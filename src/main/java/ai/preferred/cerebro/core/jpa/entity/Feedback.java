@@ -13,7 +13,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import ai.preferred.cerebro.core.entity.Parameter;
-import ai.preferred.cerebro.core.util.StringUtils;
+import ai.preferred.cerebro.core.utils.StringUtils;
 
 @NamedQueries({
 	@NamedQuery(name = Feedback.GET_FEEDBACK_BY_ID, query = "SELECT f FROM Feedback f "

@@ -2,7 +2,7 @@ package ai.preferred.cerebro.core.jpa.entity;
 
 import java.io.Serializable;
 
-import ai.preferred.cerebro.core.util.StringUtils;
+import ai.preferred.cerebro.core.utils.StringUtils;
 
 public class ItemModelId implements Serializable{
 	private static final long serialVersionUID = 1565499982993981436L;

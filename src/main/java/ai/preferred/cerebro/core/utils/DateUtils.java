@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.core.util;
+package ai.preferred.cerebro.core.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

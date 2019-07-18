@@ -1,11 +1,14 @@
 package ai.preferred.cerebro.index.main;
 
 
+import org.apache.logging.log4j.core.tools.picocli.CommandLine;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.search.ScoreDoc;
+
+import ai.preferred.cerebro.core.utils.CommandOptions;
 import ai.preferred.cerebro.index.builder.ExtFilter;
 import ai.preferred.cerebro.index.builder.LuIndexWriter;
 import ai.preferred.cerebro.index.exception.DocNotClearedException;
@@ -16,7 +19,6 @@ import ai.preferred.cerebro.index.response.QueryResponse;
 import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
-import ai.preferred.cerebro.core.util.CommandOptions;
 
 import java.io.File;
 import java.io.FileReader;
@@ -31,8 +33,7 @@ import java.util.*;
  * necessary to carry out these examples
  */
 public class Main {
-    byte q = (byte) 0xff;
-    static Scanner scanner = new Scanner(System.in);
+
     public static void main(String[] args) throws Exception{
         CommandOptions cmdOptions = new CommandOptions();
         cmdOptions.addOption("op", "Specify which operation you want to run:\n" +
@@ -40,45 +41,41 @@ public class Main {
                 "\t - 2 build index for vector search from an object file.\n" +
                 "\t - 3 search keyword on a built index.\n" +
                 "\t - 4 search vector on a built index.", 0);
+        cmdOptions.addOption("idx", "Specify the folder where the index is/will be located\n", "");
+        cmdOptions.addOption("data", "Specify the folder where the text data is located\n", "");
+        cmdOptions.addOption("dataV", "Specify the file object containing the data vectors\n", "");
+        cmdOptions.addOption("hsh", "Specify the file object containing the hashing vectors\n", "");
+        cmdOptions.addOption("q", "Enter your text query\n", "");
+        cmdOptions.addOption("qV", "Specify the file object containing the query vectors\n", "");
         cmdOptions.parse(args);
         int operationcode    = cmdOptions.getIntegerOption("op");
         switch (operationcode){
             case 1:
-                createTextIndex();
+                createTextIndex(cmdOptions);
                 break;
             case 2:
-                createVecIndex();
+                createVecIndex(cmdOptions);
                 break;
             case 3:
-                demoSearchText();
+                demoSearchText(cmdOptions);
                 break;
             case 4:
-                demoSearchVec();
+                demoSearchVec(cmdOptions);
                 break;
             default:
                 System.out.println("Not supported operation code, exiting \n");
 
         }
     }
-    public static void createTextIndex() throws Exception {
+    public static void createTextIndex(CommandOptions commandOptions) throws Exception {
         //fileExt signify what file extension to read and index
         String fileExt = ".txt";
 
-        //prompt to enter path to (empty and created) index folder
-        System.out.println("Plz enter the path to the folder where you want to put the index:\n");
+        String textIndexDir =commandOptions.getStringOption("idx");
+        String textDataDir = commandOptions.getStringOption("data");
+        if(textDataDir.equals("") || textIndexDir.equals(""))
+            throw new Exception("Not enough param provided");
 
-        //read from cmd ln input
-        String textIndexDir = scanner.nextLine();
-        /**
-         * Create (main) index writer from the provided directory.
-         * If provided with the param splitVecPath (left null here)
-         * a LuIndexWriter can index both text objects and latent vectors.\n
-         * You should modify the way how {@link LuIndexWriter#indexFile(File)},
-         * {@link LuIndexWriter#indexLatentVectors(Object...)} and
-         * {@link LuIndexWriter#indexKeyWords(Object...)} is implemented here to
-         * suit your own needs better. These functions are made abstract for the
-         * purpose of being customizable.
-         */
         LuIndexWriter writer = new LuIndexWriter(textIndexDir, null) {
             @Override
             public void indexFile(File file) throws IOException {
@@ -116,47 +113,25 @@ public class Main {
             }
         };
 
-        //prompt to enter path to the data folder
-        System.out.println("Plz enter the path to the folder where you put the data to be indexed:\n");
-        String textDataDir = scanner.nextLine();
+        System.out.println("\n\nBuilding index, plz wait\n");
 
         //build index
         writer.indexKeyWords(textDataDir, fileExt);
         System.out.println("Build index for text successfully\n");
     }
 
-    public static void createVecIndex() throws Exception {
-        //prompt to enter path to (empty and created) index folder
-        System.out.println("Plz enter the path to the folder where you want to put the index:\n");
+    public static void createVecIndex(CommandOptions commandOptions) throws Exception {
 
-        //read from cmd ln input
-        String vecIndexDir = scanner.nextLine();
+        String vecIndexDir = commandOptions.getStringOption("idx");
 
-        //prompt to enter path to the data folder
-        System.out.println("Plz enter the path to the file object containing the data to be indexed:\n");
-        String vecDataDir = scanner.nextLine();
+        String vecDataDir = commandOptions.getStringOption("data");
 
-        /**
-         * Prompt to enter path to the file object
-         * that contains to hashing vectors.
-         * With indexing vectors you have to provide
-         * a set of predefined vectors at act as hashing
-         * function.
-         * Note textIndexDir and textDataDir you only
-         * need provide path to the folder only but this
-         * requires path to a specific file.
-         *
-         * Note {@link LuIndexWriter} use the function
-         * {@link IndexUtils#readVectors(String)}
-         * to load objects containing a set of vectors.
-         * So if you want to save a set of hashing vector
-         * to hard disk you should use
-         * {@link IndexUtils#saveVectors(double[][], String)}
-         * for the sake of compatibility.
-         */
-        System.out.println("Plz enter the path to the folder where you put the file object that " +
-                "contains hashing vectors:\n");
-        String hashTablePath = scanner.nextLine();
+
+
+        String hashTablePath = commandOptions.getStringOption("hsh");
+
+        if(vecIndexDir.equals("") || vecDataDir.equals("") || hashTablePath.equals(""))
+            throw new Exception("Not enough param provided");
 
         //Create (main) index writer from the provided directory.
         LuIndexWriter writer = new LuIndexWriter(vecIndexDir, hashTablePath) {
@@ -167,7 +142,7 @@ public class Main {
 
             @Override
             public void indexLatentVectors(Object... params) throws Exception {
-                double[][] itemVec = IndexUtils.readVectors( params[0] + "\\itemVec_10M.o");
+                double[][] itemVec = IndexUtils.readVectors( (String)params[0]);
                 createIndexFromVecData(itemVec);
             }
 
@@ -177,34 +152,20 @@ public class Main {
             }
         };
 
-        //build index
+        System.out.println("\n\nBuilding index, plz wait\n");
+
         writer.indexLatentVectors(vecDataDir);
         System.out.println("Build index for vector successfully\n");
     }
 
-    public static void demoSearchText() throws Exception {
-        //prompt to enter path to (built) index folder
-        System.out.println("Plz enter the path to the folder where you put the index files:\n");
+    public static void demoSearchText(CommandOptions commandOptions) throws Exception {
+        String textIndexDir = commandOptions.getStringOption("idx");
+        String queryText = commandOptions.getStringOption("q");
 
-        //read from cmd ln input
-        String textIndexDir = scanner.nextLine();
+        if(textIndexDir.equals("") || queryText.equals(""))
+            throw new Exception("Not enough param provided");
 
-        //prompt to enter the query string
-        System.out.println("Plz enter your query:\n");
-        //main query
-        String queryText = "Lord of the Rings";
-        queryText = scanner.nextLine();
 
-        /**
-         * Get a searcher through a LoadSearcherRequest.\n
-         *
-         * Note, the same thing is true with
-         * {@link preferred.ai.cerebro.index.search.structure.VersatileSearcher}
-         * as it is with {@link LuIndexWriter} - when dealing with text only it's
-         * fine not specifying a path to the hashing vectors object, but if you
-         * expect the Writer and Searcher to also support vector indexing and searching,
-         * you must always provide a set of hashing vectors.
-         */
         LoadSearcherRequest loadSearcher = new LoadSearcherRequest(textIndexDir, null, false);
         LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
 
@@ -222,23 +183,20 @@ public class Main {
 
 
 
-    public static void demoSearchVec() throws Exception {
-        //prompt to enter path to (built) index folder
-        System.out.println("Plz enter the path to the folder where you put the index files:\n");
+    public static void demoSearchVec(CommandOptions commandOptions) throws Exception {
 
-        //read from cmd ln input
-        String vecIndexDir = scanner.nextLine();
-        System.out.println("Plz enter the path to the folder where you put the file object that " +
-                "contains hashing vectors:\n");
-        String hashTablePath = scanner.nextLine();
+        String vecIndexDir = commandOptions.getStringOption("idx");
+        String hashTablePath = commandOptions.getStringOption("hsh");
+        String queryObjectPath = commandOptions.getStringOption("qV");
 
-        //Get a searcher through a LoadSearcherRequest.
+        if(vecIndexDir.equals("") || queryObjectPath.equals("") || hashTablePath.equals(""))
+            throw new Exception("Not enough param provided");
+
         LoadSearcherRequest loadSearcher = new LoadSearcherRequest(vecIndexDir, hashTablePath, false);
         LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
 
-        //prompt to enter path to query vectors file object
-        System.out.println("Plz enter the path to the query vectors file object:\n");
-        String queryObjectPath = scanner.nextLine();
+
+
 
         //load query set
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
@@ -272,7 +230,7 @@ public class Main {
                 System.out.println("Top-20 query time: " +(endSearchTime-startTime)+" ms");
                 totalTime += endSearchTime - startTime;
                 ArrayList<Integer> setHash = new ArrayList<>();
-                for(int i = 0; i < 20; i++){
+                for(int i = 0; i < res.getRankedItemList().length; i++){
                     int id = res.getRankedItemList()[i].doc;
                     setHash.add(id);
                 }
