@@ -31,21 +31,22 @@ If you already have a project then just add Cerebro as a dependency to your pom.
 Clone the repository to your computer then build jar file with maven. Make sure in your build folder there is a file 
 "cerebro-1.0-jar-with-dependencies.jar". The configuration has been tweeted to build standalone jar file.
 
-Download the vector files [here](https://drive.google.com/open?id=1qAouLknsfU6fPlEDo1oD3uX2M9U6V7TN). 
-Then the [file](https://drive.google.com/file/d/1KVFtMcmqvYsR0yTzqtfBKVupocNh0fn3/view?usp=sharing) containing text
+Download and extract the data file [here](https://drive.google.com/open?id=18b8qw5f1X7wEPvC8KLxrCJQ3NxWxQ7yS). 
 
-Extract them into seperate folders.
-
-Look into the extracted folder from the vec file. It includes: 
-+ File containing set of 10 million vectors: itemVec_10M.o 
+Look into the extracted folder. It includes: 
 + File containing hashing vectors: splitVec.o 
 + File containing query vectors and the ids of their associated true top 20 vec: query_top20_10M.o
++ A folder "imdb_data" contain txt files. Each file has the following format:
+    - First line is text information.
+    - Second line is the associated latent vector.
 
 Open your CLI and navigate to your build folder.
 
-#### Build text index
+Note: in the following example assumes that the file is downloaded and extract in the directory E:\
+
+#### Build index
 ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 1 -idx E:\Index -data E:\imdb_data
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op build -idx E:\index -data E:\data\imdb_data -hsh E:\data\splitVec.o
 
 
 Building index, plz wait
@@ -59,63 +60,34 @@ Build index for text successfully
 After building your index, you may want to check if it is functioning.
 
 ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 3 -idx E:\Index -q War
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op sText -idx E:\index -q horseman
 
-File: E:\imdb_data\24400_0.txt; DocID:16000
-File: E:\imdb_data\33526_0.txt; DocID:26139
-File: E:\imdb_data\23356_0.txt; DocID:14839
-File: E:\imdb_data\28656_0.txt; DocID:20727
-File: E:\imdb_data\38337_0.txt; DocID:31484
-File: E:\imdb_data\35539_0.txt; DocID:28375
-File: E:\imdb_data\26895_0.txt; DocID:18770
-File: E:\imdb_data\3715_0.txt; DocID:30176
-File: E:\imdb_data\28653_0.txt; DocID:20724
-File: E:\imdb_data\1822_0.txt; DocID:9143
-File: E:\imdb_data\26921_0.txt; DocID:18800
-File: E:\imdb_data\1820_0.txt; DocID:9121
-File: E:\imdb_data\26912_0.txt; DocID:18790
-File: E:\imdb_data\35547_0.txt; DocID:28384
-File: E:\imdb_data\10079_0.txt; DocID:87
-File: E:\imdb_data\24627_0.txt; DocID:16251
-File: E:\imdb_data\10514_0.txt; DocID:571
-File: E:\imdb_data\10533_0.txt; DocID:592
-File: E:\imdb_data\20105_0.txt; DocID:11228
-File: E:\imdb_data\11297_0.txt; DocID:1440
+File: E:\data\imdb_data\8694_0.txt; DocID:48547
+File: E:\data\imdb_data\48661_0.txt; DocID:42955
+File: E:\data\imdb_data\8688_0.txt; DocID:48540
+File: E:\data\imdb_data\26062_0.txt; DocID:17846
+File: E:\data\imdb_data\5144_0.txt; DocID:44604
+File: E:\data\imdb_data\38439_0.txt; DocID:31597
+File: E:\data\imdb_data\39343_0.txt; DocID:32602
+File: E:\data\imdb_data\20746_0.txt; DocID:11939
+File: E:\data\imdb_data\47139_0.txt; DocID:41264
+File: E:\data\imdb_data\19349_0.txt; DocID:10386
 //files containing keywords you entered
 
 \..\cerebro\target>_
 ```
  
- #### Build index for vector
- Cerebro supports index-building for both text and latent vector.
- It uses the ANNS(approximate nearest neighbor search) approach LSH(Locality Sensitive Hashing) to build index 
- for vector.
- 
- Note that although in this example we are building indexes for text and vectors into two seperate folders, a cerebro 
- index folder can incorporate both text and vectors. Try using the same directory for for both text and vector to see for 
- yourself.
- 
- ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 2 -idx E:\index_Vec -data E:\vec_data\itemVec_10M.o -hsh E:\vec_data\splitVec.o
-
-Building index, plz wait
-
-Build index for vector successfully
-
-\..\cerebro\target>_
- ``` 
- 
 #### Vector search on an index
 ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op 4 -idx E:\index_Vec -hsh E:\vec_data\splitVec.o -qV E:\vec_data\query_top20_10M.o
-Top-20 query time: 173 ms
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op sVec -idx E:\index -hsh E:\data\splitVec.o -qV E:\data\query_top20_1M.o
+Top-20 query time: 2 ms
+Overlapp between brute and and hash (over top 20) is : 1
+
+Top-20 query time: 1 ms
 Overlapp between brute and and hash (over top 20) is : 0
 
-Top-20 query time: 71 ms
-Overlapp between brute and and hash (over top 20) is : 0
-
-Top-20 query time: 23 ms
-Overlapp between brute and and hash (over top 20) is : 2
+Top-20 query time: 2 ms
+Overlapp between brute and and hash (over top 20) is : 1
 .....
 ```
  

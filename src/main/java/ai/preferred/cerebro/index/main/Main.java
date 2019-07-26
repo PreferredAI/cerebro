@@ -20,9 +20,7 @@ import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -37,125 +35,93 @@ public class Main {
     public static void main(String[] args) throws Exception{
         CommandOptions cmdOptions = new CommandOptions();
         cmdOptions.addOption("op", "Specify which operation you want to run:\n" +
-                "\t - 1 build index for text files.\n" +
-                "\t - 2 build index for vector search from an object file.\n" +
-                "\t - 3 search keyword on a built index.\n" +
-                "\t - 4 search vector on a built index.", 0);
+                "\t - build, build index from data.\n" +
+                "\t - sText, search keyword on a built index.\n" +
+                "\t - sVec, search vector on a built index.", "");
         cmdOptions.addOption("idx", "Specify the folder where the index is/will be located\n", "");
-        cmdOptions.addOption("data", "Specify the folder where the text data is located\n", "");
-        cmdOptions.addOption("dataV", "Specify the file object containing the data vectors\n", "");
+        cmdOptions.addOption("data", "Specify the folder where the data is located\n", "");
         cmdOptions.addOption("hsh", "Specify the file object containing the hashing vectors\n", "");
         cmdOptions.addOption("q", "Enter your text query\n", "");
         cmdOptions.addOption("qV", "Specify the file object containing the query vectors\n", "");
         cmdOptions.parse(args);
-        int operationcode    = cmdOptions.getIntegerOption("op");
-        switch (operationcode){
-            case 1:
-                createTextIndex(cmdOptions);
+        String option = cmdOptions.getStringOption("op");
+        switch (option){
+            case "build":
+                createIndex(cmdOptions);
                 break;
-            case 2:
-                createVecIndex(cmdOptions);
-                break;
-            case 3:
+            case "sText":
                 demoSearchText(cmdOptions);
                 break;
-            case 4:
+            case "sVec":
                 demoSearchVec(cmdOptions);
                 break;
             default:
-                System.out.println("Not supported operation code, exiting \n");
+                System.out.println("Not supported operation, exiting \n");
 
         }
     }
-    public static void createTextIndex(CommandOptions commandOptions) throws Exception {
+
+    public static void createIndex(CommandOptions commandOptions) throws Exception {
         //fileExt signify what file extension to read and index
         String fileExt = ".txt";
+        ExtFilter filter = new ExtFilter(fileExt);
 
-        String textIndexDir =commandOptions.getStringOption("idx");
-        String textDataDir = commandOptions.getStringOption("data");
-        if(textDataDir.equals("") || textIndexDir.equals(""))
+        String indexDir =commandOptions.getStringOption("idx");
+        String dataDir = commandOptions.getStringOption("data");
+        String hashTablePath = commandOptions.getStringOption("hsh");
+        if(dataDir.equals("") || indexDir.equals("") || hashTablePath.equals(""))
             throw new Exception("Not enough param provided");
 
-        LuIndexWriter writer = new LuIndexWriter(textIndexDir, null) {
+        LuIndexWriter writer = new LuIndexWriter(indexDir, hashTablePath) {
             @Override
             public void indexFile(File file) throws IOException {
-                //build index based on content of the file
-                //class FileReader will return the whole content
-                //of the file at a lower level Lucene API
-                Field contentField = new TextField(IndexConst.CONTENTS,
-                        new FileReader(file));
-                //store file path
-                Field filePathField = new StoredField(IndexConst.FilePathField,
-                        file.getCanonicalPath());
-                //we add all these fields to a document through
-                //an intance of PersonalizedDocFactory
-                try {
-                    docFactory.createTextDoc(writer.numDocs(), contentField, filePathField);
-                } catch (SameNameException e) {
-                    e.printStackTrace();
-                } catch (Exception e) {
+                try{
+                    BufferedReader br = new BufferedReader(new FileReader(file));
+
+
+                    Field filePathField = new StoredField(IndexConst.FilePathField, file.getCanonicalPath());
+                    //first line is text
+                    String line = br.readLine();
+                    Field contentField = new TextField(IndexConst.CONTENTS, line, Field.Store.NO);
+
+                    //second line is vector
+                    line = br.readLine();
+                    line = line.substring(1, line.length() - 1);
+                    String [] doubles = line.split(", ");
+                    double[] vec = Arrays.stream(doubles)
+                            .mapToDouble(Double::parseDouble)
+                            .toArray();
+
+                    docFactory.createPersonalizedDoc(writer.numDocs(), vec);
+                    docFactory.addField(filePathField, contentField);
+                    //when using DocFactory always call getDoc()
+                    //after calling createPersonalizedDoc() to free up the pointer
+                    writer.addDocument(docFactory.getDoc());
+
+                }
+                catch (FileNotFoundException e){
                     e.printStackTrace();
                 }
-                //when using DocFactory always call getDoc()
-                //after calling createPersonalizedDoc() to free up the pointer
-                writer.addDocument(docFactory.getDoc());
+                catch (IOException e){
+                    e.printStackTrace();
+                }
+                catch (SameNameException e) {
+                    e.printStackTrace();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
-            @Override
-            public void indexLatentVectors(Object... params) throws Exception {
-            }
-
-            @Override
-            public void indexKeyWords(Object... params) throws Exception {
-                String fileDir = (String) params[0];
-                ExtFilter filter = new ExtFilter((String) params[1]);
-                createIndexFromDir(fileDir, filter);
-            }
         };
+        //choose the optimal number of segment for the index
+        writer.setMaxBufferDocNum((50_000/Runtime.getRuntime().availableProcessors()) + 1);
 
         System.out.println("\n\nBuilding index, plz wait\n");
 
         //build index
-        writer.indexKeyWords(textDataDir, fileExt);
-        System.out.println("Build index for text successfully\n");
-    }
-
-    public static void createVecIndex(CommandOptions commandOptions) throws Exception {
-
-        String vecIndexDir = commandOptions.getStringOption("idx");
-
-        String vecDataDir = commandOptions.getStringOption("data");
-
-
-
-        String hashTablePath = commandOptions.getStringOption("hsh");
-
-        if(vecIndexDir.equals("") || vecDataDir.equals("") || hashTablePath.equals(""))
-            throw new Exception("Not enough param provided");
-
-        //Create (main) index writer from the provided directory.
-        LuIndexWriter writer = new LuIndexWriter(vecIndexDir, hashTablePath) {
-            @Override
-            public void indexFile(File file) throws IOException {
-
-            }
-
-            @Override
-            public void indexLatentVectors(Object... params) throws Exception {
-                double[][] itemVec = IndexUtils.readVectors( (String)params[0]);
-                createIndexFromVecData(itemVec);
-            }
-
-            @Override
-            public void indexKeyWords(Object... params) throws Exception {
-
-            }
-        };
-
-        System.out.println("\n\nBuilding index, plz wait\n");
-
-        writer.indexLatentVectors(vecDataDir);
-        System.out.println("Build index for vector successfully\n");
+        writer.createIndexFromDir(dataDir, filter);
+        System.out.println("Build index successfully\n");
     }
 
     public static void demoSearchText(CommandOptions commandOptions) throws Exception {
@@ -166,7 +132,7 @@ public class Main {
             throw new Exception("Not enough param provided");
 
 
-        LoadSearcherRequest loadSearcher = new LoadSearcherRequest(textIndexDir, null, false);
+        LoadSearcherRequest loadSearcher = new LoadSearcherRequest(textIndexDir, null, false, true);
         LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
 
         //carry out searching
@@ -179,6 +145,7 @@ public class Main {
             Document doc = searcher.doc(scoreDoc.doc);
             System.out.println("File: " + doc.get(IndexConst.FilePathField) + "; DocID:" + scoreDoc.doc);
         }
+        searcher.close();
     }
 
 
@@ -192,10 +159,8 @@ public class Main {
         if(vecIndexDir.equals("") || queryObjectPath.equals("") || hashTablePath.equals(""))
             throw new Exception("Not enough param provided");
 
-        LoadSearcherRequest loadSearcher = new LoadSearcherRequest(vecIndexDir, hashTablePath, false);
+        LoadSearcherRequest loadSearcher = new LoadSearcherRequest(vecIndexDir, hashTablePath, false, true);
         LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
-
-
 
 
         //load query set
@@ -245,5 +210,6 @@ public class Main {
         System.out.println("Num of misses : " + totalMiss);
         System.out.println("Average search time :" + totalTime/(1000 - totalMiss));
         System.out.println("Average overlap :" + totalHit/(1000 - totalMiss));
+        searcher.close();
     }
 }

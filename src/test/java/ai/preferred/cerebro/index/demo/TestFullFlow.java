@@ -1,7 +1,9 @@
 package ai.preferred.cerebro.index.demo;
 
 
+import ai.preferred.cerebro.core.utils.CommandOptions;
 import ai.preferred.cerebro.index.builder.PersonalizedDocFactory;
+import ai.preferred.cerebro.index.exception.SameNameException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
@@ -17,14 +19,9 @@ import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.apache.lucene.store.FSDirectory;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -63,22 +60,117 @@ public class TestFullFlow {
 
     }
 
-//    @AfterAll
-//    public void tearDown(){
-//        HashSet<String> fileSet = new HashSet<String>();
-//        fileSet.add("_0.cfe");
-//        fileSet.add("_0.si");
-//        fileSet.add("segments_1");
-//        fileSet.add("write.lock");
-//        File[] files = new File("").listFiles();
-//
-//        for (File file : files) {
-//            if(fileSet.contains(file.getName()))
-//                file.delete();
-//        }
-//
-//    }
+    //@Test
+    public void createIndexTest() throws Exception {
+        //fileExt signify what file extension to read and index
+        String fileExt = ".txt";
+        ExtFilter filter = new ExtFilter(fileExt);
+
+        String indexDir = "E:\\index";
+        String dataDir = "E:\\data\\imdb_data";
+        String hashTablePath = "E:\\data\\splitVec.o";
+        if(dataDir.equals("") || indexDir.equals("") || hashTablePath.equals(""))
+            throw new Exception("Not enough param provided");
+
+        LuIndexWriter writer = new LuIndexWriter(indexDir, hashTablePath) {
+
+            @Override
+            public void indexFile(File file) throws IOException {
+                try{
+                    BufferedReader br = new BufferedReader(new FileReader(file));
 
 
+                    Field filePathField = new StoredField(IndexConst.FilePathField, file.getCanonicalPath());
+                    //first line is text
+                    String line = br.readLine();
+                    Field contentField = new TextField(IndexConst.CONTENTS, line, Field.Store.NO);
 
+                    //second line is vector
+                    line = br.readLine();
+                    line = line.substring(1, line.length() - 1);
+                    String [] doubles = line.split(", ");
+                    double[] vec = Arrays.stream(doubles)
+                            .mapToDouble(Double::parseDouble)
+                            .toArray();
+
+                    docFactory.createPersonalizedDoc(writer.numDocs(), vec);
+                    docFactory.addField(filePathField, contentField);
+                    //when using DocFactory always call getDoc()
+                    //after calling createPersonalizedDoc() to free up the pointer
+                    writer.addDocument(docFactory.getDoc());
+
+                }
+                catch (FileNotFoundException e){
+                    e.printStackTrace();
+                }
+                catch (IOException e){
+                    e.printStackTrace();
+                }
+                catch (SameNameException e) {
+                    e.printStackTrace();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        };
+        //choose the optimal number of segment for the index
+        writer.setMaxBufferDocNum((50_000/Runtime.getRuntime().availableProcessors()) + 1);
+
+        System.out.println("\n\nBuilding index, plz wait\n");
+
+        //build index
+        writer.createIndexFromDir(dataDir, filter);
+        System.out.println("Build index successfully\n");
+    }
+
+
+    //@Test
+    public void demoSearchText() throws Exception {
+        String indexDir = "E:\\index";
+        String queryText = "Cavalry Charge";
+
+        if(indexDir.equals("") || queryText.equals(""))
+            throw new Exception("Not enough param provided");
+
+
+        LoadSearcherRequest loadSearcher = new LoadSearcherRequest(indexDir, null, false, true);
+        LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
+
+        //carry out searching
+        //the default is 20 top
+        //results
+        QueryRequest request = new QueryRequest(queryText, QueryRequest.QueryType.KEYWORD, 20);
+        QueryResponse<ScoreDoc> res = searcher.query(request);
+        //print out results
+        for(ScoreDoc scoreDoc : res.getRankedItemList()) {
+            Document doc = searcher.doc(scoreDoc.doc);
+            System.out.println("File: " + doc.get(IndexConst.FilePathField) + "; DocID:" + scoreDoc.doc);
+        }
+    }
+
+    public static double[][] extract(String dir) throws IOException {
+        ExtFilter filter = new ExtFilter("txt");
+        File[] files = new File(dir).listFiles();
+        double[][] vecs = new double[files.length][];
+        for (int i = 0; i < files.length; i++) {
+            BufferedReader br = new BufferedReader(new FileReader(files[i]));
+            String line = br.readLine();
+            Field contentField = new TextField(IndexConst.CONTENTS, line, Field.Store.NO);
+
+            //second line is vector
+            line = br.readLine();
+            line = line.substring(1, line.length() - 1);
+            String [] doubles = line.split(", ");
+            vecs[i] = Arrays.stream(doubles)
+                    .mapToDouble(Double::parseDouble)
+                    .toArray();
+        }
+        return vecs;
+    }
+
+    public void createQuery(){
+        double[] vec = IndexUtils.randomizeQueryVector(50);
+    }
 }

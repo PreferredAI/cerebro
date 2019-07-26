@@ -32,7 +32,7 @@ import java.nio.file.Paths;
  *
  * @author hpminh@apcs.vn
  */
-public abstract class LuIndexWriter implements LuceneBasedIndexing {
+public abstract class LuIndexWriter {
     protected IndexWriter writer;
     protected PersonalizedDocFactory docFactory = null;
 
@@ -51,21 +51,19 @@ public abstract class LuIndexWriter implements LuceneBasedIndexing {
      */
     public LuIndexWriter(String indexDirectoryPath, String splitVecPath) throws IOException {
         //Get the maximum amount of memory for indexWriter
-        long maxHeapSize = Runtime.getRuntime().maxMemory();
+        /*long maxHeapSize = Runtime.getRuntime().maxMemory();
         long size = maxHeapSize / IndexConst.mb;
         if(size > 8192)
             size = 8192;
 
+         */
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
-        iwc.setRAMBufferSizeMB(256);
+        //iwc.setRAMBufferSizeMB(256);
         writer = new IndexWriter(indexDirectory, iwc);
         if(splitVecPath != null){
             double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
             docFactory = new PersonalizedDocFactory(splitVecs);
-        }
-        else {
-            docFactory = new PersonalizedDocFactory();
         }
     }
 
