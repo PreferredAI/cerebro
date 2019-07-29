@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.demo;
 
 //import com.preferred.ai.DumpIndexSearcher;
+import ai.preferred.cerebro.index.builder.ExtFilter;
 import ai.preferred.cerebro.index.builder.LuIndexWriter;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import org.apache.lucene.index.DirectoryReader;
@@ -15,7 +16,9 @@ import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.junit.jupiter.api.Test;
 
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
@@ -24,7 +27,7 @@ import java.util.concurrent.ExecutorService;
 import static ai.preferred.cerebro.index.utils.IndexUtils.dotProduct;
 
 
-public class Statistic {
+public class TestUtils {
 
 
     public static double entropy(HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap, int nTotal){
@@ -52,8 +55,25 @@ public class Statistic {
         return queryAndTopK.keySet().toArray(res);
     }
 
-    //@Test
-    public void refindTop20(){
+    public static double[][] extractVecsFromTxt(String dir) throws IOException {
+        ExtFilter filter = new ExtFilter("txt");
+        File[] files = new File(dir).listFiles();
+        double[][] vecs = new double[files.length][];
+        for (int i = 0; i < files.length; i++) {
+            BufferedReader br = new BufferedReader(new FileReader(files[i]));
+            String line = br.readLine();
+
+            line = br.readLine();
+            line = line.substring(1, line.length() - 1);
+            String [] doubles = line.split(", ");
+            vecs[i] = Arrays.stream(doubles)
+                    .mapToDouble(Double::parseDouble)
+                    .toArray();
+        }
+        return vecs;
+    }
+
+    public void refindTop20() throws IOException {
         String itemsObjectName = "itemVec_1M.o";
         String existingQuery = "query_top20_1M.o";
         double[][] itemVec = null;
@@ -103,7 +123,7 @@ public class Statistic {
             long endTime = System.currentTimeMillis();
             System.out.println("Whole array 20M time: " + (endTime - startTime) + "ms");
         }
-        IndexUtils.saveQueryAndTopK(queryAndTopK, TestConst.DIM_50_PATH +"new_query_top20_1M.o");
+        IndexUtils.saveQueryAndTopK(queryAndTopK, "E:\\data\\imdb_data\\new_query_top20_50k.o");
     }
 
 

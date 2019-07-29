@@ -50,16 +50,8 @@ public abstract class LuIndexWriter {
 
      */
     public LuIndexWriter(String indexDirectoryPath, String splitVecPath) throws IOException {
-        //Get the maximum amount of memory for indexWriter
-        /*long maxHeapSize = Runtime.getRuntime().maxMemory();
-        long size = maxHeapSize / IndexConst.mb;
-        if(size > 8192)
-            size = 8192;
-
-         */
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
-        //iwc.setRAMBufferSizeMB(256);
         writer = new IndexWriter(indexDirectory, iwc);
         if(splitVecPath != null){
             double[][] splitVecs = IndexUtils.readVectors(splitVecPath);

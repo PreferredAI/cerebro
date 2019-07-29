@@ -31,11 +31,11 @@ If you already have a project then just add Cerebro as a dependency to your pom.
 Clone the repository to your computer then build jar file with maven. Make sure in your build folder there is a file 
 "cerebro-1.0-jar-with-dependencies.jar". The configuration has been tweeted to build standalone jar file.
 
-Download and extract the data file [here](https://drive.google.com/open?id=18b8qw5f1X7wEPvC8KLxrCJQ3NxWxQ7yS). 
+Download and extract the data file [here](https://drive.google.com/open?id=1CkBqu7nEH7m4an-IGk02xu_k1BbA9bbO). 
 
 Look into the extracted folder. It includes: 
 + File containing hashing vectors: splitVec.o 
-+ File containing query vectors and the ids of their associated true top 20 vec: query_top20_10M.o
++ File containing query vectors and the ids of their associated true top 20 vec: query_top20_50k.o
 + A folder "imdb_data" contain txt files. Each file has the following format:
     - First line is text information.
     - Second line is the associated latent vector.
@@ -79,15 +79,18 @@ File: E:\data\imdb_data\19349_0.txt; DocID:10386
  
 #### Vector search on an index
 ```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op sVec -idx E:\index -hsh E:\data\splitVec.o -qV E:\data\query_top20_1M.o
-Top-20 query time: 2 ms
-Overlapp between brute and and hash (over top 20) is : 1
+\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op sVec -idx E:\index -hsh E:\data\splitVec.o -qV E:\data\query_top20_50k.o
+Top-20 query time: 4 ms
+Overlapp between truth and and result (over top 20) is : 4
 
-Top-20 query time: 1 ms
-Overlapp between brute and and hash (over top 20) is : 0
+Top-20 query time: 3 ms
+Overlapp between truth and and result (over top 20) is : 5
 
 Top-20 query time: 2 ms
-Overlapp between brute and and hash (over top 20) is : 1
+Overlapp between truth and and result (over top 20) is : 4
+
+Top-20 query time: 4 ms
+Overlapp between truth and and result (over top 20) is : 4
 .....
 ```
  

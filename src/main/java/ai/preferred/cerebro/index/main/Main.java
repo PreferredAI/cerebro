@@ -174,7 +174,6 @@ public class Main {
         //carry out search and measure time
         double totalTime = 0;
         double totalHit = 0;
-        int totalMiss = 0;
         Iterator it = queryAndTopK.entrySet().iterator();
         while (it.hasNext()){
             Map.Entry entry = (Map.Entry) it.next();
@@ -201,15 +200,13 @@ public class Main {
                 }
                 if(setHash.retainAll(setBrute)){
                     totalHit += setHash.size();
-                    System.out.println("Overlapp between brute and and hash (over top 20) is : " + setHash.size());
+                    System.out.println("Overlapp between truth and and result (over top 20) is : " + setHash.size());
                 }
                 System.out.println(" ");
             }
-            else totalMiss++;
         }
-        System.out.println("Num of misses : " + totalMiss);
-        System.out.println("Average search time :" + totalTime/(1000 - totalMiss));
-        System.out.println("Average overlap :" + totalHit/(1000 - totalMiss));
+        System.out.println("Average search time :" + totalTime/queryAndTopK.size());
+        System.out.println("Average overlap :" + totalHit/queryAndTopK.size());
         searcher.close();
     }
 }
