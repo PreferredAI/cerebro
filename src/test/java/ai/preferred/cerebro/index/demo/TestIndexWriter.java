@@ -19,15 +19,6 @@ public class TestIndexWriter extends LuIndexWriter {
 
     }
 
-    @Override
-    public void indexLatentVectors(Object... params) throws Exception {
-
-    }
-
-    @Override
-    public void indexKeyWords(Object... params) throws Exception {
-
-    }
     public void setDocFactory(PersonalizedDocFactory docFactory){
         this.docFactory = docFactory;
     }

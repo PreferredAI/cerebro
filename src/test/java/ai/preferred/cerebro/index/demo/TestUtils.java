@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.demo;
 
 //import com.preferred.ai.DumpIndexSearcher;
+import ai.preferred.cerebro.index.builder.ExtFilter;
 import ai.preferred.cerebro.index.builder.LuIndexWriter;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import org.apache.lucene.index.DirectoryReader;
@@ -15,7 +16,9 @@ import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.junit.jupiter.api.Test;
 
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
@@ -24,7 +27,8 @@ import java.util.concurrent.ExecutorService;
 import static ai.preferred.cerebro.index.utils.IndexUtils.dotProduct;
 
 
-public class Statistic {
+public class TestUtils {
+
 
     public static double entropy(HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap, int nTotal){
         double res = 0.0;
@@ -51,7 +55,27 @@ public class Statistic {
         return queryAndTopK.keySet().toArray(res);
     }
 
-    public static void refindTop20(String itemsObjectName, String existingQuery){
+    public static double[][] extractVecsFromTxt(String dir) throws IOException {
+        ExtFilter filter = new ExtFilter("txt");
+        File[] files = new File(dir).listFiles();
+        double[][] vecs = new double[files.length][];
+        for (int i = 0; i < files.length; i++) {
+            BufferedReader br = new BufferedReader(new FileReader(files[i]));
+            String line = br.readLine();
+
+            line = br.readLine();
+            line = line.substring(1, line.length() - 1);
+            String [] doubles = line.split(", ");
+            vecs[i] = Arrays.stream(doubles)
+                    .mapToDouble(Double::parseDouble)
+                    .toArray();
+        }
+        return vecs;
+    }
+
+    public void refindTop20() throws IOException {
+        String itemsObjectName = "itemVec_1M.o";
+        String existingQuery = "query_top20_1M.o";
         double[][] itemVec = null;
         try {
             itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + itemsObjectName);
@@ -71,7 +95,7 @@ public class Statistic {
 
             @Override
             public void calculateScore(ItemFeatures target){
-                assert target.features.length == arr[0].features.length;
+                //assert target.features.length == arr[0].features.length;
                 Iterator<ItemFeatures> it = iterator();
                 while (it.hasNext()){
                     ItemFeatures a = it.next();
@@ -99,12 +123,12 @@ public class Statistic {
             long endTime = System.currentTimeMillis();
             System.out.println("Whole array 20M time: " + (endTime - startTime) + "ms");
         }
-        IndexUtils.saveQueryAndTopK(queryAndTopK, TestConst.DIM_50_PATH +"query_top20_20M.o");
+        IndexUtils.saveQueryAndTopK(queryAndTopK, "E:\\data\\imdb_data\\new_query_top20_50k.o");
     }
 
 
-
     public static void generateQueryAndFindTopK(int nQuery, int k, String itemVecObject){
+
         double[][] itemVec = null;
         try {
             itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + itemVecObject);
@@ -152,38 +176,17 @@ public class Statistic {
     }
 
 
-    public void createIndex() throws Exception {
-        LuIndexWriter writer = new LuIndexWriter(TestConst.DIM_50_PATH + "index_16bits",
-                                                    TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o") {
-            @Override
-            public void indexFile(File file) throws IOException {
 
-            }
-
-            @Override
-            public void indexLatentVectors(Object... params) throws Exception {
-                double[][] itemVec = IndexUtils.readVectors( (String)params[0]);
-                createIndexFromVecData(itemVec);
-            }
-
-            @Override
-            public void indexKeyWords(Object... params) throws Exception {
-
-            }
-        };
-        writer.indexLatentVectors(TestConst.DIM_50_PATH + "itemVec_20M.o");
-    }
-
-    @Test
+    //@Test
     public void compareAccuracyAndSpeed() throws Exception {
-        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_16bits",
-                                                                    TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o",
+        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_8bits",
+                                                                    TestConst.DIM_50_PATH + "splitVec_8bits\\splitVec.o",
                                                                     false,
-                                                                true);
+                                                                false);
         LuIndexSearcher searcher = (LuIndexSearcher) loadSearcherRequest.getSearcher();
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
-            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_20M.o");
+            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "new_query_top20_1M.o");
         }
         catch (IOException e) {
             e.printStackTrace();

@@ -1,7 +1,11 @@
 package ai.preferred.cerebro.index.demo;
 
 
+import ai.preferred.cerebro.core.utils.CommandOptions;
 import ai.preferred.cerebro.index.builder.PersonalizedDocFactory;
+import ai.preferred.cerebro.index.exception.SameNameException;
+import ai.preferred.cerebro.index.exception.UnsupportedDataType;
+import ai.preferred.cerebro.index.store.DoubleStoredField;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
@@ -17,14 +21,9 @@ import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.apache.lucene.store.FSDirectory;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -35,6 +34,8 @@ public class TestFullFlow {
         //fileExt signify what file extension to read and index
         String fileExt = ".txt";
         TestIndexWriter writer = new TestIndexWriter("", null);
+        writer.setMaxBufferRAMSize(100);
+        writer.setMaxBufferDocNum(3);
         Assertions.assertNotNull(writer);
         writer.setDocFactory(new PersonalizedDocFactory(TestConst.hashingVecs));
         writer.indexTest(TestConst.text1, TestConst.vec1);
@@ -43,8 +44,17 @@ public class TestFullFlow {
         writer.close();
 
     }
-    
-    @org.junit.jupiter.api.Test
+    @Test
+    public void delete() throws IOException {
+        TestIndexWriter writer = new TestIndexWriter("", null);
+        try {
+            writer.deleteByID(2);
+        } catch (UnsupportedDataType unsupportedDataType) {
+            unsupportedDataType.printStackTrace();
+        }
+    }
+
+    @Test
     public void demoSearch() throws Exception {
         //main query
         String queryText = "Command and City Lights";
@@ -62,23 +72,11 @@ public class TestFullFlow {
         Assertions.assertNotNull(resVec);
 
     }
-
-//    @AfterAll
-//    public void tearDown(){
-//        HashSet<String> fileSet = new HashSet<String>();
-//        fileSet.add("_0.cfe");
-//        fileSet.add("_0.si");
-//        fileSet.add("segments_1");
-//        fileSet.add("write.lock");
-//        File[] files = new File("").listFiles();
-//
-//        for (File file : files) {
-//            if(fileSet.contains(file.getName()))
-//                file.delete();
-//        }
-//
-//    }
-
-
+    @Test
+    public void testField(){
+        double e = 1.2342;
+        DoubleStoredField doubleStoredField = new DoubleStoredField(e);
+        e = DoubleStoredField.bytesToDouble(doubleStoredField.binaryValue().bytes);
+    }
 
 }

@@ -83,7 +83,7 @@ public class IndexUtils {
         Random random = new Random();
         double[] re = new double[nFeatures];
         for(int i =0; i < nFeatures; i++){
-            re[i] = random.nextDouble();
+            re[i] = random.nextDouble() * 2 - 1;
         }
         return re;
     }
