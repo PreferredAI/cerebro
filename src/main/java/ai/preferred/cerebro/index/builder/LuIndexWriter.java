@@ -57,8 +57,16 @@ public abstract class LuIndexWriter {
             double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
             docFactory = new PersonalizedDocFactory(splitVecs);
         }
+        else {
+            File f = new File(indexDirectoryPath + "/splitVec.o");
+            if(f.exists() && !f.isDirectory()) {
+                double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
+                docFactory = new PersonalizedDocFactory(splitVecs);
+            }
+            else
+                throw new IOException("Hash file not present");
+        }
     }
-
 
 
     /**
@@ -69,26 +77,23 @@ public abstract class LuIndexWriter {
      * Cerebro. As such it is not recommended to instantiate {@link LuIndexWriter}
      * this way.
      * @param indexDirectoryPath directory to the folder containing the index files.
-     * @param model model ID to decide which configuration to get from the database.
      * @param numHash number hashing vector to randomize.
+     * @param numFeature number of dimension of the vectors to be indexed.
      * @throws IOException this is triggered when a path or file does not exist.
      *
 
      */
-    public LuIndexWriter(String indexDirectoryPath, int model, int numHash) throws IOException {
-        this(indexDirectoryPath, null);
-        Model m = JPAUtils.retrieveModelByModelId(model);
-        int nbFactor = m.getSettingAsParams().getValueAsInt("nbFactors");
-        double[][] splitVecs = IndexUtils.randomizeFeatureVectors(numHash, nbFactor, true, false);
+    public LuIndexWriter(String indexDirectoryPath, int numHash, int numFeature) throws IOException {
+        Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
+        IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
+        writer = new IndexWriter(indexDirectory, iwc);
+        double[][] splitVecs = IndexUtils.randomizeFeatureVectors(numHash, numFeature, true);
         docFactory = new PersonalizedDocFactory(splitVecs);
         //save the actual hashing vectors to disk
         IndexUtils.saveVectors(splitVecs, indexDirectoryPath + "\\splitVec.o");
-
-        //save metadata to database
-        String settings = "numberOfHashes:" + numHash + ",numberOfHashTables:" + 1;
-        IndexMetadata indexMetadata = new IndexMetadata(m, null, settings, indexDirectoryPath + "\\splitVec.o", null, 0);
-        JPAUtils.insertIndexMetadataToDB(indexMetadata);
     }
+
+
 
     /**
      * Closes all open resources and releases the write lock.

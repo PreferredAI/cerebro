@@ -177,7 +177,7 @@ public class TestUtils {
 
 
 
-    //@Test
+
     public void compareAccuracyAndSpeed() throws Exception {
         LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_8bits",
                                                                     TestConst.DIM_50_PATH + "splitVec_8bits\\splitVec.o",

@@ -35,18 +35,15 @@ public class IndexUtils {
      *                     be used as hashing function or not.
      *                     If so the range of distribution range
      *                     from -1 to 1.
-     * @param cosineSimilarity
      * @return A set of randomized vectors.
      */
-    public static double[][] randomizeFeatureVectors(int n, int nFeatures, boolean splitFeature, boolean cosineSimilarity){
+    public static double[][] randomizeFeatureVectors(int n, int nFeatures, boolean splitFeature){
         Random random = new Random();
         double[][] res = new double[n][nFeatures];
         for (int i =0; i < n; i++){
             for(int j = 0; j < nFeatures; j++){
                 if(splitFeature)
-                    res[i][j] = random.nextDouble() * 2 - 1;
-                if(cosineSimilarity)
-                    res[i][j] = random.nextDouble();
+                    res[i][j] = random.nextGaussian();
                 else {
                     if(j == 0)
                         res[i][j] = 1.0;
