@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.builder;
 
+import jdk.nashorn.internal.runtime.regexp.joni.Warnings;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -64,7 +65,7 @@ public abstract class LuIndexWriter {
                 docFactory = new PersonalizedDocFactory(splitVecs);
             }
             else
-                throw new IOException("Hash file not present");
+                System.out.println("Hash file not present");
         }
     }
 
