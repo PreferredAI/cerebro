@@ -1,6 +1,5 @@
 package ai.preferred.cerebro.index.builder;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Warnings;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -17,6 +16,7 @@ import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import ai.preferred.cerebro.index.utils.JPAUtils;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -33,7 +33,7 @@ import java.nio.file.Paths;
  *
  * @author hpminh@apcs.vn
  */
-public abstract class LuIndexWriter {
+public abstract class LuIndexWriter implements Closeable {
     protected IndexWriter writer;
     protected PersonalizedDocFactory docFactory = null;
 

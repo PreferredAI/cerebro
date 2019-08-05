@@ -74,6 +74,9 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
             lsh = new LocalitySensitiveHash(splitVecs);
         }
+        else {
+
+        }
     }
 
     protected TopDocs personalizedSearch(double [] vQuery, int topK)

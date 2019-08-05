@@ -9,6 +9,7 @@ import org.apache.lucene.store.RAMDirectory;
 
 import ai.preferred.cerebro.index.search.LuIndexSearcher;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
@@ -46,13 +47,16 @@ public class LoadSearcherRequest {
      */
     public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM) {
         this.indexDir = indexDir;
+        if(lshVecDir == null){
+            File f = new File(indexDir + "\\splitVec.o");
+            if(f.exists() && f.isDirectory())
+                lshVecDir = indexDir + "\\splitVec.o";
+        }
         this.lshVecDir = lshVecDir;
         this.loadToRAM = loadToRAM;
     }
     public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM, boolean multithreadEnabled) {
-        this.indexDir = indexDir;
-        this.lshVecDir = lshVecDir;
-        this.loadToRAM = loadToRAM;
+        this(indexDir, lshVecDir, loadToRAM);
         this.multithreadEnabled = multithreadEnabled;
     }
 
