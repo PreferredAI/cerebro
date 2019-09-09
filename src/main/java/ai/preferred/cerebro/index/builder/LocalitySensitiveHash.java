@@ -43,4 +43,32 @@ public class LocalitySensitiveHash {
         }
         return new BytesRef(hashbits.toByteArray());
     }
+
+    /**
+     * Return with two hashcodes - the usual and one with nearest bit flipped
+     * @param features the vector to compute hashcode.
+     * @return two hashcodes
+     */
+    public BytesRef[] getHashBitWithFlipClosest(double [] features){
+        BytesRef[] result = new BytesRef[2];
+        BitSet hashbits = new BitSet(numHashBit);
+        BitSet hashbitsflip = new BitSet(numHashBit);
+
+        double curDistance = Double.MAX_VALUE;
+        int indexShortest = -1;
+        for(int i=0; i < numHashBit; i++){
+            double dotProduct = IndexUtils.dotProduct(features, splitVecs[i]);
+            hashbits.set(i,  dotProduct > 0);
+            hashbitsflip.set(i,  dotProduct > 0);
+            double distance = Math.abs(dotProduct) / IndexUtils.vecLength(splitVecs[i]);
+            if(distance < curDistance){
+                curDistance = distance;
+                indexShortest = i;
+            }
+        }
+        hashbitsflip.flip(indexShortest);
+        result[0] = new BytesRef(hashbits.toByteArray());
+        result[1] = new BytesRef(hashbitsflip.toByteArray());
+        return result;
+    }
 }

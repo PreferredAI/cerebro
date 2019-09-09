@@ -75,7 +75,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             lsh = new LocalitySensitiveHash(splitVecs);
         }
         else {
-
+            IndexUtils.notifyLazyImplementation("LuIndexSearcher: implement when hash is null");
         }
     }
 
@@ -92,7 +92,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             return null;
 
         LatentVectorQuery query = new LatentVectorQuery(vQuery, t);
-        return search(query, topK < count ? topK : count);
+        return search(query, Math.min(topK, count));
         //return pSearch(query, count, topK);
     }
 

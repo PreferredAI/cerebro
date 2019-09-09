@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.request;
 
+import ai.preferred.cerebro.index.search.FlipBitSearcher;
 import ai.preferred.cerebro.index.search.Searcher;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
@@ -49,7 +50,7 @@ public class LoadSearcherRequest {
         this.indexDir = indexDir;
         if(lshVecDir == null){
             File f = new File(indexDir + "\\splitVec.o");
-            if(f.exists() && f.isDirectory())
+            if(f.exists() && !f.isDirectory())
                 lshVecDir = indexDir + "\\splitVec.o";
         }
         this.lshVecDir = lshVecDir;
@@ -68,16 +69,16 @@ public class LoadSearcherRequest {
     public Searcher<ScoreDoc> getSearcher() throws IOException {
         ExecutorService executorService = null;
         if(multithreadEnabled){
-            executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
         }
         Directory indexDirectory;
         if(loadToRAM){
             indexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(indexDir)), null);
-            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new FlipBitSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
         else {
             indexDirectory = FSDirectory.open(Paths.get(indexDir));
-            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new FlipBitSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
 
     }

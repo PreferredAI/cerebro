@@ -59,9 +59,9 @@ public abstract class LuIndexWriter implements Closeable {
             docFactory = new PersonalizedDocFactory(splitVecs);
         }
         else {
-            File f = new File(indexDirectoryPath + "/splitVec.o");
+            File f = new File(indexDirectoryPath + "\\splitVec.o");
             if(f.exists() && !f.isDirectory()) {
-                double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
+                double[][] splitVecs = IndexUtils.readVectors(f.getAbsolutePath());
                 docFactory = new PersonalizedDocFactory(splitVecs);
             }
             else
@@ -230,8 +230,6 @@ public abstract class LuIndexWriter implements Closeable {
      * @param filter an object to filter out all the type of file we
      *               don't want to read.
      * @throws IOException
-     *
-     *
      */
     final public void createIndexFromDir(String dataDirPath, FileFilter filter)
             throws IOException {

@@ -187,6 +187,31 @@ public class IndexUtils {
     }
 
     /**
+     * Calculate the distance between a point and a hyperplane.
+     * @param point
+     * @param plane
+     * @return the distance between the specified point and hyperplane.
+     */
+    static public double distancePointAndPlane(double[] point, double[] plane){
+
+        double shift;
+        if(point.length == plane.length)
+            shift = 0;
+        else if (point.length == plane.length - 1)
+            shift = plane[plane.length - 1];
+        else
+            throw new IllegalArgumentException("Can not compute distance between this point and plane, " +
+                    "number of dimensions does not match.");
+        double numerator = 0;
+        for (int i = 0; i < point.length; i++) {
+            numerator += point[i] * plane[i];
+        }
+        numerator += shift;
+        numerator = Math.abs(numerator);
+        return numerator/vecLength(plane);
+    }
+
+    /**
      * @param num
      * @return The byte encoding of an integer
      */

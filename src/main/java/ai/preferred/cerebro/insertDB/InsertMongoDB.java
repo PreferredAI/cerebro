@@ -16,21 +16,22 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * Class to read from csv files and insert into mongoDB
+ */
 public class InsertMongoDB {
-
-    final static String CSV_FILE_PATH = "E:\\demo_data";
+    /**
+     * Change to read from file application.property later
+     */
+    private final static String CSV_FILE_PATH = "E:\\demo_data";
 
     public static void main(String[] args) {
-        MongoClientURI connectionString = new MongoClientURI("mongodb://localhost:27017");
-        MongoClient mongoClient = new MongoClient(connectionString);
-        MongoDatabase database = mongoClient.getDatabase("movieLens");
-        MongoCollection<Document> collection = database.getCollection("users");
 
-        Document doc = collection.find().first();
-        ArrayList<Double> e = (ArrayList<Double>) doc.get("vec");
-        Double[] h = (Double[]) e.toArray(new Double[e.size()]);
-        System.out.println();
     }
+
+    /**
+     * Read and insert into user collection
+     */
     public static void insertUsers() {
         try (
                 Reader reader = Files.newBufferedReader(Paths.get(CSV_FILE_PATH  + "\\user_table.csv"));
@@ -99,8 +100,6 @@ public class InsertMongoDB {
                         .append("vec", vecs);
                 collection.insertOne(doc);
             }
-
-
             Document myDocm = collection.find().first();
             System.out.println(myDocm.toJson());
         } catch (UnknownHostException e) {

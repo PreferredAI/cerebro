@@ -4,6 +4,7 @@ package ai.preferred.cerebro.index.demo;
 import ai.preferred.cerebro.index.builder.ExtFilter;
 import ai.preferred.cerebro.index.builder.LuIndexWriter;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
+import ai.preferred.cerebro.index.search.FlipBitSearcher;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.Directory;
@@ -26,6 +27,10 @@ import java.util.concurrent.ExecutorService;
 
 import static ai.preferred.cerebro.index.utils.IndexUtils.dotProduct;
 
+/**
+ * class that house functions to measure the library performance
+ * or generating data necessary to do so
+ */
 
 public class TestUtils {
 
@@ -176,17 +181,36 @@ public class TestUtils {
     }
 
 
+    public void createIndex(){
+        double[][] vec = null;
+        int optimalLeavesNum = Runtime.getRuntime().availableProcessors();
+        try (
+                LuIndexWriter writer = new LuIndexWriter(TestConst.DIM_50_PATH + "index_32bits",
+                        TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o")
+                {
+                    @Override
+                    public void indexFile(File file) throws IOException {}
+                })
+        {
+            vec = IndexUtils.readVectors(TestConst.DIM_50_PATH + "itemVec_1M.o");
+            writer.setMaxBufferRAMSize(2048);
+            writer.setMaxBufferDocNum((vec.length/optimalLeavesNum) + 1);
+            writer.createIndexFromVecData(vec);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public void compareAccuracyAndSpeed() throws Exception {
-        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_8bits",
-                                                                    TestConst.DIM_50_PATH + "splitVec_8bits\\splitVec.o",
+        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_32bits",
+                TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o",
                                                                     false,
-                                                                false);
-        LuIndexSearcher searcher = (LuIndexSearcher) loadSearcherRequest.getSearcher();
+                                                                true);
+        FlipBitSearcher searcher = (FlipBitSearcher) loadSearcherRequest.getSearcher();
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
-            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "new_query_top20_1M.o");
+            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_1M.o");
         }
         catch (IOException e) {
             e.printStackTrace();
