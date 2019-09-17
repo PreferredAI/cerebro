@@ -5,6 +5,7 @@ import ai.preferred.cerebro.core.utils.CommandOptions;
 import ai.preferred.cerebro.index.builder.PersonalizedDocFactory;
 import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
+import ai.preferred.cerebro.index.search.FlipBitSearcher;
 import ai.preferred.cerebro.index.store.DoubleStoredField;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -59,7 +60,7 @@ public class TestFullFlow {
         //main query
         String queryText = "Command and City Lights";
         FSDirectory indexDirectory = FSDirectory.open(Paths.get(""));
-        TestIndexSearcher searcher =  new TestIndexSearcher(DirectoryReader.open(indexDirectory), null);
+        LuIndexSearcher searcher =  new LuIndexSearcher(DirectoryReader.open(indexDirectory), null);
         Assertions.assertNotNull(searcher);
         searcher.setLSH(TestConst.hashingVecs);
         //carry out searching
@@ -70,6 +71,18 @@ public class TestFullFlow {
         QueryRequest requestVec = new QueryRequest(TestConst.vec1, QueryRequest.QueryType.VECTOR, 1);
         QueryResponse<ScoreDoc> resVec = searcher.query(requestVec);
         Assertions.assertNotNull(resVec);
+
+        //flip bit searcher
+        FlipBitSearcher flipBitSearcher =  new FlipBitSearcher(DirectoryReader.open(indexDirectory), null);
+        Assertions.assertNotNull(searcher);
+        flipBitSearcher.setLSH(TestConst.hashingVecs);
+        //carry out searching
+        resText = flipBitSearcher.query(requestText);
+        Assertions.assertNotNull(resText);
+
+        resVec = flipBitSearcher.query(requestVec);
+        Assertions.assertNotNull(resVec);
+
 
     }
     @Test

@@ -79,6 +79,14 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
         }
     }
 
+    /**
+     * Set the hashing vectors outside of constructor
+     * @param hashingVecs hashing vectors
+     */
+    public void setLSH(double[][] hashingVecs){
+        this.lsh = new LocalitySensitiveHash(hashingVecs);
+    }
+
     protected TopDocs personalizedSearch(double [] vQuery, int topK)
             throws Exception{
         if(lsh == null)
@@ -93,128 +101,10 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
 
         LatentVectorQuery query = new LatentVectorQuery(vQuery, t);
         return search(query, Math.min(topK, count));
-        //return pSearch(query, count, topK);
-    }
-
-    protected TopDocs pSearch(Query query, int count, int topK)
-            throws IOException {
-        return pSearchAfter(null, query, count, topK);
-    }
-
-    private TopDocs pSearchAfter(ScoreDoc after, Query query, int count, int topK) throws IOException {
-        if(after != null){
-            IndexUtils.notifyLazyImplementation("LuIndexSearcher / pSearchAfter");
-        }
-        final int limit = Math.max(1, reader.maxDoc());
-        if (after != null && after.doc >= limit) {
-            throw new IllegalArgumentException("after.doc exceeds the number of documents in the reader: after.doc="
-                    + after.doc + " limit=" + limit);
-        }
-
-        final int cappedNumHits = Math.min(count, limit);
-
-        final CollectorManager<CeTopScoreDocCollector, TopDocs> manager = new CollectorManager<CeTopScoreDocCollector, TopDocs>() {
-
-            @Override
-            public CeTopScoreDocCollector newCollector() throws IOException {
-                return new CeTopScoreDocCollector(cappedNumHits, topK);
-            }
-
-            @Override
-            public TopDocs reduce(Collection<CeTopScoreDocCollector> collectors) throws IOException {
-                final TopDocs[] topDocs = new TopDocs[collectors.size()];
-                int i = 0;
-                for (CeTopScoreDocCollector collector : collectors) {
-                    collector.pullTopK();
-                    topDocs[i++] = collector.topDocs();
-                }
-                return TopDocs.merge(0, cappedNumHits, topDocs, true);
-            }
-
-        };
-
-        return pSearch(query, manager);
-    }
-
-    private <C extends Collector, T> T pSearch(Query query, CollectorManager<C, T> collectorManager) throws IOException {
-        if (executor == null) {
-            final C collector = collectorManager.newCollector();
-            pSearch(query, collector);
-            return collectorManager.reduce(Collections.singletonList(collector));
-        } else {
-            final List<C> collectors = new ArrayList<>(leafSlices.length);
-            boolean needsScores = false;
-            for (int i = 0; i < leafSlices.length; ++i) {
-                final C collector = collectorManager.newCollector();
-                collectors.add(collector);
-                needsScores |= collector.needsScores();
-            }
-
-            query = rewrite(query);
-            final Weight weight = createWeight(query, needsScores, 1);
-            final List<Future<C>> topDocsFutures = new ArrayList<>(leafSlices.length);
-            for (int i = 0; i < leafSlices.length; ++i) {
-                final LeafReaderContext[] leaves = leafSlices[i].leaves;
-                final C collector = collectors.get(i);
-                topDocsFutures.add(executor.submit(new Callable<C>() {
-                    @Override
-                    public C call() throws Exception {
-                        pSearch(Arrays.asList(leaves), weight, collector);
-                        return collector;
-                    }
-                }));
-            }
-
-            final List<C> collectedCollectors = new ArrayList<>();
-            for (Future<C> future : topDocsFutures) {
-                try {
-                    collectedCollectors.add(future.get());
-                } catch (InterruptedException e) {
-                    throw new ThreadInterruptedException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            return collectorManager.reduce(collectors);
-        }
-    }
-
-    private void pSearch(Query query, Collector results)
-            throws IOException {
-        query = rewrite(query);
-        pSearch(leafContexts, createWeight(query, results.needsScores(), 1), results);
-    }
-
-    private void pSearch(List<LeafReaderContext> leaves, Weight weight, Collector collector)
-            throws IOException {
-
-        // TODO: should we make this
-        // threaded...?  the Collector could be sync'd?
-        // always use single thread:
-        for (LeafReaderContext ctx : leaves) { // search each subreader
-            final LeafCollector leafCollector;
-            try {
-                leafCollector = collector.getLeafCollector(ctx);
-            } catch (CollectionTerminatedException e) {
-                // there is no doc of interest in this reader context
-                // continue with the following leaf
-                continue;
-            }
-            BulkScorer scorer = weight.bulkScorer(ctx);
-            if (scorer != null) {
-                try {
-                    scorer.score(leafCollector, ctx.reader().getLiveDocs());
-
-                } catch (CollectionTerminatedException e) {
-                    // collection was terminated prematurely
-                    // continue with the following leaf
-                }
-            }
-        }
     }
 
     /**
+     * Query and return docs on a keyword search
      * @param queryParser if null the searcher will by default carry search on
      *                    the field named {@link IndexConst#CONTENTS}.
      * @param sQuery String query.
@@ -233,14 +123,13 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
     }
 
     /**
-     *
+     * Query and return docs on a personalized search
      * @param vQuery The vector query.
      * @param resultSize Top result size.
      * @return A set of {@link ScoreDoc} of Document having latent vector producing.
      * the highest inner product with the query vector.
      * @throws Exception
      */
-
     public ScoreDoc[] queryVector(double[] vQuery, int resultSize) throws Exception {
         TopDocs hits = personalizedSearch(vQuery, resultSize);
         return hits == null ? null : hits.scoreDocs;

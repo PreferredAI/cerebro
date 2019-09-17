@@ -201,13 +201,13 @@ public class TestUtils {
         }
     }
 
-
+   // @Test
     public void compareAccuracyAndSpeed() throws Exception {
-        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_32bits",
-                TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o",
+        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_16bits",
+                TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o",
                                                                     false,
-                                                                true);
-        FlipBitSearcher searcher = (FlipBitSearcher) loadSearcherRequest.getSearcher();
+                                                                false);
+        LuIndexSearcher searcher = (LuIndexSearcher) loadSearcherRequest.getSearcher();
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
             queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_1M.o");

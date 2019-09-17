@@ -74,11 +74,11 @@ public class LoadSearcherRequest {
         Directory indexDirectory;
         if(loadToRAM){
             indexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(indexDir)), null);
-            return new FlipBitSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
         else {
             indexDirectory = FSDirectory.open(Paths.get(indexDir));
-            return new FlipBitSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
 
     }
