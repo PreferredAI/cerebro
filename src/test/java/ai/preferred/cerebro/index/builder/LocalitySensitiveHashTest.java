@@ -5,8 +5,6 @@ import org.apache.lucene.util.BytesRef;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class LocalitySensitiveHashTest {
 
     byte[] code1 = {0x38};
@@ -15,7 +13,7 @@ class LocalitySensitiveHashTest {
     
     @Test
     void test(){
-        LocalitySensitiveHash lsh = new LocalitySensitiveHash(TestConst.hashingVecs);
+        LocalitySensitiveHash lsh = new LocalitySensitiveHash(bitComputer, TestConst.hashingVecs);
 
         BytesRef hashcode1 = new BytesRef(code1);
         Assertions.assertTrue(hashcode1.bytesEquals(lsh.getHashBit(TestConst.vec1)));

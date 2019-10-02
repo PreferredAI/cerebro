@@ -41,7 +41,7 @@ public abstract class LuIndexWriter {
      * Constructor using an existing LSHash Vector object. This will try to allocate
      * as much memory as possible for the writing buffer.\n
      * <p>
-     * In case a path LSH vectors object is not specify the indexwriter will still load,
+     * In case a path to LSH vectors object is not specify the indexwriter will still load,
      * but any operation involving latent item vector will throw a {@link NullPointerException}.\n
      * <p>
      * @param indexDirectoryPath directory to the folder containing the index files.

@@ -2,27 +2,20 @@ package ai.preferred.cerebro.index.demo;
 
 //import com.preferred.ai.DumpIndexSearcher;
 import ai.preferred.cerebro.index.builder.ExtFilter;
-import ai.preferred.cerebro.index.builder.LuIndexWriter;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
 import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.store.Container;
 import ai.preferred.cerebro.index.utils.IndexUtils;
-import org.junit.jupiter.api.Test;
 
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 import static ai.preferred.cerebro.index.utils.IndexUtils.dotProduct;
 
@@ -248,7 +241,7 @@ public class TestUtils {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            lsh = new LocalitySensitiveHash(splitVec);
+            lsh = new LocalitySensitiveHash(bitComputer, splitVec);
             hashMap = new HashMap<BytesRef, LinkedList<ItemFeatures>>();
             for(int i =0; i < itemVec.length; i++){
                 BytesRef hashcode = lsh.getHashBit(itemVec[i]);
@@ -293,7 +286,7 @@ public class TestUtils {
 //        }
 
         HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap = new HashMap<BytesRef, LinkedList<ItemFeatures>>();
-        LocalitySensitiveHash lsh = new LocalitySensitiveHash(splitVec);
+        LocalitySensitiveHash lsh = new LocalitySensitiveHash(bitComputer, splitVec);
         for(int i =0; i < 1000000; i++){
             BytesRef hashcode = lsh.getHashBit(itemVec[i]);
             LinkedList t = hashMap.get(hashcode);

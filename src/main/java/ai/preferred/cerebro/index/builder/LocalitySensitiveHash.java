@@ -13,20 +13,21 @@ import java.util.BitSet;
  *
  * @author hpminh@apcs.vn
  */
-public class LocalitySensitiveHash {
+public class LocalitySensitiveHash<TVector> {
     protected final int numHashBit;
-    protected final int dimension;
-    protected final double [][] splitVecs;
+    protected final HashBitComputer<TVector> bitComputer;
+    protected final TVector[] splitVecs;
 
     /**
      * Instantiate with a set of hashing vectors.
+     * @param bitComputer
      * @param splitVecs the set of hashing vectors.
      */
-    public LocalitySensitiveHash(double [][] splitVecs){
+    public LocalitySensitiveHash(HashBitComputer<TVector> bitComputer, TVector[] splitVecs){
+        this.bitComputer = bitComputer;
         assert splitVecs.length > 0;
         this.splitVecs =splitVecs;
         this.numHashBit = splitVecs.length;
-        this.dimension = splitVecs[0].length;
     }
 
     /**
@@ -35,11 +36,10 @@ public class LocalitySensitiveHash {
      * @param features the vector to compute hashcode.
      * @return the hashcode of the vector.
      */
-    public BytesRef getHashBit(double [] features){
-        assert features.length == dimension;
+    public BytesRef getHashBit(TVector features){
         BitSet hashbits = new BitSet(numHashBit);
         for(int i=0; i < numHashBit; i++){
-            hashbits.set(i, IndexUtils.dotProduct(features, splitVecs[i]) > 0);
+            hashbits.set(i, bitComputer.compute(features, splitVecs[i]));
         }
         return new BytesRef(hashbits.toByteArray());
     }

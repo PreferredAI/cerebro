@@ -1,31 +1,17 @@
 package ai.preferred.cerebro.index.demo;
 
 
-import ai.preferred.cerebro.core.utils.CommandOptions;
 import ai.preferred.cerebro.index.builder.PersonalizedDocFactory;
-import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
-import ai.preferred.cerebro.index.store.DoubleStoredField;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
-import ai.preferred.cerebro.index.builder.ExtFilter;
-import ai.preferred.cerebro.index.builder.LuIndexWriter;
-import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import ai.preferred.cerebro.index.request.QueryRequest;
 import ai.preferred.cerebro.index.response.QueryResponse;
-import ai.preferred.cerebro.index.search.LuIndexSearcher;
-import ai.preferred.cerebro.index.utils.IndexConst;
-import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestFullFlow {

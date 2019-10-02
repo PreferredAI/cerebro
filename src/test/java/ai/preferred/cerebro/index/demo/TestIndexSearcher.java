@@ -16,7 +16,7 @@ public class TestIndexSearcher extends LuIndexSearcher {
         super(r, splitVecPath);
     }
     public void setLSH(double[][] hashingVecs){
-        this.lsh = new LocalitySensitiveHash(hashingVecs);
+        this.lsh = new LocalitySensitiveHash(bitComputer, hashingVecs);
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.apache.lucene.util.BytesRef;
 
 import ai.preferred.cerebro.index.exception.DocNotClearedException;
 import ai.preferred.cerebro.index.exception.SameNameException;
-import ai.preferred.cerebro.index.store.VectorField;
+import ai.preferred.cerebro.index.store.DoubleVecField;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
@@ -20,16 +20,17 @@ import ai.preferred.cerebro.index.utils.IndexUtils;
  *
  * @author hpminh@apcs.vn
  */
-public class PersonalizedDocFactory {
-    private LocalitySensitiveHash hashFunc = null;
+public class PersonalizedDocFactory<TVector> {
+    private LocalitySensitiveHash<TVector> hashFunc = null;
     private Document doc;
 
     /**
      * Instantiate with a set of hashing vectors.
      * @param splitVecs
      */
-    public PersonalizedDocFactory(double [][] splitVecs){
-        hashFunc = new LocalitySensitiveHash(splitVecs);
+    public PersonalizedDocFactory(TVector[] splitVecs){
+
+        hashFunc = new LocalitySensitiveHash(bitComputer, splitVecs);
     }
 
     public PersonalizedDocFactory(){}
@@ -62,7 +63,7 @@ public class PersonalizedDocFactory {
             throw new UnsupportedDataType();
         doc.add(idField);
         /* Storing double vector */
-        VectorField vecField = new VectorField(features);
+        DoubleVecField vecField = new DoubleVecField(features);
         doc.add(vecField);
         /* adding hashcode */
         BytesRef hashcode = hashFunc.getHashBit(features);

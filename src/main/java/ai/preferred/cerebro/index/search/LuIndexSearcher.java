@@ -72,7 +72,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
         this.leafSlices = executor == null ? null : slices(leafContexts);
         if(splitVecPath != null){
             double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
-            lsh = new LocalitySensitiveHash(splitVecs);
+            lsh = new LocalitySensitiveHash(bitComputer, splitVecs);
         }
     }
 
@@ -280,7 +280,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             QueryParser parser = new QueryParser(fieldnameAndQuery[0], new StandardAnalyzer());
             return queryKeyWord(parser, fieldnameAndQuery[1], topK);
         }
-        throw new UnsupportedDataType();
+        throw new UnsupportedDataType(queryData.getClass(), String.class, String[].class);
     }
 
     private ScoreDoc[] processVec(Object queryData, int topK) throws Exception {
@@ -293,7 +293,7 @@ public class LuIndexSearcher extends IndexSearcher implements Searcher<ScoreDoc>
             double[] vec = ((DenseVector) queryData).getElements();
             return queryVector(vec, topK);
         }
-        throw new UnsupportedDataType();
+        throw new UnsupportedDataType(queryData.getClass(), double[].class, DenseVector.class);
     }
 
     public void close(){

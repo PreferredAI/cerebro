@@ -164,9 +164,20 @@ public class IndexUtils {
 
 
     /**
-     * Calculate the the inner product between 2 vectors
+     * Calculate the the inner product between 2 double vectors
      */
-    static public double dotProduct(double [] a, double [] b){
+    static public double dotProductDouble(double [] a, double [] b){
+        double re = 0;
+        for (int i=0; i < a.length; i++){
+            re += a[i] * b[i];
+        }
+        return re;
+    }
+
+    /**
+     * Calculate the the inner product between 2 double vectors
+     */
+    static public double dotProductFloat(float [] a, float [] b){
         double re = 0;
         for (int i=0; i < a.length; i++){
             re += a[i] * b[i];
@@ -202,6 +213,78 @@ public class IndexUtils {
      */
     public static int byteToInt(byte[] bytes){
         return ByteBuffer.wrap(bytes, 0, Integer.BYTES).getInt();
+    }
+
+
+
+    /**
+     * Encoding a vector into an array of byte.
+     *
+     * @param doublearr The vector to be encoded to bytes.
+     * @return byte encoding of the vector.
+     */
+    public static byte[] doubleVecToBytes(double[] doublearr){
+        byte[] arr = new byte[doublearr.length * Double.BYTES];
+        for(int i = 0; i < doublearr.length; i++){
+            byte[] bytes = new byte[Double.BYTES];
+            ByteBuffer.wrap(bytes).putDouble(doublearr[i]);
+            System.arraycopy(bytes, 0, arr, i * Double.BYTES, bytes.length);
+        }
+        return arr;
+    }
+
+    /**
+     * Decode a byte array back into a vector.
+     *
+     * @param data The data to be decoded back to a vector.
+     * @return vector values of a byte array.
+     */
+    public static double[] getDoubleFeatureVector(byte[] data){
+        assert data.length % Double.BYTES == 0;
+        double[] doubles = new double[data.length / Double.BYTES];
+        for(int i=0;i<doubles.length;i++){
+            doubles[i] = ByteBuffer.wrap(data, i*Double.BYTES, Double.BYTES).getDouble();
+        }
+        return doubles;
+    }
+
+    /**
+     * Encoding a vector into an array of byte.
+     *
+     * @param floatarr The vector to be encoded to bytes.
+     * @return byte encoding of the vector.
+     */
+    public static byte[] floatVecToBytes(float[] floatarr){
+        byte[] arr = new byte[floatarr.length * Float.BYTES];
+        for(int i = 0; i < floatarr.length; i++){
+            byte[] bytes = new byte[Float.BYTES];
+            ByteBuffer.wrap(bytes).putFloat(floatarr[i]);
+            System.arraycopy(bytes, 0, arr, i * Float.BYTES, bytes.length);
+        }
+        return arr;
+    }
+
+    /**
+     * Decode a byte array back into a vector.
+     *
+     * @param data The data to be decoded back to a vector.
+     * @return vector values of a byte array.
+     */
+    public static float[] getFloatFeatureVector(byte[] data){
+        assert data.length % Float.BYTES == 0;
+        float[] floats = new float[data.length / Float.BYTES];
+        for(int i=0;i<floats.length;i++){
+            floats[i] = ByteBuffer.wrap(data, i*Float.BYTES, Float.BYTES).getFloat();
+        }
+        return floats;
+    }
+
+    public static boolean computeBitFloat(float[] a, float[] b){
+        return dotProductFloat(a, b) > 0;
+    }
+
+    public static boolean computeBitDouble(double[] a, double[] b){
+        return dotProductDouble(a, b) > 0;
     }
 
 }

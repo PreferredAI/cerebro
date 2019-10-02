@@ -10,12 +10,11 @@ import org.apache.lucene.search.TermStatistics;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.util.BytesRef;
 
-import ai.preferred.cerebro.index.store.VectorField;
+import ai.preferred.cerebro.index.store.DoubleVecField;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
 import java.io.IOException;
-import java.util.*;
 
 /**
  *
@@ -67,7 +66,7 @@ public class CosineSimilarity extends Similarity {
             //Document document = stats.reader.document(doc, IndexConst.fieldsRetrieve);
             doc += docBase;
             Document document = stats.reader.document(doc);
-            double[] tarVec = VectorField.getFeatureVector(document.getField(IndexConst.VecFieldName).binaryValue().bytes);
+            double[] tarVec = DoubleVecField.getFeatureVector(document.getField(IndexConst.VecFieldName).binaryValue().bytes);
             //double tarVecLen = DoubleStoredField.bytesToDouble(document.getField(IndexConst.VecLenFieldName).binaryValue().bytes);//IndexUtils.vecLength(tarVec);
             double tarVecLen = IndexUtils.vecLength(tarVec);
             double cosineScore = IndexUtils.dotProduct(stats.vquery, tarVec) / (stats.vecLength * tarVecLen);

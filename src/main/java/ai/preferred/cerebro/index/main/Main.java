@@ -24,7 +24,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Example class to demostrate Cerebro
+ * Example class to demonstrate Cerebro
  * functionality via command line interface.
  *
  * Read the file README first to get the data

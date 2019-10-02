@@ -24,25 +24,25 @@ import java.util.Set;
  *
  * @author hpminh@apcs.vn
  */
-public class LatentVectorQuery extends Query {
+public class LatentVectorQuery<TVector> extends Query {
     private final Term term;
-    private final double[] vec;
+    private final TVector vec;
     private final TermContext perReaderTermState;
 
-    public LatentVectorQuery(double[] vec, LocalitySensitiveHash lsh) {
+    public LatentVectorQuery(TVector vec, LocalitySensitiveHash lsh) {
         this.vec =vec;
         term = new Term(IndexConst.HashFieldName, lsh.getHashBit(vec));
         perReaderTermState = null;
     }
 
-    public LatentVectorQuery(double[] vec, Term t) {
+    public LatentVectorQuery(TVector vec, Term t) {
         this.vec = vec;
         term = Objects.requireNonNull(t);
         perReaderTermState = null;
     }
 
     public LatentVectorQuery(double[] vec, LocalitySensitiveHash lsh, TermContext states) {
-        this.vec =vec;
+        this.vec = vec;
         term = new Term(IndexConst.HashFieldName, lsh.getHashBit(vec));
         perReaderTermState = states;
     }

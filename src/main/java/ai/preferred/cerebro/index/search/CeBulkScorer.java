@@ -72,14 +72,11 @@ public class CeBulkScorer extends BulkScorer {
 
     static void scoreAll(LeafCollector collector, DocIdSetIterator iterator, TwoPhaseIterator twoPhase, Bits acceptDocs) throws IOException {
         if (twoPhase == null) {
-            //long startTime = System.currentTimeMillis();
             for (int doc = iterator.nextDoc(); doc != DocIdSetIterator.NO_MORE_DOCS; doc = iterator.nextDoc()) {
                 if (acceptDocs == null || acceptDocs.get(doc)) {
                     collector.collect(doc);
                 }
             }
-            //long endtime = System.currentTimeMillis();
-            //System.out.println("Doc collect time" + (endtime - startTime));
         } else {
             // The scorer has an approximation, so run the approximation first, then check acceptDocs, then confirm
             final DocIdSetIterator approximation = twoPhase.approximation();
