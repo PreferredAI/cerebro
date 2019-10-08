@@ -1,7 +1,7 @@
 package ai.preferred.cerebro.index.main;
 
 
-import org.apache.logging.log4j.core.tools.picocli.CommandLine;
+import ai.preferred.cerebro.index.search.LSHIndexSearcher;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StoredField;
@@ -10,13 +10,11 @@ import org.apache.lucene.search.ScoreDoc;
 
 import ai.preferred.cerebro.core.utils.CommandOptions;
 import ai.preferred.cerebro.index.builder.ExtFilter;
-import ai.preferred.cerebro.index.builder.LuIndexWriter;
-import ai.preferred.cerebro.index.exception.DocNotClearedException;
+import ai.preferred.cerebro.index.builder.LSHIndexWriter;
 import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import ai.preferred.cerebro.index.request.QueryRequest;
 import ai.preferred.cerebro.index.response.QueryResponse;
-import ai.preferred.cerebro.index.search.LuIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
@@ -72,7 +70,7 @@ public class Main {
         if(dataDir.equals("") || indexDir.equals("") || hashTablePath.equals(""))
             throw new Exception("Not enough param provided");
 
-        LuIndexWriter writer = new LuIndexWriter(indexDir, hashTablePath) {
+        LSHIndexWriter writer = new LSHIndexWriter(indexDir, hashTablePath) {
             @Override
             public void indexFile(File file) throws IOException {
                 try{
@@ -92,11 +90,11 @@ public class Main {
                             .mapToDouble(Double::parseDouble)
                             .toArray();
 
-                    docFactory.createPersonalizedDoc(writer.numDocs(), vec);
+                    docFactory.createPersonalizedDoc(delegate.numDocs(), vec);
                     docFactory.addField(filePathField, contentField);
                     //when using DocFactory always call getDoc()
                     //after calling createPersonalizedDoc() to free up the pointer
-                    writer.addDocument(docFactory.getDoc());
+                    delegate.addDocument(docFactory.getDoc());
 
                 }
                 catch (FileNotFoundException e){
@@ -133,7 +131,7 @@ public class Main {
 
 
         LoadSearcherRequest loadSearcher = new LoadSearcherRequest(textIndexDir, null, false, true);
-        LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
+        LSHIndexSearcher searcher = (LSHIndexSearcher) loadSearcher.getSearcher();
 
         //carry out searching
         //the default is 20 top
@@ -160,7 +158,7 @@ public class Main {
             throw new Exception("Not enough param provided");
 
         LoadSearcherRequest loadSearcher = new LoadSearcherRequest(vecIndexDir, hashTablePath, false, true);
-        LuIndexSearcher searcher = (LuIndexSearcher) loadSearcher.getSearcher();
+        LSHIndexSearcher searcher = (LSHIndexSearcher) loadSearcher.getSearcher();
 
 
         //load query set

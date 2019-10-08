@@ -1,6 +1,8 @@
 package ai.preferred.cerebro.index.builder;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Warnings;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -9,18 +11,15 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
-import ai.preferred.cerebro.core.jpa.entity.IndexMetadata;
-import ai.preferred.cerebro.core.jpa.entity.Model;
 import ai.preferred.cerebro.index.exception.DocNotClearedException;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
-import ai.preferred.cerebro.index.utils.JPAUtils;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
+
+import static ai.preferred.cerebro.index.utils.IndexUtils.loadHashVec;
 
 /**
  *
@@ -28,14 +27,14 @@ import java.nio.file.Paths;
  * that facilitates the indexing of both text objects and latent feature
  * vectors.\n
  * <p>
- * Note that Right now LuIndexWriter is not thread-safe due to the way it
+ * Note that Right now LSHIndexWriter is not thread-safe due to the way it
  * uses PersonalizedDocFactory. This will be fixed in a near future version.
  *
  * @author hpminh@apcs.vn
  */
-public abstract class LuIndexWriter {
-    protected IndexWriter writer;
-    protected PersonalizedDocFactory docFactory = null;
+public abstract class LSHIndexWriter<TVector> implements Closeable {
+    protected IndexWriter delegate;
+    protected PersonalizedDocFactory<TVector> docFactory = null;
 
     /**
      * Constructor using an existing LSHash Vector object. This will try to allocate
@@ -45,28 +44,20 @@ public abstract class LuIndexWriter {
      * but any operation involving latent item vector will throw a {@link NullPointerException}.\n
      * <p>
      * @param indexDirectoryPath directory to the folder containing the index files.
-     * @param splitVecPath path to the object file containing the LSH vectors.
+     * @param splitVecs LSH vectors.
      * @throws IOException this is triggered when a path or file does not exist.
-     *
-
      */
-    public LuIndexWriter(String indexDirectoryPath, String splitVecPath) throws IOException {
+    public LSHIndexWriter(String indexDirectoryPath, TVector[] splitVecs) throws IOException {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
-        writer = new IndexWriter(indexDirectory, iwc);
-        if(splitVecPath != null){
-            double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
-            docFactory = new PersonalizedDocFactory(splitVecs);
+        delegate = new IndexWriter(indexDirectory, iwc);
+        if(splitVecs != null){
+            docFactory = new PersonalizedDocFactory<TVector>(splitVecs);
+            saveHashVecFile(indexDirectoryPath + "\\splitVec.o", splitVecs);
         }
-        else {
-            File f = new File(indexDirectoryPath + "/splitVec.o");
-            if(f.exists() && !f.isDirectory()) {
-                double[][] splitVecs = IndexUtils.readVectors(splitVecPath);
-                docFactory = new PersonalizedDocFactory(splitVecs);
-            }
-            else
-                System.out.println("Hash file not present");
-        }
+
+        else
+            System.out.println("Hash function not provided");
     }
 
 
@@ -75,23 +66,33 @@ public abstract class LuIndexWriter {
      * containing the index file and save metadata to database.\n
      * <p>
      * Note that this is intented to worked with other unreleased components of
-     * Cerebro. As such it is not recommended to instantiate {@link LuIndexWriter}
+     * Cerebro. As such it is not recommended to instantiate {@link LSHIndexWriter}
      * this way.
      * @param indexDirectoryPath directory to the folder containing the index files.
-     * @param numHash number hashing vector to randomize.
-     * @param numFeature number of dimension of the vectors to be indexed.
-     * @throws IOException this is triggered when a path or file does not exist.
+     * @param splitVecPath directory to the file containing the hashing vectors.
+     * @throws Exception this is triggered when a path or file does not exist or there
+     * is an error in type casting.
      *
 
      */
-    public LuIndexWriter(String indexDirectoryPath, int numHash, int numFeature) throws IOException {
+
+    public LSHIndexWriter(String indexDirectoryPath, String splitVecPath) throws Exception {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
-        writer = new IndexWriter(indexDirectory, iwc);
-        double[][] splitVecs = IndexUtils.randomizeFeatureVectors(numHash, numFeature, true);
-        docFactory = new PersonalizedDocFactory(splitVecs);
-        //save the actual hashing vectors to disk
-        IndexUtils.saveVectors(splitVecs, indexDirectoryPath + "\\splitVec.o");
+        delegate = new IndexWriter(indexDirectory, iwc);
+        if(splitVecPath != null){
+            TVector[] splitVecs = (TVector[]) loadHashVec(splitVecPath);
+            docFactory = new PersonalizedDocFactory(splitVecs);
+        }
+        else {
+            File f = new File(indexDirectoryPath + "\\splitVec.o");
+            if(f.exists() && !f.isDirectory()) {
+                TVector[] splitVecs = (TVector[]) loadHashVec(f.getAbsolutePath());
+                docFactory = new PersonalizedDocFactory(splitVecs);
+            }
+            else
+                System.out.println("Hash file not present");
+        }
     }
 
 
@@ -100,13 +101,14 @@ public abstract class LuIndexWriter {
      * Closes all open resources and releases the write lock.
      * <p>
      * Note that this may be a costly operation, so, try to re-use
-     * a single writer instead of closing and opening a new one.
+     * a single delegate instead of closing and opening a new one.
      *
      * <p><b>NOTE</b>: You must ensure no other threads are still making
      * changes at the same time that this method is invoked.</p>
      */
     final public void close() throws IOException {
-        writer.close();
+
+        delegate.close();
     }
 
     /**
@@ -114,13 +116,13 @@ public abstract class LuIndexWriter {
      * in-memory documents are flushed as a new Segment. Large values generally
      * give faster indexing.
      * <p>
-     * When this is set, the writer will flush every maxBufferedDocs added
+     * When this is set, the delegate will flush every maxBufferedDocs added
      * documents. Pass in {@link IndexWriterConfig#DISABLE_AUTO_FLUSH} to prevent
      * triggering a flush due to number of buffered documents. Note that if
      * flushing by RAM usage is also enabled, then the flush will be triggered by
      * whichever comes first.
      * <p>
-     * Disabled by default (writer flushes by RAM usage).
+     * Disabled by default (delegate flushes by RAM usage).
      * <p>
      * Takes effect immediately, but only the next time a document is added,
      * updated or deleted.
@@ -131,7 +133,7 @@ public abstract class LuIndexWriter {
      *           maxBufferedDocs when ramBufferSize is already disabled.
      */
     final public void setMaxBufferDocNum(int num){
-        writer.getConfig().setMaxBufferedDocs(num);
+        delegate.getConfig().setMaxBufferedDocs(num);
     }
 
 
@@ -141,7 +143,7 @@ public abstract class LuIndexWriter {
      * faster indexing performance it's best to flush by RAM usage instead of
      * document count and use as large a RAM buffer as you can.
      * <p>
-     * When this is set, the writer will flush whenever buffered documents and
+     * When this is set, the delegate will flush whenever buffered documents and
      * deletions use this much RAM. Pass in
      * {@link IndexWriterConfig#DISABLE_AUTO_FLUSH} to prevent triggering a flush
      * due to RAM usage. Note that if flushing by document count is also enabled,
@@ -152,7 +154,7 @@ public abstract class LuIndexWriter {
      * larger amount of memory than the given RAM limit since this limit is just
      * an indicator when to flush memory resident documents to the Directory.
      * Flushes are likely happen concurrently while other threads adding documents
-     * to the writer. For application stability the available memory in the JVM
+     * to the delegate. For application stability the available memory in the JVM
      * should be significantly larger than the RAM buffer used for indexing.
      * <p>
      * <b>NOTE</b>: the account of RAM usage for pending deletions is only
@@ -178,7 +180,7 @@ public abstract class LuIndexWriter {
      *           ramBufferSize when maxBufferedDocs is already disabled
      */
     final public void setMaxBufferRAMSize(double mb){
-        writer.getConfig().setRAMBufferSizeMB(mb);
+        delegate.getConfig().setRAMBufferSizeMB(mb);
     }
 
 
@@ -201,8 +203,8 @@ public abstract class LuIndexWriter {
             term = new Term(IndexConst.IDFieldName, new BytesRef(IndexUtils.intToByte(((Integer) ID).intValue())));
         else
             throw new UnsupportedDataType();
-        writer.deleteDocuments(term);
-        writer.close();
+        delegate.deleteDocuments(term);
+        delegate.close();
     }
 
     /**
@@ -215,10 +217,10 @@ public abstract class LuIndexWriter {
      */
     public void optimize() throws IOException {
         int optimalNofSegments = Runtime.getRuntime().availableProcessors();
-        writer.getConfig().setUseCompoundFile(true);
-        writer.getConfig().getMergePolicy().setNoCFSRatio(1.0);
-        writer.forceMerge(optimalNofSegments);
-        writer.close();
+        delegate.getConfig().setUseCompoundFile(true);
+        delegate.getConfig().getMergePolicy().setNoCFSRatio(1.0);
+        delegate.forceMerge(optimalNofSegments);
+        delegate.close();
     }
 
     /**
@@ -230,8 +232,6 @@ public abstract class LuIndexWriter {
      * @param filter an object to filter out all the type of file we
      *               don't want to read.
      * @throws IOException
-     *
-     *
      */
     final public void createIndexFromDir(String dataDirPath, FileFilter filter)
             throws IOException {
@@ -248,14 +248,14 @@ public abstract class LuIndexWriter {
                 indexFile(file);
             }
         }
-        writer.close();
+        delegate.close();
     }
 
     /**
      * Self-implement this function to parse information from your file to be indexed.
      * If you are utilizing personalized search function, plz use docFactory to createPersonalizedDoc your Documents.
      * Do not try to createPersonalizedDoc Lucene document directly if you want to use personalized search.
-     * See the deprecated function {@link #createIndexFromVecData(double[][])} as an main
+     * See the function {@link #createIndexFromVecData(TVector[])} as an example
      * of how to work with docFactory.
      */
     abstract public void indexFile(File file) throws IOException;
@@ -268,14 +268,25 @@ public abstract class LuIndexWriter {
      * @param itemVecs the set of item latent vector to be indexes.
      * @throws IOException
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link PersonalizedDocFactory#createPersonalizedDoc(Object, double[])}
+     * a call to {@link PersonalizedDocFactory#createPersonalizedDoc(Object, TVector)}
      * is not paired with a call to {@link PersonalizedDocFactory#getDoc()}.
      */
-    public void createIndexFromVecData(double[][] itemVecs) throws Exception {
+    public void createIndexFromVecData(TVector[] itemVecs) throws Exception {
         for(int i = 0; i < itemVecs.length; i++){
-            docFactory.createPersonalizedDoc(writer.numDocs(), itemVecs[i]);
-            writer.addDocument(docFactory.getDoc());
+            docFactory.createPersonalizedDoc(delegate.numDocs(), itemVecs[i]);
+            delegate.addDocument(docFactory.getDoc());
         }
-        writer.close();
+        delegate.close();
+    }
+
+    private void saveHashVecFile(String splitVecFilename, TVector[] vecs){
+        Kryo kryo = new Kryo();
+        try {
+            Output output = new Output(new FileOutputStream(splitVecFilename));
+            kryo.writeClassAndObject(output, vecs);
+            output.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }

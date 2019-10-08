@@ -3,6 +3,9 @@ package ai.preferred.cerebro.index.demo;
 
 import ai.preferred.cerebro.index.builder.PersonalizedDocFactory;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
+
+import ai.preferred.cerebro.index.search.FlipBitSearcher;
+
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
 import ai.preferred.cerebro.index.request.QueryRequest;
@@ -13,8 +16,9 @@ import org.junit.jupiter.api.*;
 import java.io.*;
 import java.nio.file.Paths;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestFullFlow {
+    /*
     @BeforeAll
     public void createIndex() throws Exception {
         //fileExt signify what file extension to read and index
@@ -45,7 +49,7 @@ public class TestFullFlow {
         //main query
         String queryText = "Command and City Lights";
         FSDirectory indexDirectory = FSDirectory.open(Paths.get(""));
-        TestIndexSearcher searcher =  new TestIndexSearcher(DirectoryReader.open(indexDirectory), null);
+        LuIndexSearcher searcher =  new LuIndexSearcher(DirectoryReader.open(indexDirectory), null);
         Assertions.assertNotNull(searcher);
         searcher.setLSH(TestConst.hashingVecs);
         //carry out searching
@@ -57,12 +61,18 @@ public class TestFullFlow {
         QueryResponse<ScoreDoc> resVec = searcher.query(requestVec);
         Assertions.assertNotNull(resVec);
 
+        //flip bit searcher
+        FlipBitSearcher flipBitSearcher =  new FlipBitSearcher(DirectoryReader.open(indexDirectory), null);
+        Assertions.assertNotNull(searcher);
+        flipBitSearcher.setLSH(TestConst.hashingVecs);
+        //carry out searching
+        resText = flipBitSearcher.query(requestText);
+        Assertions.assertNotNull(resText);
+
+        resVec = flipBitSearcher.query(requestVec);
+        Assertions.assertNotNull(resVec);
     }
-    @Test
-    public void testField(){
-        double e = 1.2342;
-        DoubleStoredField doubleStoredField = new DoubleStoredField(e);
-        e = DoubleStoredField.bytesToDouble(doubleStoredField.binaryValue().bytes);
-    }
+
+     */
 
 }

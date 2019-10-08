@@ -1,6 +1,8 @@
 package ai.preferred.cerebro.index.builder;
 
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
+import ai.preferred.cerebro.index.field.LSHVectorField;
+import ai.preferred.cerebro.index.utils.HashUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -9,10 +11,9 @@ import org.apache.lucene.util.BytesRef;
 
 import ai.preferred.cerebro.index.exception.DocNotClearedException;
 import ai.preferred.cerebro.index.exception.SameNameException;
-import ai.preferred.cerebro.index.store.DoubleVecField;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
-
+import ai.preferred.cerebro.index.builder.LocalitySensitiveHash.HashBitComputer;
 /**
  * This class handles the creation of Document object
  * to ensure that there is no conflict in field name
@@ -21,6 +22,7 @@ import ai.preferred.cerebro.index.utils.IndexUtils;
  * @author hpminh@apcs.vn
  */
 public class PersonalizedDocFactory<TVector> {
+
     private LocalitySensitiveHash<TVector> hashFunc = null;
     private Document doc;
 
@@ -29,11 +31,32 @@ public class PersonalizedDocFactory<TVector> {
      * @param splitVecs
      */
     public PersonalizedDocFactory(TVector[] splitVecs){
-
-        hashFunc = new LocalitySensitiveHash(bitComputer, splitVecs);
+        assert splitVecs.length > 0;
+        HashBitComputer<TVector> bitComputer = null;
+        if (splitVecs[0].getClass() == float[].class){
+            bitComputer = (HashBitComputer<TVector>)((HashBitComputer<float[]>) HashUtils::computeBitFloat);
+        }
+        else if(splitVecs[0].getClass() == double[].class){
+            bitComputer = (HashBitComputer<TVector>)((HashBitComputer<double[]>) HashUtils::computeBitDouble);
+        }
+        else
+            try {
+                throw new UnsupportedDataType(splitVecs[0].getClass());
+            } catch (UnsupportedDataType unsupportedDataType) {
+                unsupportedDataType.printStackTrace();
+            }
+        hashFunc = new LocalitySensitiveHash<>(bitComputer, splitVecs);
     }
 
     public PersonalizedDocFactory(){}
+
+
+
+    public void setHashFunc(LocalitySensitiveHash<TVector> hashFunc) {
+        this.hashFunc = hashFunc;
+    }
+
+
     /**
      * Only use this function to construct a Document containing latent vector.
      * To add additional fields to the Document, use {@link #addField(IndexableField...)}.
@@ -42,12 +65,12 @@ public class PersonalizedDocFactory<TVector> {
      * @param ID unique ID of the document.
      * @param features the latent feature vector to index.
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link #createPersonalizedDoc(Object, double[])} is not paired with a
+     * a call to {@link #createPersonalizedDoc(Object, TVector)} is not paired with a
      * call to {@link #getDoc()}.
      * @throws UnsupportedDataType thrown when the ID is not either a String or integer
      * (or Integer)
      */
-    public void createPersonalizedDoc(Object ID, double[] features) throws Exception {
+    public void createPersonalizedDoc(Object ID, TVector features) throws Exception {
         if(this.doc != null)
             throw new DocNotClearedException();
         if(this.hashFunc == null)
@@ -63,7 +86,7 @@ public class PersonalizedDocFactory<TVector> {
             throw new UnsupportedDataType();
         doc.add(idField);
         /* Storing double vector */
-        DoubleVecField vecField = new DoubleVecField(features);
+        LSHVectorField<TVector> vecField = new LSHVectorField(IndexConst.VecFieldName,features);
         doc.add(vecField);
         /* adding hashcode */
         BytesRef hashcode = hashFunc.getHashBit(features);
@@ -81,7 +104,7 @@ public class PersonalizedDocFactory<TVector> {
      * @throws SameNameException this is triggered when one of your custom field has name
      * identical to Cerebro reserved word. See more detail at {@link IndexConst}.
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link #createPersonalizedDoc(Object, double[])} is not paired with a
+     * a call to {@link #createPersonalizedDoc(Object, TVector)} is not paired with a
      * call to {@link #getDoc()}.
      * @throws UnsupportedDataType thrown when the ID is not either a String or integer
      * (or Integer)
@@ -100,7 +123,7 @@ public class PersonalizedDocFactory<TVector> {
             idField = new StringField(IndexConst.IDFieldName,
                     new BytesRef(IndexUtils.intToByte(((Integer) ID).intValue())), Field.Store.YES);
         else
-            throw new UnsupportedDataType();
+            throw new UnsupportedDataType(ID.getClass(), String.class, Integer.class);
         doc.add(idField);
         for(IndexableField field : fields){
             if(checkReservedFieldName(field.name()))
@@ -110,7 +133,7 @@ public class PersonalizedDocFactory<TVector> {
     }
 
     /**
-     * After calling {@link #createPersonalizedDoc(Object, double[])} to createPersonalizedDoc a document with latent vector
+     * After calling {@link #createPersonalizedDoc(Object, TVector)} to createPersonalizedDoc a document with latent vector
      * if you still want add more custom fields to a Document then use this function.
      *
      * @param fields fields to add to the {@link Document}
@@ -133,7 +156,7 @@ public class PersonalizedDocFactory<TVector> {
     /**
      * After calling this function the pointer doc become null again.
      *
-     * @return the Document object being built since the last {@link #createPersonalizedDoc(Object, double[])}
+     * @return the Document object being built since the last {@link #createPersonalizedDoc(Object, TVector)}
      * or {@link #createTextDoc(Object, IndexableField...)} call.
      */
     public Document getDoc(){
@@ -152,7 +175,6 @@ public class PersonalizedDocFactory<TVector> {
         boolean a = fieldname.equals(IndexConst.IDFieldName);
         boolean b = fieldname.equals(IndexConst.VecFieldName);
         boolean c = fieldname.equals(IndexConst.HashFieldName);
-        //boolean d = fieldname.equals(IndexConst.VecLenFieldName);
-        return a || b || c ;//|| d;
+        return a || b || c ;
     }
 }

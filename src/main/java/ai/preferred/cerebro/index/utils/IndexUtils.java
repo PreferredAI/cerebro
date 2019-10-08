@@ -16,12 +16,7 @@ import java.util.*;
  *
  * @author hpminh@apcs.vn
  */
-public class IndexUtils {
-
-
-    public static void notifyFutureImplementation(){
-        System.out.println("Warning: To be Implemented");
-    }
+public class IndexUtils{
 
     public static void notifyLazyImplementation(String msg){
         System.out.println("Lazy impl: " + msg);
@@ -37,7 +32,7 @@ public class IndexUtils {
      *                     from -1 to 1.
      * @return A set of randomized vectors.
      */
-    public static double[][] randomizeFeatureVectors(int n, int nFeatures, boolean splitFeature){
+    public static double[][] randomizeDoubleFeatureVectors(int n, int nFeatures, boolean splitFeature){
         Random random = new Random();
         double[][] res = new double[n][nFeatures];
         for (int i =0; i < n; i++){
@@ -54,6 +49,36 @@ public class IndexUtils {
         }
         return res;
     }
+
+    /**
+     *
+     * @param n the number of vector to generate.
+     * @param nFeatures the number of dimension each vector has.
+     * @param splitFeature flag to specify whether the vector to
+     *                     be used as hashing function or not.
+     *                     If so the range of distribution range
+     *                     from -1 to 1.
+     * @return A set of randomized vectors.
+     */
+    public static float[][] randomizeFloatFeatureVectors(int n, int nFeatures, boolean splitFeature){
+        Random random = new Random();
+        float[][] res = new float[n][nFeatures];
+        for (int i =0; i < n; i++){
+            for(int j = 0; j < nFeatures; j++){
+                if(splitFeature)
+                    res[i][j] = (float) random.nextGaussian();
+                else {
+                    if(j == 0)
+                        res[i][j] = 1.0f;
+                    else
+                        res[i][j] = (float) random.nextDouble();
+                }
+            }
+        }
+        return res;
+    }
+
+
 
     /**
      * @param aVector
@@ -91,7 +116,7 @@ public class IndexUtils {
      *
      * Save a set of vectors to hard disk in the specified path
      */
-    public static void saveVectors(double [][] splitVector, String filename){
+    public static void saveDoubleVectors(double [][] splitVector, String filename){
         Kryo kryo = new Kryo();
         kryo.register(double[][].class);
         kryo.register(double[].class);
@@ -112,7 +137,7 @@ public class IndexUtils {
      *
      * Load a set of vectors from the specified filename
      */
-    public static double[][] readVectors(String filename) throws IOException {
+    public static double[][] readDoubleVectors(String filename) throws IOException {
         Kryo kryo = new Kryo();
         kryo.register(double[][].class);
         kryo.register(double[].class);
@@ -122,13 +147,54 @@ public class IndexUtils {
         return arr;
     }
 
+
+
+
+    /**
+     * @param splitVector
+     * @param filename
+     *
+     * Save a set of vectors to hard disk in the specified path
+     */
+    public static void saveFloatVectors(float [][] splitVector, String filename){
+        Kryo kryo = new Kryo();
+        kryo.register(float[][].class);
+        kryo.register(float[].class);
+        try {
+            Output output = new Output(new FileOutputStream(filename));
+            kryo.writeObject(output, splitVector);
+            output.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     *
+     * @param filename
+     * @return A set of vectors from the specified filename
+     * @throws IOException
+     *
+     * Load a set of vectors from the specified filename
+     */
+    public static float[][] readFloatVectors(String filename) throws IOException {
+        Kryo kryo = new Kryo();
+        kryo.register(float[][].class);
+        kryo.register(float[].class);
+        Input input = new Input(new FileInputStream(filename));
+        float[][] arr= kryo.readObject(input, float[][].class);
+        input.close();
+        return arr;
+    }
+
+
     /**
      * @param data
      * @param filename
      *
      * Utility function for testing
      */
-    public static void saveQueryAndTopK(HashMap<double[], ArrayList<Integer>> data, String filename){
+    public static void saveDoubleQueryAndTopK(HashMap<double[], ArrayList<Integer>> data, String filename){
         Kryo kryo = new Kryo();
         kryo.register(HashMap.class);
         kryo.register(double[].class);
@@ -150,7 +216,7 @@ public class IndexUtils {
      *
      * Utility function for testing
      */
-    public static HashMap readQueryAndTopK(String filename) throws FileNotFoundException {
+    public static HashMap readDoubleQueryAndTopK(String filename) throws FileNotFoundException {
         Kryo kryo = new Kryo();
         kryo.register(HashMap.class);
         kryo.register(double[].class);
@@ -164,38 +230,47 @@ public class IndexUtils {
 
 
     /**
-     * Calculate the the inner product between 2 double vectors
+     * @param data
+     * @param filename
+     *
+     * Utility function for testing
      */
-    static public double dotProductDouble(double [] a, double [] b){
-        double re = 0;
-        for (int i=0; i < a.length; i++){
-            re += a[i] * b[i];
+    public static void saveFloatQueryAndTopK(HashMap<float[], ArrayList<Integer>> data, String filename){
+        Kryo kryo = new Kryo();
+        kryo.register(HashMap.class);
+        kryo.register(float[].class);
+        kryo.register(ArrayList.class);
+        kryo.register(Integer.class);
+        try {
+            Output output = new Output(new FileOutputStream(filename));
+            kryo.writeObject(output, data);
+            output.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
-        return re;
     }
 
     /**
-     * Calculate the the inner product between 2 double vectors
+     * @param filename
+     * @return
+     * @throws FileNotFoundException
+     *
+     * Utility function for testing
      */
-    static public double dotProductFloat(float [] a, float [] b){
-        double re = 0;
-        for (int i=0; i < a.length; i++){
-            re += a[i] * b[i];
-        }
-        return re;
+    public static HashMap readFloatQueryAndTopK(String filename) throws FileNotFoundException {
+        Kryo kryo = new Kryo();
+        kryo.register(HashMap.class);
+        kryo.register(float[].class);
+        kryo.register(ArrayList.class);
+        kryo.register(Integer.class);
+        Input input = new Input(new FileInputStream(filename));
+        HashMap arr= kryo.readObject(input, HashMap.class);
+        input.close();
+        return arr;
     }
 
-    /**
-     * @param vec
-     * @return The Euclidean length of vector passed in
-     */
-    static public double vecLength(double[] vec) {
-        double hold = 0;
-        for (int i = 0; i < vec.length; i++) {
-            hold += vec[i] * vec[i];
-        }
-        return Math.sqrt(hold);
-    }
+
+
 
     /**
      * @param num
@@ -279,12 +354,17 @@ public class IndexUtils {
         return floats;
     }
 
-    public static boolean computeBitFloat(float[] a, float[] b){
-        return dotProductFloat(a, b) > 0;
-    }
+    public static Object loadHashVec(String splitVecPath){
+        Input input = null;
+        try {
+            input = new Input(new FileInputStream(splitVecPath));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
-    public static boolean computeBitDouble(double[] a, double[] b){
-        return dotProductDouble(a, b) > 0;
+        Kryo kryo = new Kryo();
+
+        return kryo.readClassAndObject(input);
     }
 
 }

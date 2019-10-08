@@ -29,11 +29,6 @@ public class LatentVectorQuery<TVector> extends Query {
     private final TVector vec;
     private final TermContext perReaderTermState;
 
-    public LatentVectorQuery(TVector vec, LocalitySensitiveHash lsh) {
-        this.vec =vec;
-        term = new Term(IndexConst.HashFieldName, lsh.getHashBit(vec));
-        perReaderTermState = null;
-    }
 
     public LatentVectorQuery(TVector vec, Term t) {
         this.vec = vec;
@@ -41,13 +36,13 @@ public class LatentVectorQuery<TVector> extends Query {
         perReaderTermState = null;
     }
 
-    public LatentVectorQuery(double[] vec, LocalitySensitiveHash lsh, TermContext states) {
+    public LatentVectorQuery(TVector vec, LocalitySensitiveHash lsh, TermContext states) {
         this.vec = vec;
         term = new Term(IndexConst.HashFieldName, lsh.getHashBit(vec));
         perReaderTermState = states;
     }
 
-    public LatentVectorQuery(double[] vec, Term t, TermContext states) {
+    public LatentVectorQuery(TVector vec, Term t, TermContext states) {
         this.vec = vec;
         term = Objects.requireNonNull(t);
         perReaderTermState = states;
@@ -57,7 +52,7 @@ public class LatentVectorQuery<TVector> extends Query {
         return term;
     }
 
-    public double[] getVec() {
+    public TVector getVec() {
         return vec;
     }
 
@@ -80,13 +75,13 @@ public class LatentVectorQuery<TVector> extends Query {
 
     @Override
     public Weight createWeight(IndexSearcher searcher, boolean needsScores, float boost) throws IOException{
-        return new LatentVecWeight(searcher, needsScores, perReaderTermState);
+        return new LatentVecWeight<TVector>(searcher, needsScores, perReaderTermState);
     }
 
 
 
 
-    final class LatentVecWeight extends Weight {
+    final class LatentVecWeight<TVector> extends Weight {
         private final CosineSimilarity similarity;
         private final Similarity.SimWeight stats;
         private final TermContext termStates;

@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.store;
+package ai.preferred.cerebro.index.extra;
 
 
 import org.apache.lucene.util.ArrayUtil;

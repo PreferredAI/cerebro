@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.request;
 
+import ai.preferred.cerebro.index.search.LSHIndexSearcher;
 import ai.preferred.cerebro.index.search.Searcher;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
@@ -7,8 +8,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
 
-import ai.preferred.cerebro.index.search.LuIndexSearcher;
-
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
@@ -46,13 +46,16 @@ public class LoadSearcherRequest {
      */
     public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM) {
         this.indexDir = indexDir;
+        if(lshVecDir == null){
+            File f = new File(indexDir + "\\splitVec.o");
+            if(f.exists() && !f.isDirectory())
+                lshVecDir = indexDir + "\\splitVec.o";
+        }
         this.lshVecDir = lshVecDir;
         this.loadToRAM = loadToRAM;
     }
     public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM, boolean multithreadEnabled) {
-        this.indexDir = indexDir;
-        this.lshVecDir = lshVecDir;
-        this.loadToRAM = loadToRAM;
+        this(indexDir, lshVecDir, loadToRAM);
         this.multithreadEnabled = multithreadEnabled;
     }
 
@@ -64,16 +67,16 @@ public class LoadSearcherRequest {
     public Searcher<ScoreDoc> getSearcher() throws IOException {
         ExecutorService executorService = null;
         if(multithreadEnabled){
-            executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+            executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
         }
         Directory indexDirectory;
         if(loadToRAM){
             indexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(indexDir)), null);
-            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new LSHIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
         else {
             indexDirectory = FSDirectory.open(Paths.get(indexDir));
-            return new LuIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new LSHIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
         }
 
     }

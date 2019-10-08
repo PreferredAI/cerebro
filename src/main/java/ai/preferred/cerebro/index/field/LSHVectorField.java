@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.store;
+package ai.preferred.cerebro.index.field;
 
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.utils.ByteToVec;
@@ -21,7 +21,7 @@ public class LSHVectorField<TVector> extends StoredField {
 
     }
 
-    public LSHVectorField(String name, TVector value) throws Exception{
+    public LSHVectorField(String name, TVector value){
         super(name, (byte[]) null);
         if (value.getClass() == float[].class){
             this.vecToByte = (VecToByte<TVector>)((VecToByte<float[]>) IndexUtils::floatVecToBytes);
@@ -32,7 +32,11 @@ public class LSHVectorField<TVector> extends StoredField {
             this.byteToVec = (ByteToVec<TVector>)((ByteToVec<double[]>) IndexUtils::getDoubleFeatureVector);
         }
         else
-            throw new UnsupportedDataType(value.getClass());
+            try {
+                throw new UnsupportedDataType(value.getClass());
+            } catch (UnsupportedDataType unsupportedDataType) {
+                unsupportedDataType.printStackTrace();
+            }
         this.fieldsData  = new BytesRef(vecToByte.change(value));
     }
 
