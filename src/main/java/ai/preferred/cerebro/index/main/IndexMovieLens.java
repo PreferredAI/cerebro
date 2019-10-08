@@ -58,7 +58,8 @@ public class IndexMovieLens {
         }
 
     }
-
+    /*
+    ignore all code that use old API for now
     static public void createIndex(){
         try (LSHIndexWriter writer = new LSHIndexWriter("E:\\movieLens_idx", 8, 50) {
             @Override
@@ -91,4 +92,5 @@ public class IndexMovieLens {
             e.printStackTrace();
         }
     }
+     */
 }
