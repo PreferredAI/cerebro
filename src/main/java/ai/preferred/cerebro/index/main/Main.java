@@ -29,7 +29,7 @@ import java.util.*;
  * necessary to carry out these examples
  */
 public class Main {
-
+    /*
     public static void main(String[] args) throws Exception{
         CommandOptions cmdOptions = new CommandOptions();
         cmdOptions.addOption("op", "Specify which operation you want to run:\n" +
@@ -207,4 +207,6 @@ public class Main {
         System.out.println("Average overlap :" + totalHit/queryAndTopK.size());
         searcher.close();
     }
+
+     */
 }
