@@ -89,10 +89,12 @@ public class LocalitySensitiveHash<TVector> {
         return result;
     }
 
+    @FunctionalInterface
     public interface HashBitComputer<TVector> {
         boolean compute(TVector a, TVector b);
     }
 
+    @FunctionalInterface
     public interface FlipBitComputer<TVector>{
         BitAndDistance compute(TVector a, TVector b);
     }

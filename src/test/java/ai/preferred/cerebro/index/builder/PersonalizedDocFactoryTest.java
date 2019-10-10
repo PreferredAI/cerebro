@@ -12,11 +12,11 @@ import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PersonalizedDocFactoryTest {
-    PersonalizedDocFactory docFactory;
+    PersonalizedDocFactory<double[]> docFactory;
     
     @BeforeAll
     void init(){
-        docFactory = new PersonalizedDocFactory(TestConst.hashingVecs);
+        docFactory = new PersonalizedDocFactory<>(TestConst.hashingVecs);
     }
     
     @AfterEach
