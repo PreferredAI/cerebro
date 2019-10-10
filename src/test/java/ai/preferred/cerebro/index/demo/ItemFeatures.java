@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.demo;
 
+import ai.preferred.cerebro.index.utils.HashUtils;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
 /**
@@ -15,7 +16,7 @@ public class ItemFeatures extends Object{
     public ItemFeatures(int id, double[] features){
         this.docID = id;
         this.features = features;
-        vecLength = IndexUtils.vecLength(features);
+        vecLength = HashUtils.doubleVecLength(features);
     }
 
     @Override
