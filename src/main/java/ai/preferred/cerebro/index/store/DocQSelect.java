@@ -10,9 +10,9 @@ import org.apache.lucene.search.ScoreDoc;
  *
  * @author hpminh@apcs.vn
  */
-public class DocArray extends Container<ScoreDoc> {
+public class DocQSelect extends QuickSelect<ScoreDoc> {
 
-    public DocArray(int size, boolean prePopulate) {
+    public DocQSelect(int size, boolean prePopulate) {
         super(size, () -> {
             if (prePopulate) {
                 // Always set the doc Id to MAX_VALUE so that it won't be favored by

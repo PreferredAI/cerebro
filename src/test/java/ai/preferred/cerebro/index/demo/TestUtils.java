@@ -4,15 +4,11 @@ package ai.preferred.cerebro.index.demo;
 import ai.preferred.cerebro.index.builder.ExtFilter;
 import ai.preferred.cerebro.index.builder.LuIndexWriter;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
-import ai.preferred.cerebro.index.search.FlipBitSearcher;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
 import ai.preferred.cerebro.index.search.LuIndexSearcher;
-import ai.preferred.cerebro.index.store.Container;
+import ai.preferred.cerebro.index.store.QuickSelect;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.junit.jupiter.api.Test;
 
@@ -21,9 +17,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 import static ai.preferred.cerebro.index.utils.IndexUtils.dotProduct;
 
@@ -34,6 +28,68 @@ import static ai.preferred.cerebro.index.utils.IndexUtils.dotProduct;
 
 public class TestUtils {
 
+    @Test
+    void task(){
+        double[][] vectors = IndexUtils.randomizeFeatureVectors(6_000_000, 50, false);
+        IndexUtils.saveVectors(vectors, TestConst.DIM_50_PATH + "itemVec_6M.o");
+    }
+    @Test
+    void compareAlgorithms(){
+        String itemsObjectName = "itemVec_1M.o";
+        String existingQuery = "query_top20_1M.o";
+        double[][] itemVec = null;
+        try {
+            itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + itemsObjectName);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        double[][] querySet = extractQuerySet(existingQuery);
+        QuickSelect<ItemFeatures> itemArr = new QuickSelect<ItemFeatures>(itemVec.length) {
+            @Override
+            protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
+                if (a.similarity == b.similarity)
+                    return a.docID > b.docID;
+                else
+                    return a.similarity < b.similarity;
+            }
+
+            @Override
+            public void calculateScore(ItemFeatures target){
+                //assert target.features.length == arr[0].features.length;
+                Iterator<ItemFeatures> it = iterator();
+                while (it.hasNext()){
+                    ItemFeatures a = it.next();
+                    a.similarity = dotProduct(target.features, a.features) / (target.vecLength * a.vecLength);
+                }
+            }
+        };
+        for(int i = 0; i < itemVec.length; i++){
+            itemArr.add(new ItemFeatures(i, itemVec[i]));
+        }
+        for (double[] query: querySet) {
+            MinHeap resultID1 = new MinHeap(20, ItemFeatures::new);
+            ItemFeatures target = new ItemFeatures(2_000_001, query);
+
+            //algorithm using orderStatistic
+            ArrayList<Integer> list = new ArrayList<>(20);
+            itemArr.calculateScore(target);
+            itemArr.pullTopK(20, false, false);
+            for(int j = 1; j <= 20; j++){
+                list.add(itemArr.get(itemArr.size() - j).docID);
+            }
+
+            //algorithm using Minheap
+            for(int j = 0; j < itemArr.size(); j++){
+                if (resultID1.top().similarity < itemArr.get(j).similarity) {
+                    resultID1.updateTop(itemArr.get(j));
+                }
+                //itemArr.add(new ItemFeatures(i, itemVec[i]));
+            }
+            list.retainAll(resultID1.getObjectIds());
+            System.out.println(list.size());
+        }
+    }
 
     public static double entropy(HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap, int nTotal){
         double res = 0.0;
@@ -78,9 +134,10 @@ public class TestUtils {
         return vecs;
     }
 
+    @Test
     public void refindTop20() throws IOException {
-        String itemsObjectName = "itemVec_1M.o";
-        String existingQuery = "query_top20_1M.o";
+        String itemsObjectName = "itemVec_6M.o";
+        String existingQuery = "query_top20_2M.o";
         double[][] itemVec = null;
         try {
             itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + itemsObjectName);
@@ -88,7 +145,7 @@ public class TestUtils {
         catch (IOException e) {
             e.printStackTrace();
         }
-
+        /*
         Container<ItemFeatures> itemArr = new Container<ItemFeatures>(itemVec.length) {
             @Override
             protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
@@ -109,26 +166,31 @@ public class TestUtils {
             }
         };
 
+         */
+
+        ItemFeatures [] itemList = new ItemFeatures[itemVec.length];
         for(int i = 0; i < itemVec.length; i++){
-            itemArr.add(new ItemFeatures(i, itemVec[i]));
+            itemList[i] = new ItemFeatures(i, itemVec[i]);
+            //itemArr.add(new ItemFeatures(i, itemVec[i]));
         }
         double[][] querySet = extractQuerySet(existingQuery);
         HashMap<double[], ArrayList<Integer>> queryAndTopK = new HashMap<>();
-        for(int i = 0; i < querySet.length; i++){
+        for(double[] query : querySet){
             long startTime = System.currentTimeMillis();
-            ArrayList<Integer> list = new ArrayList<>(20);
-            double[] query = querySet[i];
-            ItemFeatures queryItem = new ItemFeatures(20000001, query);
-            itemArr.calculateScore(queryItem);
-            itemArr.pullTopK(20, false, false);
-            for(int j = 1; j <= 20; j++){
-                list.add(itemArr.get(itemArr.size() - j).docID);
+            MinHeap resultID = new MinHeap(20, ItemFeatures::new);
+            double len = IndexUtils.vecLength(query);
+            for(int j = 0; j < itemVec.length; j++){
+                itemList[j].calculateScore(query, len);
+                if (resultID.top().similarity < itemList[j].similarity) {
+                    resultID.updateTop(itemList[j]);
+                }
             }
-            queryAndTopK.put(query, list);
+
+            queryAndTopK.put(query, resultID.getObjectIds());
             long endTime = System.currentTimeMillis();
-            System.out.println("Whole array 20M time: " + (endTime - startTime) + "ms");
+            System.out.println("Whole array 6M time: " + (endTime - startTime) + "ms");
         }
-        IndexUtils.saveQueryAndTopK(queryAndTopK, "E:\\data\\imdb_data\\new_query_top20_50k.o");
+        IndexUtils.saveQueryAndTopK(queryAndTopK, TestConst.DIM_50_PATH + "query_top20_6M.o");
     }
 
 
@@ -142,7 +204,7 @@ public class TestUtils {
             e.printStackTrace();
         }
 
-        Container<ItemFeatures> itemArr = new Container<ItemFeatures>(itemVec.length) {
+        QuickSelect<ItemFeatures> itemArr = new QuickSelect<ItemFeatures>(itemVec.length) {
             @Override
             protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
                 if (a.similarity == b.similarity)
@@ -329,7 +391,7 @@ public class TestUtils {
         }
         BytesRef hashcode = lsh.getHashBit(itemArr[1000000].features);
         LinkedList<ItemFeatures> bucket = hashMap.get(hashcode);
-        Container<ItemFeatures> arr = new Container<ItemFeatures>((ItemFeatures [])bucket.toArray()) {
+        QuickSelect<ItemFeatures> arr = new QuickSelect<ItemFeatures>((ItemFeatures [])bucket.toArray()) {
             @Override
             protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
                 if (a.similarity == b.similarity)

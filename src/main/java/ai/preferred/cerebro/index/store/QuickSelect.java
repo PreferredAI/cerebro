@@ -21,7 +21,7 @@ import java.util.function.Supplier;
  *
  * @param <T> Type of object to be scored and retrieved.
  */
-public abstract class Container <T> implements Iterable<T>{
+public abstract class QuickSelect<T> implements Iterable<T>{
     private int size = 0;
     private int maxSize;
     protected T[] arr;
@@ -34,11 +34,11 @@ public abstract class Container <T> implements Iterable<T>{
     }
     private final PivotScheme pivotScheme;
 
-    public Container(int maxSize) {
+    public QuickSelect(int maxSize) {
         this(maxSize, () -> null);
     }
 
-    public Container(int maxSize, Supplier<T> sentinelObjectSupplier) {
+    public QuickSelect(int maxSize, Supplier<T> sentinelObjectSupplier) {
         if (maxSize < 1 || maxSize >= ArrayUtil.MAX_ARRAY_LENGTH) {
             throw new IllegalArgumentException("maxSize must be >= 1 and < " + (ArrayUtil.MAX_ARRAY_LENGTH) + "; got: " + maxSize);
         }
@@ -60,7 +60,7 @@ public abstract class Container <T> implements Iterable<T>{
         }
     }
 
-    public Container(T[] arr){
+    public QuickSelect(T[] arr){
         this.arr = arr;
         this.maxSize = arr.length;
         this.pivotScheme = PivotScheme.RAND;
