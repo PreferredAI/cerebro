@@ -6,6 +6,7 @@ public class TestConst {
     public final static String DIM_100_PATH = "E:\\100_dims_testing\\";
     public static final String FilePathField = "path_to_file";
 
+
     public static String text1 = "The Last Command and City Lights, that latter Chaplin circa 1931";
     public static String text2 = "William Boyd and Louis Wolheim are the \"Two Arabian Knights\" referred to in the title";
     public static String text3 = "two WW I soldiers escape from a German prison camp";

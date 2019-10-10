@@ -1,11 +1,13 @@
 package ai.preferred.cerebro.index.demo;
 
 
-import ai.preferred.cerebro.index.builder.PersonalizedDocFactory;
+import ai.preferred.cerebro.index.builder.LSHIndexWriter;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
-
 import ai.preferred.cerebro.index.search.FlipBitSearcher;
-
+import ai.preferred.cerebro.index.search.LSHIndexSearcher;
+import ai.preferred.cerebro.index.utils.IndexConst;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
 import ai.preferred.cerebro.index.request.QueryRequest;
@@ -16,27 +18,50 @@ import org.junit.jupiter.api.*;
 import java.io.*;
 import java.nio.file.Paths;
 
-//@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TestFullFlow {
-    /*
+
     @BeforeAll
     public void createIndex() throws Exception {
         //fileExt signify what file extension to read and index
         String fileExt = ".txt";
-        TestIndexWriter writer = new TestIndexWriter("", null);
+        LSHIndexWriter<double[]> writer = new LSHIndexWriter<double[]>("", TestConst.hashingVecs) {
+            @Override
+            public void indexFile(File file) throws IOException {
+
+            }
+            @Override
+            public void indexAsOneDocument(Object ID, double[] personalizedFeatures, String... textualInfo) throws Exception{
+                docFactory.createPersonalizedDoc(ID, personalizedFeatures);
+                for (String text: textualInfo) {
+                    TextField textField = new TextField(IndexConst.CONTENTS, text,Field.Store.NO);
+                    docFactory.addField(textField);
+                }
+                delegate.addDocument(docFactory.getDoc());
+            }
+        };
         writer.setMaxBufferRAMSize(100);
         writer.setMaxBufferDocNum(3);
         Assertions.assertNotNull(writer);
-        writer.setDocFactory(new PersonalizedDocFactory(TestConst.hashingVecs));
-        writer.indexTest(TestConst.text1, TestConst.vec1);
-        writer.indexTest(TestConst.text2, TestConst.vec2);
-        writer.indexTest(TestConst.text3, TestConst.vec3);
+        writer.indexAsOneDocument(1, TestConst.vec1, TestConst.text1);
+        writer.indexAsOneDocument(2, TestConst.vec1, TestConst.text1);
+        writer.indexAsOneDocument(3, TestConst.vec1, TestConst.text1);
         writer.close();
 
     }
     @Test
     public void delete() throws IOException {
-        TestIndexWriter writer = new TestIndexWriter("", null);
+        LSHIndexWriter<double[]> writer = new LSHIndexWriter<double[]>("", (String) null) {
+            @Override
+            public void indexFile(File file) throws IOException {
+
+            }
+
+            @Override
+            public void indexAsOneDocument(Object ID, double[] personalizedFeatures, String... textualInfo) throws Exception {
+
+            }
+        };
         try {
             writer.deleteByID(2);
         } catch (UnsupportedDataType unsupportedDataType) {
@@ -49,30 +74,29 @@ public class TestFullFlow {
         //main query
         String queryText = "Command and City Lights";
         FSDirectory indexDirectory = FSDirectory.open(Paths.get(""));
-        LuIndexSearcher searcher =  new LuIndexSearcher(DirectoryReader.open(indexDirectory), null);
+        LSHIndexSearcher<double[]> searcher =  new LSHIndexSearcher<>(DirectoryReader.open(indexDirectory), null);
         Assertions.assertNotNull(searcher);
         searcher.setLSH(TestConst.hashingVecs);
         //carry out searching
-        QueryRequest requestText = new QueryRequest(queryText, QueryRequest.QueryType.KEYWORD, 1);
-        QueryResponse<ScoreDoc> resText = searcher.query(requestText);
+        //QueryRequest requestText = new QueryRequest(queryText, QueryRequest.QueryType.KEYWORD, 1);
+        ScoreDoc[] resText= searcher.queryKeyWord(null, queryText, 1);
         Assertions.assertNotNull(resText);
 
-        QueryRequest requestVec = new QueryRequest(TestConst.vec1, QueryRequest.QueryType.VECTOR, 1);
-        QueryResponse<ScoreDoc> resVec = searcher.query(requestVec);
+        //QueryRequest requestVec = new QueryRequest(TestConst.vec1, QueryRequest.QueryType.VECTOR, 1);
+        //QueryResponse<ScoreDoc> resVec = searcher.query(requestVec);
+        ScoreDoc[] resVec = searcher.queryVector(TestConst.vec1, 1);
         Assertions.assertNotNull(resVec);
 
         //flip bit searcher
-        FlipBitSearcher flipBitSearcher =  new FlipBitSearcher(DirectoryReader.open(indexDirectory), null);
+        FlipBitSearcher<double[]> flipBitSearcher =  new FlipBitSearcher<>(DirectoryReader.open(indexDirectory), null);
         Assertions.assertNotNull(searcher);
         flipBitSearcher.setLSH(TestConst.hashingVecs);
         //carry out searching
-        resText = flipBitSearcher.query(requestText);
+        resText = flipBitSearcher.queryKeyWord(null, queryText, 1);
         Assertions.assertNotNull(resText);
 
-        resVec = flipBitSearcher.query(requestVec);
+        resVec = flipBitSearcher.queryVector(TestConst.vec1, 1);
         Assertions.assertNotNull(resVec);
     }
-
-     */
 
 }
