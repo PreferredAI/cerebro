@@ -1,6 +1,8 @@
 package ai.preferred.cerebro.index.demo;
 
 
+import ai.preferred.cerebro.common.ExternalID;
+import ai.preferred.cerebro.common.IntID;
 import ai.preferred.cerebro.index.builder.LSHIndexWriter;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.search.FlipBitSearcher;
@@ -10,8 +12,6 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.search.ScoreDoc;
-import ai.preferred.cerebro.index.request.QueryRequest;
-import ai.preferred.cerebro.index.response.QueryResponse;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.jupiter.api.*;
 
@@ -31,7 +31,7 @@ public class TestFullFlow {
 
             }
             @Override
-            public void indexAsOneDocument(Object ID, double[] personalizedFeatures, String... textualInfo) throws Exception{
+            public void indexAsOneDocument(ExternalID ID, double[] personalizedFeatures, String... textualInfo) throws Exception{
                 docFactory.createPersonalizedDoc(ID, personalizedFeatures);
                 for (String text: textualInfo) {
                     TextField textField = new TextField(IndexConst.CONTENTS, text,Field.Store.NO);
@@ -43,9 +43,9 @@ public class TestFullFlow {
         writer.setMaxBufferRAMSize(100);
         writer.setMaxBufferDocNum(3);
         Assertions.assertNotNull(writer);
-        writer.indexAsOneDocument(1, TestConst.vec1, TestConst.text1);
-        writer.indexAsOneDocument(2, TestConst.vec1, TestConst.text1);
-        writer.indexAsOneDocument(3, TestConst.vec1, TestConst.text1);
+        writer.indexAsOneDocument(new IntID(1), TestConst.vec1, TestConst.text1);
+        writer.indexAsOneDocument(new IntID(2), TestConst.vec1, TestConst.text1);
+        writer.indexAsOneDocument(new IntID(3), TestConst.vec1, TestConst.text1);
         writer.close();
 
     }
@@ -58,7 +58,7 @@ public class TestFullFlow {
             }
 
             @Override
-            public void indexAsOneDocument(Object ID, double[] personalizedFeatures, String... textualInfo) throws Exception {
+            public void indexAsOneDocument(ExternalID ID, double[] personalizedFeatures, String... textualInfo) throws Exception {
 
             }
         };
@@ -79,12 +79,12 @@ public class TestFullFlow {
         searcher.setLSH(TestConst.hashingVecs);
         //carry out searching
         //QueryRequest requestText = new QueryRequest(queryText, QueryRequest.QueryType.KEYWORD, 1);
-        ScoreDoc[] resText= searcher.queryKeyWord(null, queryText, 1);
+        ScoreDoc[] resText= searcher.keywordSearch(null, queryText, 1);
         Assertions.assertNotNull(resText);
 
         //QueryRequest requestVec = new QueryRequest(TestConst.vec1, QueryRequest.QueryType.VECTOR, 1);
         //QueryResponse<ScoreDoc> resVec = searcher.query(requestVec);
-        ScoreDoc[] resVec = searcher.queryVector(TestConst.vec1, 1);
+        ScoreDoc[] resVec = searcher.similaritySearch(TestConst.vec1, 1);
         Assertions.assertNotNull(resVec);
 
         //flip bit searcher
@@ -92,10 +92,10 @@ public class TestFullFlow {
         Assertions.assertNotNull(searcher);
         flipBitSearcher.setLSH(TestConst.hashingVecs);
         //carry out searching
-        resText = flipBitSearcher.queryKeyWord(null, queryText, 1);
+        resText = flipBitSearcher.keywordSearch(null, queryText, 1);
         Assertions.assertNotNull(resText);
 
-        resVec = flipBitSearcher.queryVector(TestConst.vec1, 1);
+        resVec = flipBitSearcher.similaritySearch(TestConst.vec1, 1);
         Assertions.assertNotNull(resVec);
     }
 

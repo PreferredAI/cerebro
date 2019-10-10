@@ -216,7 +216,7 @@ public class TestUtils {
             double[] query = (double[]) entry.getKey();
             ArrayList<Integer> setBrute = (ArrayList<Integer>) entry.getValue();
             long startTime = System.currentTimeMillis();
-            ScoreDoc[] res = searcher.queryVector(query, 20);
+            ScoreDoc[] res = searcher.similaritySearch(query, 20);
             if(res != null && res.length == 20){
                 long endSearchTime = System.currentTimeMillis();
                 System.out.println("Top-20 query time: " +(endSearchTime-startTime)+" ms");

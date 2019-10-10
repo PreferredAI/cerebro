@@ -1,5 +1,7 @@
 package ai.preferred.cerebro.index.builder;
 
+import ai.preferred.cerebro.common.ExternalID;
+import ai.preferred.cerebro.common.IntID;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -270,7 +272,7 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
      * @param personalizedFeatures latent feature vectors
      * @param textualInfo          other infomations about the object to be indexed
      */
-    abstract public void indexAsOneDocument(Object ID, TVector personalizedFeatures, String... textualInfo) throws Exception;
+    abstract public void indexAsOneDocument(ExternalID ID, TVector personalizedFeatures, String... textualInfo) throws Exception;
 
 
     /**
@@ -280,12 +282,12 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
      * @param itemVecs the set of item latent vector to be indexes.
      * @throws IOException
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link PersonalizedDocFactory#createPersonalizedDoc(Object, TVector)}
+     * a call to {@link PersonalizedDocFactory#createPersonalizedDoc(ExternalID, TVector)}
      * is not paired with a call to {@link PersonalizedDocFactory#getDoc()}.
      */
     public void createIndexFromVecData(TVector[] itemVecs) throws Exception {
         for(int i = 0; i < itemVecs.length; i++){
-            docFactory.createPersonalizedDoc(delegate.numDocs(), itemVecs[i]);
+            docFactory.createPersonalizedDoc(new IntID(delegate.numDocs()), itemVecs[i]);
             delegate.addDocument(docFactory.getDoc());
         }
     }

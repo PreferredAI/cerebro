@@ -14,7 +14,6 @@ import ai.preferred.cerebro.index.builder.LSHIndexWriter;
 import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.request.LoadSearcherRequest;
 import ai.preferred.cerebro.index.request.QueryRequest;
-import ai.preferred.cerebro.index.response.QueryResponse;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 

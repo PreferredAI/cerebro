@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.builder;
 
+import ai.preferred.cerebro.common.ExternalID;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.field.LSHVectorField;
 import ai.preferred.cerebro.index.utils.HashUtils;
@@ -65,25 +66,18 @@ public class PersonalizedDocFactory<TVector> {
      * @param ID unique ID of the document.
      * @param features the latent feature vector to index.
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link #createPersonalizedDoc(Object, TVector)} is not paired with a
+     * a call to {@link #createPersonalizedDoc(ExternalID, TVector)} is not paired with a
      * call to {@link #getDoc()}.
      * @throws UnsupportedDataType thrown when the ID is not either a String or integer
      * (or Integer)
      */
-    public void createPersonalizedDoc(Object ID, TVector features) throws Exception {
+    public void createPersonalizedDoc(ExternalID ID, TVector features) throws Exception {
         if(this.doc != null)
             throw new DocNotClearedException();
         if(this.hashFunc == null)
             throw new Exception("Hashing Vecs not provided");
         this.doc = new Document();
-        StringField idField = null;
-        if(ID instanceof String)
-            idField = new StringField(IndexConst.IDFieldName, (String)ID, Field.Store.YES);
-        else if(ID instanceof Integer)
-            idField = new StringField(IndexConst.IDFieldName,
-                    new BytesRef(IndexUtils.intToByte(((Integer) ID).intValue())), Field.Store.YES);
-        else
-            throw new UnsupportedDataType();
+        StringField idField = new StringField(IndexConst.IDFieldName, new BytesRef(ID.getByteValues()), Field.Store.YES);
         doc.add(idField);
         /* Storing double vector */
         LSHVectorField<TVector> vecField = new LSHVectorField(IndexConst.VecFieldName,features);
@@ -104,26 +98,19 @@ public class PersonalizedDocFactory<TVector> {
      * @throws SameNameException this is triggered when one of your custom field has name
      * identical to Cerebro reserved word. See more detail at {@link IndexConst}.
      * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link #createPersonalizedDoc(Object, TVector)} is not paired with a
+     * a call to {@link #createPersonalizedDoc(ExternalID, TVector)} is not paired with a
      * call to {@link #getDoc()}.
      * @throws UnsupportedDataType thrown when the ID is not either a String or integer
      * (or Integer)
      *
      *
      */
-    public void createTextDoc(Object ID, IndexableField... fields) throws SameNameException, DocNotClearedException, UnsupportedDataType {
+    public void createTextDoc(ExternalID ID, IndexableField... fields) throws SameNameException, DocNotClearedException, UnsupportedDataType {
         if(this.doc != null){
             throw new DocNotClearedException();
         }
         this.doc = new Document();
-        StringField idField = null;
-        if(ID instanceof String)
-            idField = new StringField(IndexConst.IDFieldName, (String)ID, Field.Store.YES);
-        else if(ID instanceof Integer)
-            idField = new StringField(IndexConst.IDFieldName,
-                    new BytesRef(IndexUtils.intToByte(((Integer) ID).intValue())), Field.Store.YES);
-        else
-            throw new UnsupportedDataType(ID.getClass(), String.class, Integer.class);
+        StringField idField = new StringField(IndexConst.IDFieldName, new BytesRef(ID.getByteValues()), Field.Store.YES);
         doc.add(idField);
         for(IndexableField field : fields){
             if(checkReservedFieldName(field.name()))
@@ -133,7 +120,7 @@ public class PersonalizedDocFactory<TVector> {
     }
 
     /**
-     * After calling {@link #createPersonalizedDoc(Object, TVector)} to createPersonalizedDoc a document with latent vector
+     * After calling {@link #createPersonalizedDoc(ExternalID, TVector)} to createPersonalizedDoc a document with latent vector
      * if you still want add more custom fields to a Document then use this function.
      *
      * @param fields fields to add to the {@link Document}
@@ -156,8 +143,8 @@ public class PersonalizedDocFactory<TVector> {
     /**
      * After calling this function the pointer doc become null again.
      *
-     * @return the Document object being built since the last {@link #createPersonalizedDoc(Object, TVector)}
-     * or {@link #createTextDoc(Object, IndexableField...)} call.
+     * @return the Document object being built since the last {@link #createPersonalizedDoc(ExternalID, TVector)}
+     * or {@link #createTextDoc(ExternalID, IndexableField...)} call.
      */
     public Document getDoc(){
         Document t = this.doc;

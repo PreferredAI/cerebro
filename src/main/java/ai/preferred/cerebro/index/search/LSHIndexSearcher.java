@@ -1,10 +1,6 @@
 package ai.preferred.cerebro.index.search;
 
-
-import ai.preferred.cerebro.core.entity.DenseVector;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
-import ai.preferred.cerebro.index.request.QueryRequest;
-import ai.preferred.cerebro.index.response.QueryResponse;
 import ai.preferred.cerebro.index.utils.HashUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.*;
@@ -32,7 +28,7 @@ import java.util.concurrent.ExecutorService;
  *
  * @author hpminh@apcs.vn
  */
-public class LSHIndexSearcher<TVector> extends IndexSearcher {
+public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher<TVector>{
     protected final ExecutorService executor;
     protected final LeafSlice[] leafSlices;
     protected IndexReader reader;
@@ -131,7 +127,7 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher {
      * @return A set of {@link ScoreDoc} of Document matching with the query.
      * @throws Exception
      */
-    public ScoreDoc[] queryKeyWord(QueryParser queryParser, String sQuery, int resultSize) throws Exception {
+    public ScoreDoc[] keywordSearch(QueryParser queryParser, String sQuery, int resultSize) throws Exception {
         Query query = null;
         if(queryParser == null)
             query = defaultParser.parse(sQuery);
@@ -149,17 +145,11 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher {
      * the highest inner product with the query vector.
      * @throws Exception
      */
-    public ScoreDoc[] queryVector(TVector vQuery, int resultSize) throws Exception {
+    public ScoreDoc[] similaritySearch(TVector vQuery, int resultSize) throws Exception {
         TopDocs hits = personalizedSearch(vQuery, resultSize);
         return hits == null ? null : hits.scoreDocs;
     }
-    /**
-     * Process both type of query text and vector
-     * and carry out searching.
-     * @param qRequest
-     * @return
-     * @throws Exception
-     */
+
     /*
     garbage API to be changed soon
     @Override
@@ -169,11 +159,11 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher {
                 Object queryData = qRequest.getQueryData();
                 int k = qRequest.getTopK();
                 if (queryData instanceof String){
-                    return queryKeyWord(null, (String) queryData, k);
+                    return keywordSearch(null, (String) queryData, k);
                 }
-                return new QueryResponse<ScoreDoc>(queryKeyWord(, ));
+                return new QueryResponse<ScoreDoc>(keywordSearch(, ));
             case VECTOR:
-                return new QueryResponse<ScoreDoc>(queryVector((TVector) qRequest.getQueryData(), qRequest.getTopK()));
+                return new QueryResponse<ScoreDoc>(similaritySearch((TVector) qRequest.getQueryData(), qRequest.getTopK()));
             default:
                 throw new UnsupportedDataType();
         }
@@ -185,13 +175,13 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher {
     private ScoreDoc[] processKeyword(Object queryData, int topK) throws Exception {
         //assume field name is contents
         if (queryData instanceof String){
-            return queryKeyWord(null, (String) queryData, topK);
+            return keywordSearch(null, (String) queryData, topK);
         }
         //assume [0] is fieldname, [1] is query string
         else if(queryData instanceof String[]){
             String[] fieldnameAndQuery = (String[])queryData;
             QueryParser parser = new QueryParser(fieldnameAndQuery[0], new StandardAnalyzer());
-            return queryKeyWord(parser, fieldnameAndQuery[1], topK);
+            return keywordSearch(parser, fieldnameAndQuery[1], topK);
         }
         throw new UnsupportedDataType(queryData.getClass(), String.class, String[].class);
     }
@@ -199,12 +189,12 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher {
     private ScoreDoc[] processVec(Object queryData, int topK) throws Exception {
         //assume field name is contents
         if (queryData instanceof double[]){
-            return queryVector((double[]) queryData, topK);
+            return similaritySearch((double[]) queryData, topK);
         }
         //assume [0] is fieldname, [1] is query string
         else if(queryData instanceof DenseVector){
             double[] vec = ((DenseVector) queryData).getElements();
-            return queryVector(vec, topK);
+            return similaritySearch(vec, topK);
         }
         throw new UnsupportedDataType(queryData.getClass(), double[].class, DenseVector.class);
     }

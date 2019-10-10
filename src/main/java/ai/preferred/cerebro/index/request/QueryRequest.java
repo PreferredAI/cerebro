@@ -14,6 +14,11 @@ import ai.preferred.cerebro.index.search.Searcher;
  *
  * @author hpminh@apcs.vn
  */
+@Deprecated
+/*
+    This is garbage API. To be changes or removed soon.
+    Call keywordSearch() or similarSearch() from searcher directly
+ */
 public class QueryRequest {
     //private int modelId;
     private Object queryData;

@@ -3,7 +3,6 @@ package ai.preferred.cerebro.index.request;
 import ai.preferred.cerebro.index.search.LSHIndexSearcher;
 import ai.preferred.cerebro.index.search.Searcher;
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
@@ -20,10 +19,10 @@ import java.util.concurrent.Executors;
  * @author hpminh@apcs.vn
  */
 public class LoadSearcherRequest {
-    String indexDir;
-    String lshVecDir;
-    boolean loadToRAM;
-    boolean multithreadEnabled;
+    private String indexDir;
+    private String lshVecDir;
+    private boolean loadToRAM;
+    private boolean multithreadEnabled;
 
     /**
      * Create a request to load searcher with RAM usage configuration.
@@ -60,11 +59,11 @@ public class LoadSearcherRequest {
     }
 
     /**
-     * Load index on hard disk and create a {@link ai.preferred.cerebro.index.search.Searcher} object.
+     * Load index on hard disk and create a {@link ai.preferred.cerebro.index.search.LSHIndexSearcher} object.
      * @return Searcher on the index in the provided directory
      * @throws IOException thrown if the index is corrupted or can not be read.
      */
-    public Searcher<ScoreDoc> getSearcher() throws IOException {
+    public Searcher getSearcher() throws IOException {
         ExecutorService executorService = null;
         if(multithreadEnabled){
             executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
