@@ -7,6 +7,7 @@ import ai.preferred.cerebro.index.exception.DocNotClearedException;
 import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.utils.IndexConst;
+import ai.preferred.cerebro.index.utils.VecDoubleHandler;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.junit.jupiter.api.*;
@@ -18,7 +19,7 @@ class PersonalizedDocFactoryTest {
     
     @BeforeAll
     void init(){
-        docFactory = new PersonalizedDocFactory<>(TestConst.hashingVecs);
+        docFactory = new PersonalizedDocFactory<>(new VecDoubleHandler(), TestConst.hashingVecs);
     }
     
     @AfterEach

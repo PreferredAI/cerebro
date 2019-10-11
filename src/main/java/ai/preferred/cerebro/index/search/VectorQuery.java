@@ -3,12 +3,13 @@ package ai.preferred.cerebro.index.search;
 
 
 
+
+import ai.preferred.cerebro.index.scoring.VectorSimilarity;
 import org.apache.lucene.index.*;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;
 
 import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
-import ai.preferred.cerebro.index.similarity.CosineSimilarity;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
@@ -24,25 +25,25 @@ import java.util.Set;
  *
  * @author hpminh@apcs.vn
  */
-public class LatentVectorQuery<TVector> extends Query {
+public class VectorQuery<TVector> extends Query {
     private final Term term;
     private final TVector vec;
     private final TermContext perReaderTermState;
 
 
-    public LatentVectorQuery(TVector vec, Term t) {
+    public VectorQuery(TVector vec, Term t) {
         this.vec = vec;
         term = Objects.requireNonNull(t);
         perReaderTermState = null;
     }
 
-    public LatentVectorQuery(TVector vec, LocalitySensitiveHash lsh, TermContext states) {
+    public VectorQuery(TVector vec, LocalitySensitiveHash lsh, TermContext states) {
         this.vec = vec;
         term = new Term(IndexConst.HashFieldName, lsh.getHashBit(vec));
         perReaderTermState = states;
     }
 
-    public LatentVectorQuery(TVector vec, Term t, TermContext states) {
+    public VectorQuery(TVector vec, Term t, TermContext states) {
         this.vec = vec;
         term = Objects.requireNonNull(t);
         perReaderTermState = states;
@@ -58,14 +59,14 @@ public class LatentVectorQuery<TVector> extends Query {
 
     @Override
     public String toString(String field) {
-        IndexUtils.notifyLazyImplementation("LatentVectorQuery / toString");
+        IndexUtils.notifyLazyImplementation("VectorQuery / toString");
         return null;
     }
 
     @Override
     public boolean equals(Object other) {
         return sameClassAs(other) &&
-                term.equals(((LatentVectorQuery) other).term);
+                term.equals(((VectorQuery) other).term);
     }
 
     @Override
@@ -75,23 +76,23 @@ public class LatentVectorQuery<TVector> extends Query {
 
     @Override
     public Weight createWeight(IndexSearcher searcher, boolean needsScores, float boost) throws IOException{
-        return new LatentVecWeight<TVector>(searcher, needsScores, perReaderTermState);
+        return new VectorWeight<TVector>(searcher, needsScores, perReaderTermState);
     }
 
 
 
 
-    final class LatentVecWeight<TVector> extends Weight {
-        private final CosineSimilarity similarity;
+    final class VectorWeight<TVector> extends Weight {
+        private final VectorSimilarity similarity;
         private final Similarity.SimWeight stats;
         private final TermContext termStates;
         private final boolean needsScores;
 
-        public LatentVecWeight(IndexSearcher searcher, boolean needsScores, TermContext termStates) throws IOException {
-            super(LatentVectorQuery.this);
+        public VectorWeight(IndexSearcher searcher, boolean needsScores, TermContext termStates) throws IOException {
+            super(VectorQuery.this);
             this.needsScores = needsScores;
             this.termStates = termStates;
-            this.similarity = new CosineSimilarity();
+            this.similarity = ((Searcher<TVector>) searcher).getVectorScoringFunction();
 
             final CollectionStatistics collectionStats;
             //final TermStatistics termStats;
@@ -104,7 +105,7 @@ public class LatentVectorQuery<TVector> extends Query {
                 collectionStats = new CollectionStatistics(term.field(), maxDoc, -1, -1, -1);
                 //termStats = new TermStatistics(term.bytes(), maxDoc, -1);
             }
-            this.stats = similarity.computeWeight(LatentVectorQuery.this.vec, searcher.getIndexReader(), collectionStats);
+            this.stats = similarity.computeWeight(VectorQuery.this.vec, searcher.getIndexReader(), collectionStats);
 
         }
 
@@ -115,7 +116,7 @@ public class LatentVectorQuery<TVector> extends Query {
 
         @Override
         public Matches matches(LeafReaderContext context, int doc) throws IOException {
-            IndexUtils.notifyLazyImplementation("LatentVecWeight / matches");
+            IndexUtils.notifyLazyImplementation("VectorWeight / matches");
             TermsEnum te = getTermsEnum(context);
             if (te == null) {
                 return null;
@@ -128,13 +129,13 @@ public class LatentVectorQuery<TVector> extends Query {
                 if (pe.advance(doc) != doc) {
                     return null;
                 }
-                return new CeTermMatchesIterator(getQuery(), pe);
+                return new TermMatchesIterator(getQuery(), pe);
             });
         }
 
         @Override
         public String toString() {
-            return "weight(" + LatentVectorQuery.this + ")";
+            return "weight(" + VectorQuery.this + ")";
         }
 
         @Override
@@ -147,7 +148,7 @@ public class LatentVectorQuery<TVector> extends Query {
             }
             PostingsEnum docs = termsEnum.postings(null, needsScores ? PostingsEnum.FREQS : PostingsEnum.NONE);
             assert docs != null;
-            return new LatentVecScorer(this, docs, similarity.simScorer(stats, context));
+            return new VectorScorer(this, docs, similarity.simScorer(stats, context));
         }
 
         @Override
@@ -204,12 +205,12 @@ public class LatentVectorQuery<TVector> extends Query {
 
             // This impl always scores docs in order, so we can
             // ignore scoreDocsInOrder:
-            return new CeBulkScorer(scorer);
+            return new DefaultBulkScorer(scorer);
         }
 
         @Override
         public Explanation explain(LeafReaderContext context, int doc) throws IOException {
-            IndexUtils.notifyLazyImplementation("LatentVectorQuery/explain");
+            IndexUtils.notifyLazyImplementation("VectorQuery/explain");
             return null;
 //            TermScorer scorer = (TermScorer) scorer(context);
 //            if (scorer != null) {

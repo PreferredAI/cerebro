@@ -12,7 +12,7 @@ import org.apache.lucene.search.Query;
  *
  * @author hpminh@apcs.vn
  */
-class CeTermMatchesIterator implements MatchesIterator {
+public class TermMatchesIterator implements MatchesIterator {
 
     private int upto;
     private int pos;
@@ -20,9 +20,9 @@ class CeTermMatchesIterator implements MatchesIterator {
     private final Query query;
 
     /**
-     * Create a new {@link CeTermMatchesIterator} for the given term and postings list.
+     * Create a new {@link TermMatchesIterator} for the given term and postings list.
      */
-    CeTermMatchesIterator(Query query, PostingsEnum pe) throws IOException {
+    public TermMatchesIterator(Query query, PostingsEnum pe) throws IOException {
         this.pe = pe;
         this.query = query;
         this.upto = pe.freq();

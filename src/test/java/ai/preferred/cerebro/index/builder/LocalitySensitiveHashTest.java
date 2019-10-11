@@ -1,7 +1,7 @@
 package ai.preferred.cerebro.index.builder;
 
 import ai.preferred.cerebro.index.demo.TestConst;
-import ai.preferred.cerebro.index.utils.HashUtils;
+import ai.preferred.cerebro.index.utils.VecDoubleHandler;
 import org.apache.lucene.util.BytesRef;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ class LocalitySensitiveHashTest {
     
     @Test
     void test(){
-        LocalitySensitiveHash<double[]> lsh = new LocalitySensitiveHash<>(HashUtils::computeBitDouble, TestConst.hashingVecs);
+        LocalitySensitiveHash<double[]> lsh = new LocalitySensitiveHash<>(new VecDoubleHandler(), TestConst.hashingVecs);
 
         BytesRef hashcode1 = new BytesRef(code1);
         Assertions.assertTrue(hashcode1.bytesEquals(lsh.getHashBit(TestConst.vec1)));

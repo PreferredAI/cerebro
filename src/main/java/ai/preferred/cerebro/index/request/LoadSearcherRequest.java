@@ -2,6 +2,9 @@ package ai.preferred.cerebro.index.request;
 
 import ai.preferred.cerebro.index.search.LSHIndexSearcher;
 import ai.preferred.cerebro.index.search.Searcher;
+import ai.preferred.cerebro.index.utils.VecDoubleHandler;
+import ai.preferred.cerebro.index.utils.VecFloatHandler;
+import ai.preferred.cerebro.index.utils.VecHandler;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -18,11 +21,12 @@ import java.util.concurrent.Executors;
  *
  * @author hpminh@apcs.vn
  */
-public class LoadSearcherRequest {
+public class LoadSearcherRequest<TVector> {
     private String indexDir;
     private String lshVecDir;
     private boolean loadToRAM;
     private boolean multithreadEnabled;
+    private VecHandler<TVector> handler;
 
     /**
      * Create a request to load searcher with RAM usage configuration.
@@ -44,6 +48,13 @@ public class LoadSearcherRequest {
      * queries will be very slow.
      */
     public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM) {
+        this(indexDir, lshVecDir, loadToRAM, false);
+    }
+    public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM, boolean multithreadEnabled) {
+        this(indexDir, lshVecDir, loadToRAM, multithreadEnabled, null);
+    }
+
+    public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM, boolean multithreadEnabled, VecHandler<TVector> handler) {
         this.indexDir = indexDir;
         if(lshVecDir == null){
             File f = new File(indexDir + "\\splitVec.o");
@@ -52,18 +63,31 @@ public class LoadSearcherRequest {
         }
         this.lshVecDir = lshVecDir;
         this.loadToRAM = loadToRAM;
-    }
-    public LoadSearcherRequest(String indexDir, String lshVecDir, boolean loadToRAM, boolean multithreadEnabled) {
-        this(indexDir, lshVecDir, loadToRAM);
         this.multithreadEnabled = multithreadEnabled;
+        if (handler == null){
+            Exception hold = null;
+            try{
+                this.handler = (VecHandler<TVector>) new VecFloatHandler();
+            }catch (Exception e){
+                hold = e;
+            }
+            if(hold != null){
+                try{
+                    this.handler = (VecHandler<TVector>) new VecDoubleHandler();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        else
+            this.handler = handler;
     }
-
     /**
      * Load index on hard disk and create a {@link ai.preferred.cerebro.index.search.LSHIndexSearcher} object.
      * @return Searcher on the index in the provided directory
      * @throws IOException thrown if the index is corrupted or can not be read.
      */
-    public Searcher getSearcher() throws IOException {
+    public Searcher<TVector> getSearcher() throws IOException {
         ExecutorService executorService = null;
         if(multithreadEnabled){
             executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
@@ -71,11 +95,11 @@ public class LoadSearcherRequest {
         Directory indexDirectory;
         if(loadToRAM){
             indexDirectory = new RAMDirectory(FSDirectory.open(Paths.get(indexDir)), null);
-            return new LSHIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new LSHIndexSearcher<>(DirectoryReader.open(indexDirectory), executorService, lshVecDir, handler);
         }
         else {
             indexDirectory = FSDirectory.open(Paths.get(indexDir));
-            return new LSHIndexSearcher(DirectoryReader.open(indexDirectory), executorService, lshVecDir);
+            return new LSHIndexSearcher<>(DirectoryReader.open(indexDirectory), executorService, lshVecDir, handler);
         }
 
     }

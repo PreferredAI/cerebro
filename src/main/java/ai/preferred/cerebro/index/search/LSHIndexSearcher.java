@@ -1,17 +1,18 @@
 package ai.preferred.cerebro.index.search;
 
-import ai.preferred.cerebro.index.exception.UnsupportedDataType;
-import ai.preferred.cerebro.index.utils.HashUtils;
+import ai.preferred.cerebro.index.scoring.CosineSimilarity;
+import ai.preferred.cerebro.index.scoring.VectorSimilarity;
+import ai.preferred.cerebro.index.utils.VecHandler;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.NIOFSDirectory;
 
 import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
-import ai.preferred.cerebro.index.builder.LocalitySensitiveHash.HashBitComputer;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -32,15 +33,16 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
     protected final ExecutorService executor;
     protected final LeafSlice[] leafSlices;
     protected IndexReader reader;
-    QueryParser defaultParser;
+    private QueryParser defaultParser;
     protected LocalitySensitiveHash<TVector> lsh;
+    private VectorSimilarity vectorSimilarity;
 
 
     /**
      * Create a searcher from the provided index and set of hashing vectors.
      */
-    public LSHIndexSearcher(IndexReader r, String splitVecPath) throws IOException {
-        this(r.getContext(), null, splitVecPath);
+    public LSHIndexSearcher(IndexReader r, String splitVecPath, VecHandler<TVector> handler) throws IOException {
+        this(r.getContext(), null, splitVecPath, handler);
     }
 
     /** Runs searches for each segment separately, using the
@@ -53,33 +55,20 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
      *  close file descriptors (see <a
      *  href="https://issues.apache.org/jira/browse/LUCENE-2239">LUCENE-2239</a>).
      */
-    public LSHIndexSearcher(IndexReader r, ExecutorService executor, String splitVecPath) throws IOException {
-        this(r.getContext(), executor, splitVecPath);
+    public LSHIndexSearcher(IndexReader r, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
+        this(r.getContext(), executor, splitVecPath, handler);
     }
 
-    public LSHIndexSearcher(IndexReaderContext context, ExecutorService executor, String splitVecPath) throws IOException {
+    public LSHIndexSearcher(IndexReaderContext context, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
         super(context, executor);
         this.executor = executor;
         this.reader = context.reader();
         this.defaultParser = new QueryParser(IndexConst.CONTENTS, new StandardAnalyzer());
         this.leafSlices = executor == null ? null : slices(leafContexts);
-        if(splitVecPath != null){
-            TVector[] splitVecs = (TVector[]) IndexUtils.loadHashVec(splitVecPath);
-            HashBitComputer<TVector> bitComputer = null;
-            if (splitVecs[0].getClass() == float[].class){
-                bitComputer = (HashBitComputer<TVector>)((HashBitComputer<float[]>) HashUtils::computeBitFloat);
-            }
-            else if(splitVecs[0].getClass() == double[].class){
-                bitComputer = (HashBitComputer<TVector>)((HashBitComputer<double[]>) HashUtils::computeBitDouble);
-            }
-            else
-                try {
-                    throw new UnsupportedDataType(splitVecs[0].getClass());
-                } catch (UnsupportedDataType unsupportedDataType) {
-                    unsupportedDataType.printStackTrace();
-                }
-
-            lsh = new LocalitySensitiveHash(bitComputer, splitVecs);
+        this.vectorSimilarity = new CosineSimilarity<>(handler);
+        if(splitVecPath != null && handler != null){
+            TVector[] splitVecs = handler.load(splitVecPath);
+            lsh = new LocalitySensitiveHash<>(handler, splitVecs);
         }
         else {
             IndexUtils.notifyLazyImplementation("LSHIndexSearcher: implement when hash is null");
@@ -90,17 +79,10 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
      * Set the hashing vectors outside of constructor
      * @param hashingVecs hashing vectors
      */
-    public void setLSH(TVector[] hashingVecs){
-        HashBitComputer<TVector> bitComputer = null;
-        if (hashingVecs[0].getClass() == float[].class){
-            bitComputer = (HashBitComputer<TVector>)((HashBitComputer<float[]>) HashUtils::computeBitFloat);
-        }
-        else if(hashingVecs[0].getClass() == double[].class){
-            bitComputer = (HashBitComputer<TVector>)((HashBitComputer<double[]>) HashUtils::computeBitDouble);
-        }
-
-        lsh = new LocalitySensitiveHash(bitComputer, hashingVecs);
+    public void setLSH(VecHandler<TVector> handler, TVector[] hashingVecs){
+        lsh = new LocalitySensitiveHash<>(handler, hashingVecs);
     }
+
 
     public TopDocs personalizedSearch(TVector vQuery, int topK)
             throws Exception{
@@ -114,8 +96,18 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
         if(count == 0)
             return null;
 
-        LatentVectorQuery query = new LatentVectorQuery(vQuery, t);
+        VectorQuery<TVector> query = new VectorQuery<>(vQuery, t);
         return search(query, Math.min(topK, count));
+    }
+
+    @Override
+    public VectorSimilarity getVectorScoringFunction() {
+        return vectorSimilarity;
+    }
+
+    @Override
+    public void setVectorScoringFunction(VectorSimilarity similarity) {
+        this.vectorSimilarity = similarity;
     }
 
     /**

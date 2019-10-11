@@ -1,11 +1,10 @@
 package ai.preferred.cerebro.index.search;
 
 import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
-import ai.preferred.cerebro.index.builder.LocalitySensitiveHash.FlipBitComputer;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
-import ai.preferred.cerebro.index.utils.HashUtils;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
+import ai.preferred.cerebro.index.utils.VecHandler;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReaderContext;
@@ -29,37 +28,16 @@ import java.util.concurrent.Future;
  * @author hpminh@apcs.vn
  */
 public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
-    public FlipBitSearcher(IndexReader r, String splitVecPath) throws IOException {
-        this(r, null,splitVecPath);
+    public FlipBitSearcher(IndexReader r, String splitVecPath, VecHandler<TVector> handler) throws IOException {
+        super(r, splitVecPath, handler);
     }
 
-    public FlipBitSearcher(IndexReader r, ExecutorService executor, String splitVecPath) throws IOException {
-        this(r.getContext(), executor, splitVecPath);
+    public FlipBitSearcher(IndexReader r, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
+        super(r, executor, splitVecPath, handler);
     }
 
-    public FlipBitSearcher(IndexReaderContext context, ExecutorService executor, String splitVecPath) throws IOException {
-        super(context, executor, null);
-        if(splitVecPath != null){
-            TVector[] splitVecs = (TVector[]) IndexUtils.loadHashVec(splitVecPath);
-            FlipBitComputer<TVector> bitComputer = null;
-            if (splitVecs[0].getClass() == float[].class){
-                bitComputer = (FlipBitComputer<TVector>)((FlipBitComputer<float[]>) HashUtils::computeBitAndDistanceFloat);
-            }
-            else if(splitVecs[0].getClass() == double[].class){
-                bitComputer = (FlipBitComputer<TVector>)((FlipBitComputer<double[]>) HashUtils::computeBitAndDistanceDouble);
-            }
-            else
-                try {
-                    throw new UnsupportedDataType(splitVecs[0].getClass());
-                } catch (UnsupportedDataType unsupportedDataType) {
-                    unsupportedDataType.printStackTrace();
-                }
-
-            lsh = new LocalitySensitiveHash(bitComputer, splitVecs);
-        }
-        else {
-            IndexUtils.notifyLazyImplementation("LSHIndexSearcher: implement when hash is null");
-        }
+    public FlipBitSearcher(IndexReaderContext context, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
+        super(context, executor, splitVecPath, handler);
     }
 
     @Override
@@ -80,8 +58,8 @@ public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
 
         if(countTerm == 0 && countFlip == 0)
             return null;
-        LatentVectorQuery query = new LatentVectorQuery(vQuery, term);
-        LatentVectorQuery flipQuery = new LatentVectorQuery(vQuery, flipTerm);
+        VectorQuery<TVector> query = new VectorQuery<>(vQuery, term);
+        VectorQuery<TVector> flipQuery = new VectorQuery<>(vQuery, flipTerm);
         if (countTerm > 0 && countFlip == 0){
 
             return search(query, Math.min(topK, countTerm));

@@ -1,8 +1,7 @@
 package ai.preferred.cerebro.index.builder;
 
+import ai.preferred.cerebro.index.utils.VecHandler;
 import org.apache.lucene.util.BytesRef;
-
-import ai.preferred.cerebro.index.utils.IndexUtils;
 
 import java.util.BitSet;
 
@@ -15,33 +14,18 @@ import java.util.BitSet;
  */
 public class LocalitySensitiveHash<TVector> {
     protected final int numHashBit;
-    protected HashBitComputer<TVector> bitComputer;
-    protected FlipBitComputer<TVector> flipComputer;
+    protected final VecHandler<TVector> handler;
     protected final TVector[] splitVecs;
+
 
     /**
      * Instantiate with a set of hashing vectors.
      * Calculating normal hashcodes
-     * @param bitComputer
      * @param splitVecs the set of hashing vectors.
+     * @param handler dummy class holding detailed implementations of many vector operations
      */
-    public LocalitySensitiveHash(HashBitComputer<TVector> bitComputer, TVector[] splitVecs){
-        this(bitComputer, null, splitVecs);
-    }
-
-    /**
-     * Instantiate with a set of hashing vectors.
-     * Calculating both normal hashcodes and hashcodes with bit of the closest hashvec flipped
-     * @param bitComputer
-     * @param splitVecs the set of hashing vectors.
-     */
-    public LocalitySensitiveHash(FlipBitComputer<TVector> bitComputer, TVector[] splitVecs){
-        this(null, bitComputer, splitVecs);
-    }
-
-    public LocalitySensitiveHash(HashBitComputer<TVector> bitComputer, FlipBitComputer<TVector> flipComputer, TVector[] splitVecs){
-        this.bitComputer = bitComputer;
-        this.flipComputer = flipComputer;
+    public LocalitySensitiveHash(VecHandler<TVector> handler, TVector[] splitVecs){
+        this.handler = handler;
         assert splitVecs.length > 0;
         this.splitVecs =splitVecs;
         this.numHashBit = splitVecs.length;
@@ -56,7 +40,7 @@ public class LocalitySensitiveHash<TVector> {
     public BytesRef getHashBit(TVector features){
         BitSet hashbits = new BitSet(numHashBit);
         for(int i=0; i < numHashBit; i++){
-            hashbits.set(i, bitComputer.compute(features, splitVecs[i]));
+            hashbits.set(i, handler.computeBit(features, splitVecs[i]));
         }
         return new BytesRef(hashbits.toByteArray());
     }
@@ -71,10 +55,10 @@ public class LocalitySensitiveHash<TVector> {
         BitSet hashbits = new BitSet(numHashBit);
         BitSet hashbitsflip = new BitSet(numHashBit);
 
-        float curDistance = Float.MAX_VALUE;
+        double curDistance = Double.MAX_VALUE;
         int indexShortest = -1;
         for(int i=0; i < numHashBit; i++){
-            BitAndDistance bitAndDistance = flipComputer.compute(features, splitVecs[i]);
+            BitAndDistance bitAndDistance = handler.computeBitAndDistance(features, splitVecs[i]);
             hashbits.set(i,  bitAndDistance.bit);
             hashbitsflip.set(i,  bitAndDistance.bit);
 
@@ -87,15 +71,5 @@ public class LocalitySensitiveHash<TVector> {
         result[0] = new BytesRef(hashbits.toByteArray());
         result[1] = new BytesRef(hashbitsflip.toByteArray());
         return result;
-    }
-
-    @FunctionalInterface
-    public interface HashBitComputer<TVector> {
-        boolean compute(TVector a, TVector b);
-    }
-
-    @FunctionalInterface
-    public interface FlipBitComputer<TVector>{
-        BitAndDistance compute(TVector a, TVector b);
     }
 }

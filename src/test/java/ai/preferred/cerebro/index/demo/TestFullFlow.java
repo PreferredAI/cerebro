@@ -3,6 +3,8 @@ package ai.preferred.cerebro.index.demo;
 
 import ai.preferred.cerebro.common.ExternalID;
 import ai.preferred.cerebro.common.IntID;
+import ai.preferred.cerebro.index.request.LoadSearcherRequest;
+import ai.preferred.cerebro.index.utils.VecDoubleHandler;
 import ai.preferred.cerebro.index.builder.LSHIndexWriter;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.search.FlipBitSearcher;
@@ -25,7 +27,10 @@ public class TestFullFlow {
     public void createIndex() throws Exception {
         //fileExt signify what file extension to read and index
         String fileExt = ".txt";
-        LSHIndexWriter<double[]> writer = new LSHIndexWriter<double[]>("", TestConst.hashingVecs) {
+        LSHIndexWriter<double[]> writer =
+                new LSHIndexWriter<double[]>("",
+                                            TestConst.hashingVecs,
+                                            new VecDoubleHandler()) {
             @Override
             public void indexFile(File file) throws IOException {
 
@@ -51,7 +56,10 @@ public class TestFullFlow {
     }
     @Test
     public void delete() throws IOException {
-        LSHIndexWriter<double[]> writer = new LSHIndexWriter<double[]>("", (String) null) {
+        LSHIndexWriter<double[]> writer =
+                new LSHIndexWriter<double[]>("",
+                                            (String) null,
+                                            new VecDoubleHandler()) {
             @Override
             public void indexFile(File file) throws IOException {
 
@@ -71,12 +79,12 @@ public class TestFullFlow {
 
     @Test
     public void demoSearch() throws Exception {
+        FSDirectory directory = FSDirectory.open(Paths.get(""));
         //main query
         String queryText = "Command and City Lights";
-        FSDirectory indexDirectory = FSDirectory.open(Paths.get(""));
-        LSHIndexSearcher<double[]> searcher =  new LSHIndexSearcher<>(DirectoryReader.open(indexDirectory), null);
+        LSHIndexSearcher<double[]> searcher =  new LSHIndexSearcher<>(DirectoryReader.open(directory), null, new VecDoubleHandler());
         Assertions.assertNotNull(searcher);
-        searcher.setLSH(TestConst.hashingVecs);
+        searcher.setLSH(new VecDoubleHandler(), TestConst.hashingVecs);
         //carry out searching
         //QueryRequest requestText = new QueryRequest(queryText, QueryRequest.QueryType.KEYWORD, 1);
         ScoreDoc[] resText= searcher.keywordSearch(null, queryText, 1);
@@ -88,9 +96,9 @@ public class TestFullFlow {
         Assertions.assertNotNull(resVec);
 
         //flip bit searcher
-        FlipBitSearcher<double[]> flipBitSearcher =  new FlipBitSearcher<>(DirectoryReader.open(indexDirectory), null);
+        FlipBitSearcher<double[]> flipBitSearcher =  new FlipBitSearcher<>(DirectoryReader.open(directory), null, new VecDoubleHandler());
         Assertions.assertNotNull(searcher);
-        flipBitSearcher.setLSH(TestConst.hashingVecs);
+        flipBitSearcher.setLSH(new VecDoubleHandler(), TestConst.hashingVecs);
         //carry out searching
         resText = flipBitSearcher.keywordSearch(null, queryText, 1);
         Assertions.assertNotNull(resText);

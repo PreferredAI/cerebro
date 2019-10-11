@@ -10,16 +10,16 @@ import java.io.IOException;
 
 
 /**
- * Scorer using {@link ai.preferred.cerebro.index.similarity.CosineSimilarity}
+ * Scorer using {@link ai.preferred.cerebro.index.scoring.CosineSimilarity}
  * to score similarity between latent vectors.
  *
  * @author hpminh@apcs.vn
  */
-public class LatentVecScorer extends Scorer {
+public class VectorScorer extends Scorer {
     private final PostingsEnum postingsEnum;
     private final Similarity.SimScorer docScorer;
 
-    LatentVecScorer(Weight weight, PostingsEnum td, Similarity.SimScorer docScorer) {
+    public VectorScorer(Weight weight, PostingsEnum td, Similarity.SimScorer docScorer) {
         super(weight);
         this.docScorer = docScorer;
         this.postingsEnum = td;

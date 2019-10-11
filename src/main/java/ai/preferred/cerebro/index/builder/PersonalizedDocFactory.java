@@ -2,10 +2,10 @@ package ai.preferred.cerebro.index.builder;
 
 import ai.preferred.cerebro.common.ExternalID;
 import ai.preferred.cerebro.index.exception.UnsupportedDataType;
-import ai.preferred.cerebro.index.field.LSHVectorField;
-import ai.preferred.cerebro.index.utils.HashUtils;
+import ai.preferred.cerebro.index.utils.VecHandler;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
@@ -13,8 +13,6 @@ import org.apache.lucene.util.BytesRef;
 import ai.preferred.cerebro.index.exception.DocNotClearedException;
 import ai.preferred.cerebro.index.exception.SameNameException;
 import ai.preferred.cerebro.index.utils.IndexConst;
-import ai.preferred.cerebro.index.utils.IndexUtils;
-import ai.preferred.cerebro.index.builder.LocalitySensitiveHash.HashBitComputer;
 /**
  * This class handles the creation of Document object
  * to ensure that there is no conflict in field name
@@ -26,27 +24,16 @@ public class PersonalizedDocFactory<TVector> {
 
     private LocalitySensitiveHash<TVector> hashFunc = null;
     private Document doc;
+    private VecHandler<TVector> handler;
 
     /**
      * Instantiate with a set of hashing vectors.
      * @param splitVecs
      */
-    public PersonalizedDocFactory(TVector[] splitVecs){
+    public PersonalizedDocFactory(VecHandler<TVector> handler, TVector[] splitVecs){
         assert splitVecs.length > 0;
-        HashBitComputer<TVector> bitComputer = null;
-        if (splitVecs[0].getClass() == float[].class){
-            bitComputer = (HashBitComputer<TVector>)((HashBitComputer<float[]>) HashUtils::computeBitFloat);
-        }
-        else if(splitVecs[0].getClass() == double[].class){
-            bitComputer = (HashBitComputer<TVector>)((HashBitComputer<double[]>) HashUtils::computeBitDouble);
-        }
-        else
-            try {
-                throw new UnsupportedDataType(splitVecs[0].getClass());
-            } catch (UnsupportedDataType unsupportedDataType) {
-                unsupportedDataType.printStackTrace();
-            }
-        hashFunc = new LocalitySensitiveHash<>(bitComputer, splitVecs);
+        hashFunc = new LocalitySensitiveHash<>(handler, splitVecs);
+        this.handler = handler;
     }
 
     public PersonalizedDocFactory(){}
@@ -80,7 +67,7 @@ public class PersonalizedDocFactory<TVector> {
         StringField idField = new StringField(IndexConst.IDFieldName, new BytesRef(ID.getByteValues()), Field.Store.YES);
         doc.add(idField);
         /* Storing double vector */
-        LSHVectorField<TVector> vecField = new LSHVectorField(IndexConst.VecFieldName,features);
+        StoredField vecField = new StoredField(IndexConst.VecFieldName, handler.vecToBytes(features));
         doc.add(vecField);
         /* adding hashcode */
         BytesRef hashcode = hashFunc.getHashBit(features);

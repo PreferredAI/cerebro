@@ -2,9 +2,7 @@ package ai.preferred.cerebro.index.builder;
 
 import ai.preferred.cerebro.common.ExternalID;
 import ai.preferred.cerebro.common.IntID;
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import ai.preferred.cerebro.index.utils.VecHandler;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -21,7 +19,6 @@ import ai.preferred.cerebro.index.utils.IndexUtils;
 import java.io.*;
 import java.nio.file.Paths;
 
-import static ai.preferred.cerebro.index.utils.IndexUtils.loadHashVec;
 
 /**
  *
@@ -35,7 +32,7 @@ import static ai.preferred.cerebro.index.utils.IndexUtils.loadHashVec;
  * @author hpminh@apcs.vn
  */
 public abstract class LSHIndexWriter<TVector> implements Closeable {
-    protected IndexWriter delegate;
+    protected final IndexWriter delegate;
     protected PersonalizedDocFactory<TVector> docFactory = null;
 
     /**
@@ -49,15 +46,14 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
      * @param splitVecs LSH vectors.
      * @throws IOException this is triggered when a path or file does not exist.
      */
-    public LSHIndexWriter(String indexDirectoryPath, TVector[] splitVecs) throws IOException {
+    public LSHIndexWriter(String indexDirectoryPath, TVector[] splitVecs, VecHandler<TVector> handler) throws IOException {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
         delegate = new IndexWriter(indexDirectory, iwc);
         if(splitVecs != null){
-            docFactory = new PersonalizedDocFactory<TVector>(splitVecs);
-            saveHashVecFile(indexDirectoryPath + "\\splitVec.o", splitVecs);
+            docFactory = new PersonalizedDocFactory<>(handler, splitVecs);
+            handler.save(indexDirectoryPath + "\\splitVec.o", splitVecs);
         }
-
         else
             System.out.println("Hash function not provided");
     }
@@ -78,19 +74,19 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
 
      */
 
-    public LSHIndexWriter(String indexDirectoryPath, String splitVecPath) throws IOException {
+    public LSHIndexWriter(String indexDirectoryPath, String splitVecPath, VecHandler<TVector> handler) throws IOException {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
         delegate = new IndexWriter(indexDirectory, iwc);
         if(splitVecPath != null){
-            TVector[] splitVecs = (TVector[]) loadHashVec(splitVecPath);
-            docFactory = new PersonalizedDocFactory(splitVecs);
+            TVector[] splitVecs = handler.load(splitVecPath);
+            docFactory = new PersonalizedDocFactory<>(handler, splitVecs);
         }
         else {
             File f = new File(indexDirectoryPath + "\\splitVec.o");
             if(f.exists() && !f.isDirectory()) {
-                TVector[] splitVecs = (TVector[]) loadHashVec(f.getAbsolutePath());
-                docFactory = new PersonalizedDocFactory(splitVecs);
+                TVector[] splitVecs = handler.load(f.getAbsolutePath());
+                docFactory = new PersonalizedDocFactory<>(handler, splitVecs);
             }
             else
                 System.out.println("Hash file not present");
@@ -292,14 +288,4 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
         }
     }
 
-    private void saveHashVecFile(String splitVecFilename, TVector[] vecs){
-        Kryo kryo = new Kryo();
-        try {
-            Output output = new Output(new FileOutputStream(splitVecFilename));
-            kryo.writeClassAndObject(output, vecs);
-            output.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
 }
