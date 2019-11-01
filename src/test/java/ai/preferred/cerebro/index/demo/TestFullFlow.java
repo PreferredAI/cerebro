@@ -1,14 +1,12 @@
 package ai.preferred.cerebro.index.demo;
 
 
-import ai.preferred.cerebro.common.ExternalID;
-import ai.preferred.cerebro.common.IntID;
-import ai.preferred.cerebro.index.request.LoadSearcherRequest;
-import ai.preferred.cerebro.index.utils.VecDoubleHandler;
-import ai.preferred.cerebro.index.builder.LSHIndexWriter;
-import ai.preferred.cerebro.index.exception.UnsupportedDataType;
-import ai.preferred.cerebro.index.search.FlipBitSearcher;
-import ai.preferred.cerebro.index.search.LSHIndexSearcher;
+import ai.preferred.cerebro.index.ids.ExternalID;
+import ai.preferred.cerebro.index.ids.IntID;
+import ai.preferred.cerebro.index.lsh.builder.LSHIndexWriter;
+import ai.preferred.cerebro.index.lsh.exception.UnsupportedDataType;
+import ai.preferred.cerebro.index.lsh.search.FlipBitSearcher;
+import ai.preferred.cerebro.index.lsh.search.LSHIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;

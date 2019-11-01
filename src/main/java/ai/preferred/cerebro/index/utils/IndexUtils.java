@@ -212,7 +212,8 @@ public class IndexUtils{
         return ByteBuffer.wrap(bytes, 0, Integer.BYTES).getInt();
     }
 
-
-
+    public static boolean checkFileExist(File file){
+        return file.exists() && !file.isDirectory();
+    }
 }
 

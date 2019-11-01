@@ -75,7 +75,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        ai.preferred.cerebro.index.main.Main
+                                        ai.preferred.cerebro.index.lsh.main.Main
                                     </mainClass>
                                 </manifest>
                             </archive>

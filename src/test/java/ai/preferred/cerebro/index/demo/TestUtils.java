@@ -1,22 +1,9 @@
 package ai.preferred.cerebro.index.demo;
 
 //import com.preferred.ai.DumpIndexSearcher;
-import ai.preferred.cerebro.index.builder.ExtFilter;
-import ai.preferred.cerebro.index.request.LoadSearcherRequest;
-import ai.preferred.cerebro.index.search.LSHIndexSearcher;
+import ai.preferred.cerebro.index.lsh.builder.ExtFilter;
 
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.util.BytesRef;
-import ai.preferred.cerebro.index.builder.LocalitySensitiveHash;
-import ai.preferred.cerebro.index.extra.Container;
-import ai.preferred.cerebro.index.utils.IndexUtils;
-
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.*;
+import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
 
 
 /**

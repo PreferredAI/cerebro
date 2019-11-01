@@ -1,7 +1,6 @@
 package ai.preferred.cerebro.index.utils;
 
-import java.util.Collections;
-import java.util.Set;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
  * Cerebro's reserved keyword list and necessary constants.
@@ -15,6 +14,6 @@ public class IndexConst {
     public final static String VecLenFieldName = "Vec_Length";
     public final static String HashFieldName = "LSH_Hash_Code";
     public static final String CONTENTS = "contents";
-
     public static final long mb = 1 << 20;
+    public static final char Sp = SystemUtils.IS_OS_WINDOWS ? '\\' : '/';
 }
