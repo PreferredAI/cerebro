@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.lsh.search;
+package ai.preferred.cerebro.index.lsh.searcher;
 
 import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.search.DocIdSetIterator;

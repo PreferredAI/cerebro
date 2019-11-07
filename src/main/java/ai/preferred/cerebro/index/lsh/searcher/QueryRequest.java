@@ -1,8 +1,7 @@
-package ai.preferred.cerebro.index.lsh.request;
+package ai.preferred.cerebro.index.lsh.searcher;
 
 
 import ai.preferred.cerebro.core.entity.DenseVector;
-import ai.preferred.cerebro.index.lsh.search.Searcher;
 
 /**
  *
@@ -20,7 +19,7 @@ import ai.preferred.cerebro.index.lsh.search.Searcher;
     Call keywordSearch() or similarSearch() from searcher directly
  */
 public class QueryRequest {
-    //private int modelId;
+    private String fieldName;
     private Object queryData;
     private int topK;
 

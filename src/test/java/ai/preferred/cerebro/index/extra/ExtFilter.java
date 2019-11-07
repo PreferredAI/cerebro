@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.lsh.builder;
+package ai.preferred.cerebro.index.extra;
 
 import java.io.File;
 import java.io.FileFilter;

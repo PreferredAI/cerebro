@@ -2,22 +2,27 @@ package ai.preferred.cerebro.index.lsh.builder;
 
 import ai.preferred.cerebro.index.handler.VecHandler;
 import ai.preferred.cerebro.index.ids.ExternalID;
-import ai.preferred.cerebro.index.ids.IntID;
+import ai.preferred.cerebro.index.lsh.exception.SameNameException;
+import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 
-import ai.preferred.cerebro.index.lsh.exception.DocNotClearedException;
-import ai.preferred.cerebro.index.lsh.exception.UnsupportedDataType;
 import ai.preferred.cerebro.index.utils.IndexConst;
-import ai.preferred.cerebro.index.utils.IndexUtils;
 
 import java.io.*;
 import java.nio.file.Paths;
+
+import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
 
 
 /**
@@ -26,33 +31,39 @@ import java.nio.file.Paths;
  * that facilitates the indexing of both text objects and latent feature
  * vectors.\n
  * <p>
- * Note that Right now LSHIndexWriter is not thread-safe due to the way it
- * uses PersonalizedDocFactory. This will be fixed in a near future version.
- *
  * @author hpminh@apcs.vn
  */
 public abstract class LSHIndexWriter<TVector> implements Closeable {
     protected final IndexWriter delegate;
-    protected PersonalizedDocFactory<TVector> docFactory = null;
+    protected final VecHandler<TVector> handler;
+    private LocalitySensitiveHash<TVector> hashFunc = null;
+    //protected PersonalizedDocFactory<TVector> docFactory = null;
 
     /**
-     * Constructor using an existing LSHash Vector object. This will try to allocate
-     * as much memory as possible for the writing buffer.\n
+     * Constructor for index creation (creating new index in an empty directory)\n
      * <p>
      * In case a path to LSH vectors object is not specify the indexwriter will still load,
      * but any operation involving latent item vector will throw a {@link NullPointerException}.\n
      * <p>
-     * @param indexDirectoryPath directory to the folder containing the index files.
-     * @param splitVecs LSH vectors.
+     * @param indexDirectoryPath directory to the folder which will contain the index files.
+     * @param splitVecs Hashing vectors.
      * @throws IOException this is triggered when a path or file does not exist.
      */
-    public LSHIndexWriter(String indexDirectoryPath, TVector[] splitVecs, VecHandler<TVector> handler) throws IOException {
+    public LSHIndexWriter(String indexDirectoryPath, TVector[] splitVecs, VecHandler<TVector> handler) throws Exception {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
         delegate = new IndexWriter(indexDirectory, iwc);
+
+        //assign and save vector handler
+        this.handler = handler;
+        if(handler == null)
+            throw new Exception("Vector handler not provided");
+        IndexUtils.saveVectorHandler(indexDirectoryPath + Sp + IndexConst.VECHANDLERFILE, handler);
+
+        //assign and save hashing vectors
         if(splitVecs != null){
-            docFactory = new PersonalizedDocFactory<>(handler, splitVecs);
-            handler.save(indexDirectoryPath + "\\splitVec.o", splitVecs);
+            hashFunc = new LocalitySensitiveHash<>(handler, splitVecs);
+            handler.save(indexDirectoryPath + Sp + IndexConst.HASHVECFILE, splitVecs);
         }
         else
             System.out.println("Hash function not provided");
@@ -60,37 +71,30 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
 
 
     /**
-     * Constructor randomizing a new hashtable, then save it to the same folder
-     * containing the index file and save metadata to database.\n
-     * <p>
-     * Note that this is intented to worked with other unreleased components of
-     * Cerebro. As such it is not recommended to instantiate {@link LSHIndexWriter}
-     * this way.
+     * Constructor for index modification (add, delete, update on an already existing index)
      * @param indexDirectoryPath directory to the folder containing the index files.
      * @param splitVecPath directory to the file containing the hashing vectors.
      * @throws Exception this is triggered when a path or file does not exist or there
      * is an error in type casting.
-     *
-
      */
-
-    public LSHIndexWriter(String indexDirectoryPath, String splitVecPath, VecHandler<TVector> handler) throws IOException {
+    public LSHIndexWriter(String indexDirectoryPath, String splitVecPath) throws IOException {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
         delegate = new IndexWriter(indexDirectory, iwc);
-        if(splitVecPath != null){
-            TVector[] splitVecs = handler.load(splitVecPath);
-            docFactory = new PersonalizedDocFactory<>(handler, splitVecs);
+
+        //load up vector handler
+        this.handler = IndexUtils.loadVectorHandler(indexDirectoryPath + Sp + IndexConst.VECHANDLERFILE);
+
+        //load and assign hashing vectors
+        splitVecPath = splitVecPath == null ? indexDirectoryPath + Sp + IndexConst.HASHVECFILE : splitVecPath;
+        File vectorFile = new File(splitVecPath);
+        if(IndexUtils.checkFileExist(vectorFile)){
+            TVector[] splitVecs = handler.load(vectorFile);
+            hashFunc = new LocalitySensitiveHash<>(handler, splitVecs);
         }
-        else {
-            File f = new File(indexDirectoryPath + "\\splitVec.o");
-            if(f.exists() && !f.isDirectory()) {
-                TVector[] splitVecs = handler.load(f.getAbsolutePath());
-                docFactory = new PersonalizedDocFactory<>(handler, splitVecs);
-            }
-            else
-                System.out.println("Hash file not present");
-        }
+        else
+            System.out.println("Hash file not present");
+
     }
 
 
@@ -189,29 +193,17 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
      *
      * @param ID ID of the document to delete
      * @throws IOException
-     * @throws UnsupportedDataType thrown when the ID arg is not an instance of {@link String} or an int
-     *
      */
-    public void deleteByID(Object ID) throws IOException, UnsupportedDataType {
-        Term term = null;
-        if(ID instanceof String)
-            term = new Term(IndexConst.IDFieldName, (String)ID);
-        else if(ID instanceof Integer)
-            term = new Term(IndexConst.IDFieldName, new BytesRef(IndexUtils.intToByte(((Integer) ID).intValue())));
-        else
-            throw new UnsupportedDataType();
+    public void deleteByID(ExternalID ID) throws IOException {
+        Term term = new Term(IndexConst.IDFieldName, new BytesRef(ID.getByteValues()));
         delegate.deleteDocuments(term);
     }
 
     /**
-     * With multithreading trying to get all of the index
-     * in one segment has no advantage. You should let Lucene
-     * decide when to carry out the index optimization.
-     *
+     * Merging segments together.
      * @throws IOException
-     *
      */
-    public void optimize() throws IOException {
+    public void mergeSegments() throws IOException {
         int optimalNofSegments = Runtime.getRuntime().availableProcessors();
         delegate.getConfig().setUseCompoundFile(true);
         delegate.getConfig().getMergePolicy().setNoCFSRatio(1.0);
@@ -219,73 +211,68 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
     }
 
     /**
-     * This method lists all the acceptable files in the given directory
-     * and pass them individually to {@link #indexFile(File)} to index
-     * the file content.
+     * Use this function to index a Document containing latent vector.
      *
-     * @param dataDirPath directory to the folder containing the data
-     * @param filter an object to filter out all the type of file we
-     *               don't want to read.
-     * @throws IOException
+     * @param ID unique ID of the document.
+     * @param features the latent feature vector to index.
      */
-    final public void createIndexFromDir(String dataDirPath, FileFilter filter)
-            throws IOException {
-        //get all files in the data directory
-        File[] files = new File(dataDirPath).listFiles();
+    public void idxPersonalizedDoc(ExternalID ID, TVector features, IndexableField... fields) throws Exception {
+        if(this.hashFunc == null)
+            throw new Exception("Hashing Vecs not provided");
+        Document doc = new Document();
+        StringField idField = new StringField(IndexConst.IDFieldName, new BytesRef(ID.getByteValues()), Field.Store.YES);
+        doc.add(idField);
+        /* Storing double vector */
+        StoredField vecField = new StoredField(IndexConst.VecFieldName, handler.vecToBytes(features));
+        doc.add(vecField);
+        /* adding hashcode */
+        BytesRef hashcode = hashFunc.getHashBit(features);
+        doc.add(new StringField(IndexConst.HashFieldName, hashcode, Field.Store.YES));
 
-        for (File file : files) {
-            if(!file.isDirectory()
-                    && !file.isHidden()
-                    && file.exists()
-                    && file.canRead()
-                    && filter.accept(file)
-            ){
-                indexFile(file);
-            }
+        for(IndexableField field : fields){
+            if(checkReservedFieldName(field.name()))
+                throw new SameNameException();
+            doc.add(field);
         }
+        delegate.addDocument(doc);
     }
 
-    /**
-     * Self-implement this function to parse information from your file to be indexed.
-     *
-     * It is not necessary to implement this function if you don't plan to
-     * call {@link #createIndexFromDir(String dataDirPath, FileFilter filter)}. It is, however,
-     * provided so that you can customize the way your data can be parsed.
-     *
-     * If you are utilizing personalized search function, plz use docFactory to create your Documents.
-     * Do not try to create Lucene document directly if you want to use personalized search.
-     * See the function {@link #createIndexFromVecData(TVector[])} as an example
-     * of how to work with docFactory.
-     */
-    abstract public void indexFile(File file) throws IOException;
-
 
     /**
-     * Your customizable function to index a group of information object as a single Document in the index
-     * structure
+     * Call this function to construct a generic text-only Document.
+     * Should you need to add latent vector later call getDoc
+     * and start anew with the other createPersonalizedDoc method.
      *
-     * @param ID                   external ID object, could be ID generated by a seperate DB, or your own defined ID, ...etc.
-     * @param personalizedFeatures latent feature vectors
-     * @param textualInfo          other infomations about the object to be indexed
+     * @param ID unique ID of the document
+     * @param fields the custom fields
+     * @throws SameNameException this is triggered when one of your custom field has name
+     * identical to Cerebro reserved word. See more detail at {@link IndexConst}.
      */
-    abstract public void indexAsOneDocument(ExternalID ID, TVector personalizedFeatures, String... textualInfo) throws Exception;
-
-
-    /**
-     * This method indexes the given set of vectors, using the
-     * order number of a document as ID.
-     *
-     * @param itemVecs the set of item latent vector to be indexes.
-     * @throws IOException
-     * @throws DocNotClearedException this exception is triggered when
-     * a call to {@link PersonalizedDocFactory#createPersonalizedDoc(ExternalID, TVector)}
-     * is not paired with a call to {@link PersonalizedDocFactory#getDoc()}.
-     */
-    public void createIndexFromVecData(TVector[] itemVecs) throws Exception {
-        for(int i = 0; i < itemVecs.length; i++){
-            docFactory.createPersonalizedDoc(new IntID(delegate.numDocs()), itemVecs[i]);
-            delegate.addDocument(docFactory.getDoc());
+    public void idxTextDoc(ExternalID ID, IndexableField... fields) throws Exception{
+        Document doc = new Document();
+        StringField idField = new StringField(IndexConst.IDFieldName, new BytesRef(ID.getByteValues()), Field.Store.YES);
+        doc.add(idField);
+        for(IndexableField field : fields){
+            if(checkReservedFieldName(field.name()))
+                throw new SameNameException();
+            doc.add(field);
         }
+        delegate.addDocument(doc);
     }
+
+
+    /**
+     * Check if fieldname is similar to any of Cerebro's reserved keywords.
+     *
+     * @param fieldname the field's name to be checked.
+     * @return true if the fieldname is the similar to one of the reserved words.
+     */
+    public static boolean checkReservedFieldName(String fieldname){
+        boolean a = fieldname.equals(IndexConst.IDFieldName);
+        boolean b = fieldname.equals(IndexConst.VecFieldName);
+        boolean c = fieldname.equals(IndexConst.HashFieldName);
+        return a || b || c ;
+    }
+
 
 }

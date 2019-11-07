@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.lsh.request;
 
-import ai.preferred.cerebro.index.demo.TestConst;
+import ai.preferred.cerebro.index.extra.TestConst;
+import ai.preferred.cerebro.index.lsh.searcher.QueryRequest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

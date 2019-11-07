@@ -1,7 +1,6 @@
 package ai.preferred.cerebro.index.lsh.main;
 
-import ai.preferred.cerebro.index.lsh.request.LoadSearcherRequest;
-import ai.preferred.cerebro.index.lsh.search.LSHIndexSearcher;
+import ai.preferred.cerebro.index.lsh.searcher.LSHIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -25,7 +24,7 @@ import java.util.List;
 public class IndexMovieLens {
     public static void main(String[] args) {
     }
-
+    /*
     static public void testSearch(){
         MongoClientURI connectionString = new MongoClientURI("mongodb://localhost:27017");
         MongoClient mongoClient = new MongoClient(connectionString);
@@ -52,6 +51,8 @@ public class IndexMovieLens {
         }
 
     }
+     */
+
     /*
     ignore all code that use old API for now
     static public void createIndex(){

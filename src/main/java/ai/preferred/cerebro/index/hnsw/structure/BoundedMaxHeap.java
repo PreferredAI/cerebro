@@ -1,8 +1,7 @@
-package ai.preferred.cerebro.index.hnsw;
+package ai.preferred.cerebro.index.hnsw.structure;
 
 import org.apache.lucene.util.PriorityQueue;
 
-import java.util.ArrayList;
 import java.util.function.Supplier;
 
 /**

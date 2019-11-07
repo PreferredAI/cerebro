@@ -2,10 +2,9 @@ package ai.preferred.cerebro.index.hnsw;
 
 
 import ai.preferred.cerebro.index.handler.VecHandler;
-import ai.preferred.cerebro.index.hnsw.BoundedMaxHeap;
-import ai.preferred.cerebro.index.hnsw.Candidate;
-import ai.preferred.cerebro.index.hnsw.HnswConfiguration;
-import ai.preferred.cerebro.index.hnsw.Item;
+import ai.preferred.cerebro.index.hnsw.builder.ConcurrentWriter;
+import ai.preferred.cerebro.index.hnsw.structure.*;
+import ai.preferred.cerebro.index.hnsw.structure.BitSet;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -66,7 +65,7 @@ abstract public class LeafSegment<TVector> {
 
     protected int maxNodeCount;
 
-    final protected ParentHnsw parent;
+    final protected HnswManager parent;
     //<external id, internal id>
     protected ConcurrentHashMap<Integer, Integer> lookup;
 
@@ -77,7 +76,7 @@ abstract public class LeafSegment<TVector> {
         SEARCH
     }
     Mode mode;
-    private LeafSegment(ParentHnsw parent, int numName){
+    private LeafSegment(HnswManager parent, int numName){
         HnswConfiguration configuration = parent.getConfiguration();
         this.maxNodeCount = configuration.maxItemLeaf;
         this.handler = configuration.handler;
@@ -103,7 +102,7 @@ abstract public class LeafSegment<TVector> {
     }
 
     //Creation Constructor
-    public LeafSegment(ParentHnsw parent, int numName, int baseID) {
+    public LeafSegment(HnswManager parent, int numName, int baseID) {
         this(parent, numName);
         this.nodes = new Node[this.maxNodeCount];
         this.freedIds = new IntArrayStack();
@@ -113,7 +112,7 @@ abstract public class LeafSegment<TVector> {
 
 
     //Load constructor
-     public LeafSegment(ParentHnsw parent, int numName, String idxDir, Mode mode){
+     public LeafSegment(HnswManager parent, int numName, String idxDir, Mode mode){
         this(parent, numName);
         this.mode = mode;
         load(idxDir);

@@ -1,6 +1,9 @@
-package ai.preferred.cerebro.index.hnsw;
+package ai.preferred.cerebro.index.hnsw.builder;
 
 import ai.preferred.cerebro.index.hnsw.Item;
+import ai.preferred.cerebro.index.hnsw.NamedThreadFactory;
+import ai.preferred.cerebro.index.hnsw.notify.CLIProgressListener;
+import ai.preferred.cerebro.index.hnsw.notify.ProgressListener;
 
 import java.io.*;
 import java.util.*;

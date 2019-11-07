@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.lsh.search;
+package ai.preferred.cerebro.index.lsh.searcher;
 
 import ai.preferred.cerebro.index.handler.VecHandler;
 import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
@@ -8,11 +8,15 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
+import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.NIOFSDirectory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
+
+import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
 
 /**
  * Inherited from Lucene's IndexSearcher, this class extends
@@ -38,8 +42,8 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
     /**
      * Create a searcher from the provided index and set of hashing vectors.
      */
-    public LSHIndexSearcher(IndexReader r, String splitVecPath, VecHandler<TVector> handler) throws IOException {
-        this(r.getContext(), null, splitVecPath, handler);
+    public LSHIndexSearcher(String indexDirectory) throws IOException {
+        this(indexDirectory, null);
     }
 
     /** Runs searches for each segment separately, using the
@@ -52,23 +56,21 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
      *  close file descriptors (see <a
      *  href="https://issues.apache.org/jira/browse/LUCENE-2239">LUCENE-2239</a>).
      */
-    public LSHIndexSearcher(IndexReader r, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
-        this(r.getContext(), executor, splitVecPath, handler);
-    }
-
-    public LSHIndexSearcher(IndexReaderContext context, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
-        super(context, executor);
+    public LSHIndexSearcher(String indexDirectory, ExecutorService executor) throws IOException {
+        super(DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory))).getContext(), executor);
         this.executor = executor;
-        this.reader = context.reader();
+        this.reader = super.getIndexReader();
         this.defaultParser = new QueryParser(IndexConst.CONTENTS, new StandardAnalyzer());
         this.leafSlices = executor == null ? null : slices(leafContexts);
+
+        VecHandler handler = IndexUtils.loadVectorHandler(indexDirectory + Sp + IndexConst.VECHANDLERFILE);
         this.vectorSimilarity = new VectorSimilarity<>(handler);
-        if(splitVecPath != null && handler != null){
-            File vecFile = new File(splitVecPath);
-            if(IndexUtils.checkFileExist(vecFile)) {
-                TVector[] splitVecs = handler.load(vecFile);
-                lsh = new LocalitySensitiveHash<>(handler, splitVecs);
-            }
+
+        File vecFile = new File(indexDirectory + Sp + IndexConst.HASHVECFILE);
+
+        if(IndexUtils.checkFileExist(vecFile)) {
+            TVector[] splitVecs = (TVector[]) handler.load(vecFile);
+            lsh = new LocalitySensitiveHash<>(handler, splitVecs);
         }
         else {
             IndexUtils.notifyLazyImplementation("LSHIndexSearcher: implement when hash is null");
@@ -89,19 +91,16 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
         if(lsh == null)
             throw new Exception("LocalitySensitiveHash not initialized");
         Term t = new Term(IndexConst.HashFieldName, lsh.getHashBit(vQuery));
-        // count the number of document that matches with this hashcode
-        int count = 0;
-        for (LeafReaderContext leaf : reader.leaves())
-            count += leaf.reader().docFreq(t);
-        if(count == 0)
-            return null;
-
         VectorQuery<TVector> query = new VectorQuery<>(vQuery, t);
+        // count the number of document that matches with this hashcode
+        int count = count(query);
+        if (count == 0)
+            return null;
         return search(query, Math.min(topK, count));
     }
 
     @Override
-    public VectorSimilarity getVectorScoringFunction() {
+    public VectorSimilarity getVectorSimilarity() {
         return vectorSimilarity;
     }
 

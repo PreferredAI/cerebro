@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.demo;
+package ai.preferred.cerebro.index.extra;
 
 /**
  * This class is created for testing purposes.

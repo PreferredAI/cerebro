@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.hnsw;
+package ai.preferred.cerebro.index.hnsw.structure;
 
 import java.util.EmptyStackException;
 import java.util.Vector;

@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.demo;
+package ai.preferred.cerebro.index.extra;
 
 public class TestConst {
     public final static String DIM_50_PATH = "C:\\50_dims_testing\\";

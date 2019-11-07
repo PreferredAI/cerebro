@@ -1,9 +1,11 @@
 package ai.preferred.cerebro.index.hnsw.builder;
 
 
-import ai.preferred.cerebro.index.hnsw.*;
-import ai.preferred.cerebro.index.hnsw.BitSet;
-import ai.preferred.cerebro.index.hnsw.Stack;
+import ai.preferred.cerebro.index.hnsw.Item;
+import ai.preferred.cerebro.index.hnsw.Node;
+import ai.preferred.cerebro.index.hnsw.structure.*;
+import ai.preferred.cerebro.index.hnsw.structure.Stack;
+import ai.preferred.cerebro.index.hnsw.structure.BitSet;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import org.eclipse.collections.api.list.primitive.MutableIntList;

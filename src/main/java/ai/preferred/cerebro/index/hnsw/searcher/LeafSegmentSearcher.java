@@ -1,13 +1,16 @@
 package ai.preferred.cerebro.index.hnsw.searcher;
 
 import ai.preferred.cerebro.index.hnsw.*;
+import ai.preferred.cerebro.index.hnsw.structure.BoundedMaxHeap;
+import ai.preferred.cerebro.index.hnsw.structure.Candidate;
+import ai.preferred.cerebro.index.hnsw.Node;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
 public class LeafSegmentSearcher<TVector> extends LeafSegment<TVector> {
 
-    LeafSegmentSearcher(ParentHnsw parent, int numName, String idxDir) {
+    LeafSegmentSearcher(HnswManager parent, int numName, String idxDir) {
         super(parent, numName, idxDir, Mode.SEARCH);
     }
 

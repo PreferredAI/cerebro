@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.lsh.search;
+package ai.preferred.cerebro.index.lsh.searcher;
 
 
 
@@ -91,7 +91,7 @@ public class VectorQuery<TVector> extends Query {
             super(VectorQuery.this);
             this.needsScores = needsScores;
             this.termStates = termStates;
-            this.similarity = ((Searcher<TVector>) searcher).getVectorScoringFunction();
+            this.similarity = ((Searcher<TVector>) searcher).getVectorSimilarity();
 
             final CollectionStatistics collectionStats;
             //final TermStatistics termStats;

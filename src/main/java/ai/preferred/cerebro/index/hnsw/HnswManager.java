@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.hnsw;
 
 import ai.preferred.cerebro.index.handler.VecHandler;
+import ai.preferred.cerebro.index.hnsw.structure.BitSet;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 
@@ -11,7 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
 
-abstract public class ParentHnsw<TVector> {
+abstract public class HnswManager<TVector> {
     protected static final String globalConfigFileName = Sp + "global_config.o";
     protected static final String globalLookupFileName = Sp + "global_lookup.o";
 
@@ -22,11 +23,11 @@ abstract public class ParentHnsw<TVector> {
     protected GenericObjectPool<BitSet> visitedBitSetPool;
     protected LeafSegment<TVector>[] leaves;
 
-    public ParentHnsw(){
+    public HnswManager(){
     }
 
     //Load Up configuration and lookup table
-    public ParentHnsw(String dir){
+    public HnswManager(String dir){
         idxDir = dir;
         Kryo kryo = new Kryo();
         kryo.register(Integer.class);

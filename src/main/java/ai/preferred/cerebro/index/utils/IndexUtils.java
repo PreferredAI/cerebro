@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.utils;
 
+import ai.preferred.cerebro.index.handler.VecHandler;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -7,6 +8,8 @@ import com.esotericsoftware.kryo.io.Output;
 import ai.preferred.cerebro.core.entity.AbstractVector;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -17,6 +20,32 @@ import java.util.*;
  * @author hpminh@apcs.vn
  */
 public class IndexUtils{
+
+    public static void saveVectorHandler(String filepath, VecHandler handler){
+        Kryo kryo = new Kryo();
+        kryo.register(String.class);
+        try (Output output = new Output(new FileOutputStream(filepath))){
+            kryo.writeObject(output, handler.getClass().getCanonicalName());
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static VecHandler loadVectorHandler(String filepath){
+        VecHandler handler = null;
+        Kryo kryo = new Kryo();
+        kryo.register(String.class);
+        try (Input input = new Input(new FileInputStream(filepath))){
+            String className = kryo.readObject(input, String.class);
+            Class<?> clazz = Class.forName(className);
+            Constructor<?> constructor = clazz.getConstructor();
+            handler = (VecHandler) constructor.newInstance(new Object[] {});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return handler;
+    }
 
     public static void notifyLazyImplementation(String msg){
         System.out.println("Lazy impl: " + msg);

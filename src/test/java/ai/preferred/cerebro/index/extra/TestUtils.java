@@ -1,9 +1,6 @@
-package ai.preferred.cerebro.index.demo;
+package ai.preferred.cerebro.index.extra;
 
 //import com.preferred.ai.DumpIndexSearcher;
-import ai.preferred.cerebro.index.lsh.builder.ExtFilter;
-
-import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
 
 
 /**

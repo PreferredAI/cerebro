@@ -9,14 +9,21 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public interface VecHandler<TVector> {
     void saveNodes(String vecFilename, Node<TVector>[] nodes, int nodeCount);
+
     void saveNodesBlocking(String vecFilename, AtomicReferenceArray<Node<TVector>> nodes, int nodeCount);
+
     void save(String vecFilename, TVector[] vecs);
+
     TVector[] load(File vecsFile);
+
     double distance(TVector a, TVector b);
+
     default boolean computeBit(TVector a, TVector b){
         return dotProduct(a, b) > 0;
     }
+
     double dotProduct(TVector a, TVector b);
+
     double vecLength(TVector vec);
 
     default BitAndDistance computeBitAndDistance(TVector dot, TVector plane){

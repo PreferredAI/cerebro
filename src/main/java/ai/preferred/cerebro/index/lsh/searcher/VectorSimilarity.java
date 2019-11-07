@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.lsh.search;
+package ai.preferred.cerebro.index.lsh.searcher;
 
 
 import ai.preferred.cerebro.index.handler.VecHandler;

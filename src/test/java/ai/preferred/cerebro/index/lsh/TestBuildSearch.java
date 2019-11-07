@@ -1,12 +1,12 @@
-package ai.preferred.cerebro.index.demo;
+package ai.preferred.cerebro.index.lsh;
 
 
+import ai.preferred.cerebro.index.extra.TestConst;
 import ai.preferred.cerebro.index.ids.ExternalID;
 import ai.preferred.cerebro.index.ids.IntID;
 import ai.preferred.cerebro.index.lsh.builder.LSHIndexWriter;
-import ai.preferred.cerebro.index.lsh.exception.UnsupportedDataType;
-import ai.preferred.cerebro.index.lsh.search.FlipBitSearcher;
-import ai.preferred.cerebro.index.lsh.search.LSHIndexSearcher;
+import ai.preferred.cerebro.index.lsh.searcher.FlipBitSearcher;
+import ai.preferred.cerebro.index.lsh.searcher.LSHIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -19,7 +19,7 @@ import java.io.*;
 import java.nio.file.Paths;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TestFullFlow {
+public class TestBuildSearch {
 
     @BeforeAll
     public void createIndex() throws Exception {

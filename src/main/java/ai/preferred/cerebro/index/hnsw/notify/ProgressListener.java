@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.hnsw;
+package ai.preferred.cerebro.index.hnsw.notify;
 
 /**
  * Callback interface for reporting on the progress of an index operation.

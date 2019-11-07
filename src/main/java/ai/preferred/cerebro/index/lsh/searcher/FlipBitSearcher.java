@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.lsh.search;
+package ai.preferred.cerebro.index.lsh.searcher;
 import ai.preferred.cerebro.index.handler.VecHandler;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import org.apache.lucene.index.IndexReader;
@@ -24,16 +24,12 @@ import java.util.concurrent.Future;
  * @author hpminh@apcs.vn
  */
 public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
-    public FlipBitSearcher(IndexReader r, String splitVecPath, VecHandler<TVector> handler) throws IOException {
-        super(r, splitVecPath, handler);
+    public FlipBitSearcher(String indexDirectory) throws IOException {
+        super(indexDirectory);
     }
 
-    public FlipBitSearcher(IndexReader r, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
-        super(r, executor, splitVecPath, handler);
-    }
-
-    public FlipBitSearcher(IndexReaderContext context, ExecutorService executor, String splitVecPath, VecHandler<TVector> handler) throws IOException {
-        super(context, executor, splitVecPath, handler);
+    public FlipBitSearcher(String indexDirectory, ExecutorService executor) throws IOException {
+        super(indexDirectory, executor);
     }
 
     @Override

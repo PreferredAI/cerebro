@@ -1,8 +1,8 @@
 package ai.preferred.cerebro.index.hnsw.searcher;
 
-import ai.preferred.cerebro.index.hnsw.BitSet;
+import ai.preferred.cerebro.index.hnsw.structure.BitSet;
 import ai.preferred.cerebro.index.hnsw.GenericObjectPool;
-import ai.preferred.cerebro.index.hnsw.ParentHnsw;
+import ai.preferred.cerebro.index.hnsw.HnswManager;
 import org.apache.lucene.search.*;
 import org.apache.lucene.util.ThreadInterruptedException;
 
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
-public class HnswIndexSearcher<TVector> extends ParentHnsw<TVector> {
+public class HnswIndexSearcher<TVector> extends HnswManager<TVector> {
     ExecutorService executor;
     public HnswIndexSearcher(String idxDir){
         super(idxDir);

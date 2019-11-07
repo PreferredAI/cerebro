@@ -14,7 +14,4 @@ public class SameNameException extends Exception{
     public SameNameException(){
         super("Field's name matches with preserved keyword");
     }
-//    public SameNameException(String message){
-//        super(message);
-//    }
 }
