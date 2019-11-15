@@ -6,6 +6,7 @@ import ai.preferred.cerebro.index.hnsw.notify.CLIProgressListener;
 import ai.preferred.cerebro.index.hnsw.notify.ProgressListener;
 import ai.preferred.cerebro.index.hnsw.structure.BitSet;
 import ai.preferred.cerebro.index.hnsw.Item;
+import ai.preferred.cerebro.index.ids.ExternalID;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
@@ -110,12 +111,14 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
      */
 
 
-    public void removeOnExternalID(int externalID) {
-        int globalID = lookup.get(externalID);
-        int leafNum = globalID / configuration.getMaxItemLeaf();
-        int internalID = globalID % configuration.getMaxItemLeaf();
-        lookup.remove(externalID);
-        ((LeafSegmentWriter)leaves[leafNum]).removeOnInternalID(internalID);
+    public void removeByExternalID(ExternalID externalID) {
+        int globalID = lookup.getOrDefault(externalID, -1);
+        if(globalID >= 0){
+            int leafNum = globalID / configuration.getMaxItemLeaf();
+            int internalID = globalID % configuration.getMaxItemLeaf();
+            lookup.remove(externalID);
+            ((LeafSegmentWriter)leaves[leafNum]).removeOnInternalID(internalID);
+        }
     }
 
 
@@ -141,20 +144,6 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         }
         return size;
     }
-    /*
-    public Optional<double[]> get(int luceneId) {
-        synchronized (lookup){
-            Integer globalID = lookup.get(luceneId);
-            if(globalID == null)
-                return Optional.empty();
-            else{
-                int idxleaf = globalID / configuration.maxItemLeaf;
-                int leafId = globalID % configuration.maxItemLeaf;
-                return leaves[idxleaf].getVec(leafId);
-            }
-        }
-    }
-     */
 
 
     @Override

@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.hnsw;
 
+import ai.preferred.cerebro.index.ids.ExternalID;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
 public class Node<TVector> {
@@ -24,7 +25,7 @@ public class Node<TVector> {
         return this.outConns.length - 1;
     }
 
-    int externalID(){
+    ExternalID externalID(){
         return item.externalId;
     }
 

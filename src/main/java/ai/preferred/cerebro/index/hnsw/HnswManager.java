@@ -2,6 +2,7 @@ package ai.preferred.cerebro.index.hnsw;
 
 import ai.preferred.cerebro.index.handler.VecHandler;
 import ai.preferred.cerebro.index.hnsw.structure.BitSet;
+import ai.preferred.cerebro.index.ids.ExternalID;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 
@@ -19,7 +20,7 @@ abstract public class HnswManager<TVector> {
     protected String idxDir;
     protected HnswConfiguration configuration;
     protected int nleaves;
-    protected ConcurrentHashMap<Integer, Integer> lookup;
+    protected ConcurrentHashMap<ExternalID, Integer> lookup;
     protected GenericObjectPool<BitSet> visitedBitSetPool;
     protected LeafSegment<TVector>[] leaves;
 
@@ -80,7 +81,7 @@ abstract public class HnswManager<TVector> {
     public HnswConfiguration getConfiguration() {
         return configuration;
     }
-    public ConcurrentHashMap<Integer, Integer> getLookup(){
+    public ConcurrentHashMap<ExternalID, Integer> getLookup(){
         return lookup;
     }
     public BitSet getBitsetFromPool(){
@@ -90,10 +91,23 @@ abstract public class HnswManager<TVector> {
     public void returnBitsetToPool(BitSet bitSet){
         visitedBitSetPool.returnObject(bitSet);
     }
-    public Node getNodeGlobally(int globalID){
+
+    public Node getNodeByExternalID(ExternalID extID){
+        int globalID = lookup.getOrDefault(extID, -1);
+        return getNode(globalID);
+    }
+
+    public Node getNode(int globalID){
         int leafNum = globalID / configuration.maxItemLeaf;
         int internalID = globalID % configuration.maxItemLeaf;
-        return leaves[leafNum].getNode(internalID).get();
+        if(leafNum >= 0 && leafNum < nleaves){
+            return leaves[leafNum].getNode(internalID).get();
+        }
+        return null;
+    }
+
+    public ExternalID getExternalID(int globalID){
+        return getNode(globalID).externalID();
     }
 
     static public void printIndexInfo(String idxFolder){

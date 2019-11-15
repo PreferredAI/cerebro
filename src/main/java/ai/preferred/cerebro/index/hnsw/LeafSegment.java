@@ -5,6 +5,7 @@ import ai.preferred.cerebro.index.handler.VecHandler;
 import ai.preferred.cerebro.index.hnsw.builder.ConcurrentWriter;
 import ai.preferred.cerebro.index.hnsw.structure.*;
 import ai.preferred.cerebro.index.hnsw.structure.BitSet;
+import ai.preferred.cerebro.index.ids.ExternalID;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -66,8 +67,9 @@ abstract public class LeafSegment<TVector> {
     protected int maxNodeCount;
 
     final protected HnswManager parent;
+
     //<external id, internal id>
-    protected ConcurrentHashMap<Integer, Integer> lookup;
+    protected ConcurrentHashMap<ExternalID, Integer> lookup;
 
     //runtime specific
     public enum Mode{
@@ -146,17 +148,6 @@ abstract public class LeafSegment<TVector> {
         return nodeCount;
     }
 
-    /*
-
-    protected boolean lesser(double x, double y) {
-        return distanceComparator.compare(x, y) < 0;
-    }
-
-    protected boolean greater(double x, double y) {
-        return distanceComparator.compare(x, y) > 0;
-    }
-
-     */
 
     protected BoundedMaxHeap searchLayer(Node<TVector> entryPointNode, TVector destination, int k, int layer){
         BitSet visitedBitSet = parent.getBitsetFromPool();
@@ -263,7 +254,7 @@ abstract public class LeafSegment<TVector> {
             numToLoad = maxNodeCount;
         }
 
-        int [] invertLookUp = loadLookup(invertLookUpFile);
+        ExternalID [] invertLookUp = loadLookup(invertLookUpFile);
         this.nodes = new Node[numToLoad];
 
         for (int i = 0; i < nodeCount; i++) {
@@ -281,20 +272,21 @@ abstract public class LeafSegment<TVector> {
     }
 
     //To be handled by parent
-    private int[] loadLookup(File lookupFile) {
-        int [] lookup = null;
+    private ExternalID[] loadLookup(File lookupFile) {
         Kryo kryo = new Kryo();
-        kryo.register(int[].class);
-        try {
-            Input input = new Input(new FileInputStream(lookupFile));
-            lookup = kryo.readObject(input, int[].class);
-            input.close();
-
-        } catch (FileNotFoundException e) {
+        kryo.register(byte[].class);
+        kryo.register(byte[][].class);
+        try (Input input = new Input(new FileInputStream(lookupFile));){
+            String externalID_classname = kryo.readObject(input, String.class);
+            Class<?> clazz = Class.forName(externalID_classname);
+            Class<?> clazzArray = clazz.arrayType();
+            kryo.register(clazz);
+            kryo.register(clazzArray);
+            return (ExternalID[]) kryo.readObject(input, clazzArray);
+        } catch (FileNotFoundException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-        assert nodeCount == lookup.length;
-        return lookup;
+        return null;
     }
 
     private IntArrayList[][] loadConns(File connFile) {

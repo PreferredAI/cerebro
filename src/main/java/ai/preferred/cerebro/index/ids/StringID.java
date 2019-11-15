@@ -1,6 +1,6 @@
 package ai.preferred.cerebro.index.ids;
 
-public class StringID implements ExternalID{
+public class StringID extends ExternalID{
     private final String val;
 
     public StringID(String val) {
@@ -9,5 +9,10 @@ public class StringID implements ExternalID{
 
     public byte[] getByteValues() {
         return val.getBytes();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return val.equals(obj);
     }
 }

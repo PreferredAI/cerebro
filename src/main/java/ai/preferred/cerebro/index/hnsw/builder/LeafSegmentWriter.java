@@ -2,6 +2,7 @@ package ai.preferred.cerebro.index.hnsw.builder;
 
 import ai.preferred.cerebro.index.hnsw.*;
 import ai.preferred.cerebro.index.hnsw.structure.*;
+import ai.preferred.cerebro.index.ids.ExternalID;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import org.eclipse.collections.api.list.primitive.MutableIntList;
@@ -105,12 +106,13 @@ public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
                 } else {
                     //similar id but different vector means different object
                     //so remove the object to insert the current new one
-                    removeOnInternalID(item.externalId);
+                    removeOnInternalID(globalId - baseID);
                 }
             }
             else
                 return false;
         }
+
         int internalId;
         //try to use used id of deleted node to assign to this new node
         //if not available use a new id (unconsumed) for this node
@@ -124,7 +126,7 @@ public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
         }
 
         //randomize level
-        int randomLevel = assignLevel(item.externalId, this.levelLambda);
+        int randomLevel = assignLevel(item.hashCode(), this.levelLambda);
 
         IntArrayList[] outConns = new IntArrayList[randomLevel + 1];
 
@@ -375,16 +377,18 @@ public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
 
     protected void saveInvertLookUp(String dirPath){
         synchronized (nodes){
-            int[] invertLookUp = new int[nodeCount];
+            if(nodeCount == 0)
+                return;
+            ExternalID[] invertLookUp = new ExternalID[nodeCount];
             for (int i = 0; i < nodeCount; i++) {
                 invertLookUp[i] = nodes[i].item.externalId;
             }
             Kryo kryo = new Kryo();
-            kryo.register(int[].class);
-            try {
-                Output outputInvert = new Output(new FileOutputStream(dirPath + LOCAL_INVERT));
+            kryo.register(invertLookUp[0].getClass());
+            kryo.register(invertLookUp[0].getClass().arrayType());
+            try (Output outputInvert = new Output(new FileOutputStream(dirPath + LOCAL_INVERT))){
+                kryo.writeObject(outputInvert, nodes[0].item.externalId.getClass().getCanonicalName());
                 kryo.writeObject(outputInvert, invertLookUp);
-                outputInvert.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }

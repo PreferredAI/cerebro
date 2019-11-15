@@ -55,7 +55,7 @@ public class LeafSegmentSearcher<TVector> extends LeafSegment<TVector> {
         ScoreDoc[] hits = new ScoreDoc[topCandidates.size()];
         for (int i = topCandidates.size() - 1; i >= 0; i--) {
             Candidate h = topCandidates.pop();
-            hits[i] = new ScoreDoc(nodes[h.nodeId].item.externalId, (float) (1 - h.distance));
+            hits[i] = new ScoreDoc(nodes[h.nodeId].internalId + baseID, (float) (1 - h.distance));
         }
 
 
