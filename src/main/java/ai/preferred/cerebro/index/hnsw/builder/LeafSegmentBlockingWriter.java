@@ -15,6 +15,7 @@ import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.ReentrantLock;
@@ -558,7 +559,7 @@ public class LeafSegmentBlockingWriter<TVector> extends LeafSegmentWriter<TVecto
             }
             Kryo kryo = new Kryo();
             kryo.register(invertLookUp[0].getClass());
-            kryo.register(invertLookUp[0].getClass().arrayType());
+            kryo.register(Array.newInstance(invertLookUp[0].getClass(), 0).getClass());
             try (Output outputInvert = new Output(new FileOutputStream(dirPath + LOCAL_INVERT))){
                 kryo.writeObject(outputInvert, nodes.get(0).item.externalId.getClass().getCanonicalName());
                 kryo.writeObject(outputInvert, invertLookUp);

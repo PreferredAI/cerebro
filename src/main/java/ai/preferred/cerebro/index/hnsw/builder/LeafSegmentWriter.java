@@ -11,6 +11,7 @@ import org.eclipse.collections.impl.stack.mutable.primitive.IntArrayStack;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -385,7 +386,7 @@ public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
             }
             Kryo kryo = new Kryo();
             kryo.register(invertLookUp[0].getClass());
-            kryo.register(invertLookUp[0].getClass().arrayType());
+            kryo.register(Array.newInstance(invertLookUp[0].getClass(), 0).getClass());
             try (Output outputInvert = new Output(new FileOutputStream(dirPath + LOCAL_INVERT))){
                 kryo.writeObject(outputInvert, nodes[0].item.externalId.getClass().getCanonicalName());
                 kryo.writeObject(outputInvert, invertLookUp);

@@ -17,12 +17,12 @@ import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 
 public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         implements ConcurrentWriter<TVector> {
 
     private final int OPTIMAL_NUM_LEAVES;
-
 
     //Create Constructor
     public HnswIndexWriter(HnswConfiguration configuration, String dir) {

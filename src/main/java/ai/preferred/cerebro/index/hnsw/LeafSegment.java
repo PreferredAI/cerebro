@@ -14,6 +14,7 @@ import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 import org.eclipse.collections.impl.stack.mutable.primitive.IntArrayStack;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -274,12 +275,10 @@ abstract public class LeafSegment<TVector> {
     //To be handled by parent
     private ExternalID[] loadLookup(File lookupFile) {
         Kryo kryo = new Kryo();
-        kryo.register(byte[].class);
-        kryo.register(byte[][].class);
         try (Input input = new Input(new FileInputStream(lookupFile));){
             String externalID_classname = kryo.readObject(input, String.class);
             Class<?> clazz = Class.forName(externalID_classname);
-            Class<?> clazzArray = clazz.arrayType();
+            Class<?> clazzArray = Array.newInstance(clazz, 0).getClass();
             kryo.register(clazz);
             kryo.register(clazzArray);
             return (ExternalID[]) kryo.readObject(input, clazzArray);
