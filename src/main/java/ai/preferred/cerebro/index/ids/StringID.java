@@ -1,5 +1,8 @@
 package ai.preferred.cerebro.index.ids;
 
+/**
+ * @author hpminh@apcs.vn
+ */
 public class StringID extends ExternalID{
     private final String val;
 

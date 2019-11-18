@@ -6,7 +6,9 @@ import org.apache.lucene.document.Document;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-
+/**
+ * @author hpminh@apcs.vn
+ */
 public interface VecHandler<TVector> {
     void saveNodes(String vecFilename, Node<TVector>[] nodes, int nodeCount);
 

@@ -13,6 +13,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
 
+/**
+ * @author hpminh@apcs.vn
+ * @param <TVector>
+ */
 abstract public class HnswManager<TVector> {
     protected static final String globalConfigFileName = Sp + "global_config.o";
     protected static final String globalLookupFileName = Sp + "global_lookup.o";

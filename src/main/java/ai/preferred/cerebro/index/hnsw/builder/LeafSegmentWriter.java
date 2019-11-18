@@ -17,6 +17,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @author hpminh@apcs.vn
+ * @param <TVector>
+ */
 public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
 
     //Creation Constructor
@@ -273,38 +277,6 @@ public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
                     Node node = nodes[rejected.nodeId];
                     node.inConns[level].remove(selectedNeighbourId);
                 }
-
-
-                /* In case every breaks or accuracy plummets, uncomment this section
-                and delete everything above up till the start of the else clause
-
-                double dMax = handler.distance(newNodeVector, neighbourNode.vector());
-                BoundedMaxHeap candidates = new BoundedMaxHeap(bestN + 1, ()-> null);
-                candidates.add(new Candidate(newNodeId, dMax, distanceComparator));
-                outNeighbourConnsAtLevel.forEach(id -> {
-                    double dist = handler.distance(neighbourVector, nodes[id].vector());
-                    candidates.add(new Candidate(id, dist, distanceComparator));
-                });
-
-                MutableIntList prunedConnections = removeEnabled ? new IntArrayList() : null;
-
-                List<Candidate> selectedConns = getNeighborsByHeuristic2(candidates, prunedConnections, bestN);
-
-                if (removeEnabled) {
-                    newNode.inConns[level].add(selectedNeighbourId);
-                }
-
-                outNeighbourConnsAtLevel.clear();
-                for (Candidate candidate: selectedConns) {
-                    outNeighbourConnsAtLevel.add(candidate.nodeId);
-                }
-
-                if (removeEnabled) {
-                    prunedConnections.forEach(id -> {
-                        Node node = nodes[id];
-                        node.inConns[level].remove(selectedNeighbourId);
-                    });
-                }*/
             }
         }
     }

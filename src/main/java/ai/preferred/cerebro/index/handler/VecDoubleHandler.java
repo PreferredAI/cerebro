@@ -11,7 +11,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-
+/**
+ * @author hpminh@apcs.vn
+ */
 public abstract class VecDoubleHandler implements VecHandler<double[]> {
     @Override
     public double dotProduct(double[] a, double[] b) {

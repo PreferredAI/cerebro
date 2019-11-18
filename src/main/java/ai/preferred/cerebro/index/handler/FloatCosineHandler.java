@@ -1,5 +1,7 @@
 package ai.preferred.cerebro.index.handler;
-
+/**
+ * @author hpminh@apcs.vn
+ */
 public class FloatCosineHandler extends VecFloatHandler {
     @Override
     public double distance(float[] a, float[] b) {

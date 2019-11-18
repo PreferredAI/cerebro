@@ -1,4 +1,7 @@
 package ai.preferred.cerebro.index.handler;
+/**
+ * @author hpminh@apcs.vn
+ */
 
 public class DoubleCosineHandler extends VecDoubleHandler {
     @Override

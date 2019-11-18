@@ -1,6 +1,5 @@
 package ai.preferred.cerebro.index.hnsw.builder;
 
-
 import ai.preferred.cerebro.index.hnsw.*;
 import ai.preferred.cerebro.index.hnsw.notify.CLIProgressListener;
 import ai.preferred.cerebro.index.hnsw.notify.ProgressListener;
@@ -17,8 +16,10 @@ import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
 
+/**
+ * @author hpminh@apcs.vn
+ */
 public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         implements ConcurrentWriter<TVector> {
 

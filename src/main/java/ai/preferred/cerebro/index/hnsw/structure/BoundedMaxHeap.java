@@ -5,6 +5,7 @@ import org.apache.lucene.util.PriorityQueue;
 import java.util.function.Supplier;
 
 /**
+ * @author hpminh@apcs.vn
  * Class extending lucene's binary heap (minheap) implementation {@link PriorityQueue}
  */
 public class BoundedMaxHeap extends PriorityQueue<Candidate> {

@@ -3,6 +3,8 @@ package ai.preferred.cerebro.index.ids;
 import java.util.Arrays;
 
 /**
+ * @author hpminh@apcs.vn
+ *
  * Since this library only supports index creation and searching on built index,
  * There must be a database storing the original form of the data somewhere else.
  * The main idea here is that searchers from this library will return IDs of item,
