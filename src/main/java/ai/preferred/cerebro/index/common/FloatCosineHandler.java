@@ -1,7 +1,11 @@
-package ai.preferred.cerebro.index.handler;
+package ai.preferred.cerebro.index.common;
+
+import ai.preferred.cerebro.index.common.VecFloatHandler;
+
 /**
  * @author hpminh@apcs.vn
  */
+
 public class FloatCosineHandler extends VecFloatHandler {
     @Override
     public double distance(float[] a, float[] b) {

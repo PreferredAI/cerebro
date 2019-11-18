@@ -1,6 +1,6 @@
 package ai.preferred.cerebro.index.lsh.builder;
 
-import ai.preferred.cerebro.index.handler.VecHandler;
+import ai.preferred.cerebro.index.common.VecHandler;
 import ai.preferred.cerebro.index.ids.ExternalID;
 import ai.preferred.cerebro.index.lsh.exception.SameNameException;
 import ai.preferred.cerebro.index.utils.IndexUtils;

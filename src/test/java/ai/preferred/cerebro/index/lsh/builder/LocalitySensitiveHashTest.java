@@ -1,7 +1,7 @@
 package ai.preferred.cerebro.index.lsh.builder;
 
 import ai.preferred.cerebro.index.extra.TestConst;
-import ai.preferred.cerebro.index.handler.DoubleCosineHandler;
+import ai.preferred.cerebro.index.common.DoubleCosineHandler;
 import org.apache.lucene.util.BytesRef;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

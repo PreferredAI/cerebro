@@ -1,7 +1,11 @@
-package ai.preferred.cerebro.index.handler;
+package ai.preferred.cerebro.index.common;
+
+import ai.preferred.cerebro.index.common.VecDoubleHandler;
+
 /**
  * @author hpminh@apcs.vn
  */
+
 
 public class DoubleCosineHandler extends VecDoubleHandler {
     @Override

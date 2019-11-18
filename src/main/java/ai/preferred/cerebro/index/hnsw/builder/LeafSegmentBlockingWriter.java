@@ -5,7 +5,7 @@ import ai.preferred.cerebro.index.hnsw.Item;
 import ai.preferred.cerebro.index.hnsw.Node;
 import ai.preferred.cerebro.index.hnsw.structure.*;
 import ai.preferred.cerebro.index.hnsw.structure.Stack;
-import ai.preferred.cerebro.index.hnsw.structure.BitSet;
+import ai.preferred.cerebro.index.common.BitSet;
 import ai.preferred.cerebro.index.ids.ExternalID;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;

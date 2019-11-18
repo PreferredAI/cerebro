@@ -1,6 +1,6 @@
 package ai.preferred.cerebro.index.lsh.searcher;
 
-import ai.preferred.cerebro.index.handler.VecHandler;
+import ai.preferred.cerebro.index.common.VecHandler;
 import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;

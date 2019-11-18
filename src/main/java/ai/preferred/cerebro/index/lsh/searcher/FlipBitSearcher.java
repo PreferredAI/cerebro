@@ -1,8 +1,5 @@
 package ai.preferred.cerebro.index.lsh.searcher;
-import ai.preferred.cerebro.index.handler.VecHandler;
 import ai.preferred.cerebro.index.utils.IndexConst;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;

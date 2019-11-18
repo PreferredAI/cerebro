@@ -1,7 +1,7 @@
 package ai.preferred.cerebro.index.lsh.searcher;
 
 
-import ai.preferred.cerebro.index.handler.VecHandler;
+import ai.preferred.cerebro.index.common.VecHandler;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.DocumentStoredFieldVisitor;
 import org.apache.lucene.index.FieldInvertState;

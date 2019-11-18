@@ -1,7 +1,7 @@
 package ai.preferred.cerebro.index.hnsw;
 
-import ai.preferred.cerebro.index.handler.VecHandler;
-import ai.preferred.cerebro.index.hnsw.structure.BitSet;
+import ai.preferred.cerebro.index.common.VecHandler;
+import ai.preferred.cerebro.index.common.BitSet;
 import ai.preferred.cerebro.index.ids.ExternalID;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;

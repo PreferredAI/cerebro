@@ -1,10 +1,10 @@
 package ai.preferred.cerebro.index.lsh.builder;
 
-import ai.preferred.cerebro.index.handler.BitAndDistance;
-import ai.preferred.cerebro.index.handler.VecHandler;
+import ai.preferred.cerebro.index.common.BitAndDistance;
+import ai.preferred.cerebro.index.common.BitSet;
+import ai.preferred.cerebro.index.common.VecHandler;
 import org.apache.lucene.util.BytesRef;
 
-import java.util.BitSet;
 
 /**
  * This class calculates the hashcode of a vector
