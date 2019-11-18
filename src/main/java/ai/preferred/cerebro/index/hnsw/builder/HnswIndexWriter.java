@@ -4,7 +4,7 @@ package ai.preferred.cerebro.index.hnsw.builder;
 import ai.preferred.cerebro.index.hnsw.*;
 import ai.preferred.cerebro.index.hnsw.notify.CLIProgressListener;
 import ai.preferred.cerebro.index.hnsw.notify.ProgressListener;
-import ai.preferred.cerebro.index.hnsw.structure.BitSet;
+import ai.preferred.cerebro.index.common.BitSet;
 import ai.preferred.cerebro.index.hnsw.Item;
 import ai.preferred.cerebro.index.ids.ExternalID;
 import ai.preferred.cerebro.index.utils.IndexUtils;
@@ -17,7 +17,6 @@ import java.util.Queue;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
 
 public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         implements ConcurrentWriter<TVector> {

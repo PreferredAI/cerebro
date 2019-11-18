@@ -1,6 +1,6 @@
 package ai.preferred.cerebro.index.hnsw;
 
-import ai.preferred.cerebro.index.handler.VecHandler;
+import ai.preferred.cerebro.index.common.VecHandler;
 
 import java.util.Comparator;
 

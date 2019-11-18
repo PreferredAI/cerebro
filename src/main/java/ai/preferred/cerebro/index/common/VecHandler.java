@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.handler;
+package ai.preferred.cerebro.index.common;
 
 import ai.preferred.cerebro.index.hnsw.Node;
 import ai.preferred.cerebro.index.utils.IndexConst;

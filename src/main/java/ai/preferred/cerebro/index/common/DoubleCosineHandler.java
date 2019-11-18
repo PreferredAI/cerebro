@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.index.handler;
+package ai.preferred.cerebro.index.common;
 
 public class DoubleCosineHandler extends VecDoubleHandler {
     @Override

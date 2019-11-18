@@ -1,6 +1,6 @@
 package ai.preferred.cerebro.index.hnsw.searcher;
 
-import ai.preferred.cerebro.index.hnsw.structure.BitSet;
+import ai.preferred.cerebro.index.common.BitSet;
 import ai.preferred.cerebro.index.hnsw.GenericObjectPool;
 import ai.preferred.cerebro.index.hnsw.HnswManager;
 import org.apache.lucene.search.*;
