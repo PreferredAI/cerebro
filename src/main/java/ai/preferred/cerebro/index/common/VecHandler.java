@@ -55,6 +55,7 @@ public interface VecHandler<TVector> {
      */
     TVector getFeatureVector(byte[] data);
 
+
     /**
      * Function to conform to Lucene's internal working.
      * @param query

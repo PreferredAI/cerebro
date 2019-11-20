@@ -66,7 +66,10 @@ public class LSHIndexWriter<TVector> implements Closeable {
             handler.save(indexDirectoryPath + Sp + IndexConst.HASHVECFILE, splitVecs);
         }
         else
-            System.out.println("Hash function not provided");
+            throw new Exception("Hash function not provided");
+
+
+
     }
 
 

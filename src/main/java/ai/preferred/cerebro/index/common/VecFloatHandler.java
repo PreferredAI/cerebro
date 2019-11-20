@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * @author hpminh@apcs.vn
  */
 public abstract class VecFloatHandler implements VecHandler<float[]> {
+
     @Override
     public double dotProduct(float[] a, float[] b) {
         float re = 0;
