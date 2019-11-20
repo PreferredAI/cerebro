@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.lsh.searcher;
 
 import ai.preferred.cerebro.index.common.VecHandler;
+import ai.preferred.cerebro.index.lsh.DirectoryFactory;
 import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
@@ -42,8 +43,8 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
     /**
      * Create a searcher from the provided index and set of hashing vectors.
      */
-    public LSHIndexSearcher(String indexDirectory) throws IOException {
-        this(indexDirectory, null);
+    public LSHIndexSearcher(String indexDirectory, boolean useRAM) throws IOException {
+        this(indexDirectory, useRAM, null);
     }
 
     /** Runs searches for each segment separately, using the
@@ -56,8 +57,8 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
      *  close file descriptors (see <a
      *  href="https://issues.apache.org/jira/browse/LUCENE-2239">LUCENE-2239</a>).
      */
-    public LSHIndexSearcher(String indexDirectory, ExecutorService executor) throws IOException {
-        super(DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory))).getContext(), executor);
+    public LSHIndexSearcher(String indexDirectory, boolean useRAM, ExecutorService executor) throws IOException {
+        super(DirectoryReader.open(DirectoryFactory.getDirectory(indexDirectory, useRAM)).getContext(), executor);
         this.executor = executor;
         this.reader = super.getIndexReader();
         this.defaultParser = new QueryParser(IndexConst.CONTENTS, new StandardAnalyzer());

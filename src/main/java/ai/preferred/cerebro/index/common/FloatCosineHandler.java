@@ -8,7 +8,7 @@ import ai.preferred.cerebro.index.common.VecFloatHandler;
 
 public class FloatCosineHandler extends VecFloatHandler {
     @Override
-    public double distance(float[] a, float[] b) {
+    public double similarity(float[] a, float[] b) {
         float dot = 0.0f;
         float nru = 0.0f;
         float nrv = 0.0f;
@@ -18,7 +18,6 @@ public class FloatCosineHandler extends VecFloatHandler {
             nrv += b[i] * b[i];
         }
 
-        float similarity = dot / (float)(Math.sqrt(nru) * Math.sqrt(nrv));
-        return 1 - similarity;
+        return dot / (float)(Math.sqrt(nru) * Math.sqrt(nrv));
     }
 }

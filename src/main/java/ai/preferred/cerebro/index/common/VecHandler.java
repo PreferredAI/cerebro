@@ -18,7 +18,12 @@ public interface VecHandler<TVector> {
 
     TVector[] load(File vecsFile);
 
-    double distance(TVector a, TVector b);
+    double similarity(TVector a, TVector b);
+
+    default double distance(TVector a, TVector b){
+        return 1 - similarity(a, b);
+    }
+
 
     default boolean computeBit(TVector a, TVector b){
         return dotProduct(a, b) > 0;

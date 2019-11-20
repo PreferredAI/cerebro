@@ -9,7 +9,8 @@ import java.io.FileFilter;
  *
  * @author hpminh@apcs.vn
  */
-public class ExtFilter implements FileFilter {
+public class
+ExtFilter implements FileFilter {
     final String [] extensions;
 
     /**

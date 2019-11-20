@@ -33,7 +33,7 @@ import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
  * <p>
  * @author hpminh@apcs.vn
  */
-public abstract class LSHIndexWriter<TVector> implements Closeable {
+public class LSHIndexWriter<TVector> implements Closeable {
     protected final IndexWriter delegate;
     protected final VecHandler<TVector> handler;
     private LocalitySensitiveHash<TVector> hashFunc = null;
