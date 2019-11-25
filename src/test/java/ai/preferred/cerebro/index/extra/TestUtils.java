@@ -79,7 +79,7 @@ public class TestUtils {
         String itemsObjectName = "itemVec_1M.o";
         String existingQuery = "query_top20_1M.o";
         DoubleCosineHandler handler = new DoubleCosineHandler();
-        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + itemsObjectName));
+        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + itemsObjectName))[0];
 
         Container<ItemFeatures> itemArr = new Container<ItemFeatures>(itemVec.length) {
             @Override
@@ -126,7 +126,7 @@ public class TestUtils {
 
     public static void generateQueryAndFindTopK(int nQuery, int k, String itemVecObject){
         DoubleCosineHandler handler = new DoubleCosineHandler();
-        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + itemVecObject));
+        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + itemVecObject))[0];
         Container<ItemFeatures> itemArr = new Container<ItemFeatures>(itemVec.length) {
             @Override
             protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
@@ -170,11 +170,11 @@ public class TestUtils {
         double[][] vec = null;
         int optimalLeavesNum = Runtime.getRuntime().availableProcessors();
         DoubleCosineHandler handler = new DoubleCosineHandler();
-        double[][] hashingVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o"));
+        double[][] hashingVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o"))[0];
         try (
-                LSHIndexWriter<double[]> writer = new LSHIndexWriter<>(TestConst.DIM_50_PATH + "index_32bits", hashingVec, handler))
+                LSHIndexWriter<double[]> writer = new LSHIndexWriter<>(TestConst.DIM_50_PATH + "index_32bits", handler, hashingVec))
         {
-            vec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"));
+            vec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
             writer.setMaxBufferRAMSize(2048);
             writer.setMaxBufferDocNum((vec.length/optimalLeavesNum) + 1);
             //write vector to index
@@ -240,7 +240,7 @@ public class TestUtils {
         double[][] vecs = null;
         String indexDir = TestConst.HNSW_PATH_MULTI + "1M";
         DoubleCosineHandler handler = new DoubleCosineHandler();
-        vecs = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"));
+        vecs = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
         List<Item<double[]>> vecList = new ArrayList<>(vecs.length);
         for (int i = 0; i < vecs.length; i++) {
             vecList.add(new Item<>(new IntID(i), vecs[i]));
@@ -263,8 +263,8 @@ public class TestUtils {
 
     public static void test(){
         DoubleCosineHandler handler = new DoubleCosineHandler();
-        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"));
-        double[][] splitVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o"));
+        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
+        double[][] splitVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o"))[0];
 
         ItemFeatures[] itemArr = new ItemFeatures[itemVec.length];
         for(int i = 0; i < itemVec.length; i++){
