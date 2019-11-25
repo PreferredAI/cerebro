@@ -21,19 +21,19 @@ import java.util.concurrent.Future;
  * @author hpminh@apcs.vn
  */
 public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
-    public FlipBitSearcher(String indexDirectory) throws IOException {
-        super(indexDirectory);
+    public FlipBitSearcher(String indexDirectory, boolean useRAM) throws IOException {
+        super(indexDirectory, useRAM);
     }
 
-    public FlipBitSearcher(String indexDirectory, ExecutorService executor) throws IOException {
-        super(indexDirectory, executor);
+    public FlipBitSearcher(String indexDirectory, boolean useRAM, ExecutorService executor) throws IOException {
+        super(indexDirectory, useRAM, executor);
     }
 
     @Override
     public TopDocs personalizedSearch(TVector vQuery, int topK)throws Exception{
-        if(lsh == null)
+        if(lshs == null)
             throw new Exception("LocalitySensitiveHash not initialized");
-        BytesRef[] hashAndFlip = lsh.getFlipHashBit(vQuery);
+        BytesRef[] hashAndFlip = lshs[0].getFlipHashBit(vQuery);
         Term term = new Term(IndexConst.HashFieldName, hashAndFlip[0]);
         Term flipTerm = new Term(IndexConst.HashFieldName, hashAndFlip[1]);
 
