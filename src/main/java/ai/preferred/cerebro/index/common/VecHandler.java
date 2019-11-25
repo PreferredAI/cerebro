@@ -14,9 +14,9 @@ public interface VecHandler<TVector> {
 
     void saveNodesBlocking(String vecFilename, AtomicReferenceArray<Node<TVector>> nodes, int nodeCount);
 
-    void save(String vecFilename, TVector[] vecs);
+    void save(String vecFilename, TVector[]... vecs);
 
-    TVector[] load(File vecsFile);
+    TVector[][] load(File vecsFile);
 
     double similarity(TVector a, TVector b);
 

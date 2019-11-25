@@ -244,7 +244,7 @@ abstract public class LeafSegment<TVector> {
 
 
         int entryID = loadConfig(configFile);
-        TVector[] vecs = handler.load(vecsFile);
+        TVector[] vecs = handler.load(vecsFile)[0];
         IntArrayList[][] outConns = loadConns(outConnectionFile);
         IntArrayList[][] inConns = null;
 

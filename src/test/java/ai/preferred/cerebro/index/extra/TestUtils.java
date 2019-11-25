@@ -5,6 +5,9 @@ package ai.preferred.cerebro.index.extra;
 
 import ai.preferred.cerebro.index.common.DoubleCosineHandler;
 import ai.preferred.cerebro.index.common.VecDoubleHandler;
+import ai.preferred.cerebro.index.hnsw.HnswConfiguration;
+import ai.preferred.cerebro.index.hnsw.Item;
+import ai.preferred.cerebro.index.hnsw.builder.HnswIndexWriter;
 import ai.preferred.cerebro.index.ids.IntID;
 import ai.preferred.cerebro.index.lsh.builder.LSHIndexWriter;
 import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
@@ -12,6 +15,7 @@ import ai.preferred.cerebro.index.lsh.searcher.LSHIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.PriorityQueue;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -162,7 +166,7 @@ public class TestUtils {
     }
 
 
-    public void createIndex(){
+    public void createLSHIndex(){
         double[][] vec = null;
         int optimalLeavesNum = Runtime.getRuntime().availableProcessors();
         DoubleCosineHandler handler = new DoubleCosineHandler();
@@ -182,7 +186,7 @@ public class TestUtils {
         }
     }
 
-    public void compareAccuracyAndSpeed() throws Exception {
+    public void searchLSH() throws Exception {
 
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         LSHIndexSearcher<double[]> searcher =  new LSHIndexSearcher<>(TestConst.DIM_50_PATH + "index_16bits", false, executorService);
@@ -231,57 +235,74 @@ public class TestUtils {
         System.out.println("Average overlap :" + totalHit/(1000 - totalMiss));
     }
 
+
+    public void createHNSWIndex(){
+        double[][] vecs = null;
+        String indexDir = TestConst.HNSW_PATH_MULTI + "1M";
+        DoubleCosineHandler handler = new DoubleCosineHandler();
+        vecs = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"));
+        List<Item<double[]>> vecList = new ArrayList<>(vecs.length);
+        for (int i = 0; i < vecs.length; i++) {
+            vecList.add(new Item<>(new IntID(i), vecs[i]));
+        }
+        HnswConfiguration configuration= new HnswConfiguration(handler);
+        configuration.setM(20);
+        configuration.setEf(20);
+        configuration.setEfConstruction(400);
+        HnswIndexWriter<double[]> index = new HnswIndexWriter<>(configuration, indexDir);
+
+        try {
+            index.addAll(vecList);
+            index.save();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void test(){
         DoubleCosineHandler handler = new DoubleCosineHandler();
-        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec.o"));
+        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"));
         double[][] splitVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o"));
 
-        ItemFeatures[] itemArr = new ItemFeatures[1000001];
-        for(int i = 0; i < 1000000; i++){
+        ItemFeatures[] itemArr = new ItemFeatures[itemVec.length];
+        for(int i = 0; i < itemVec.length; i++){
             itemArr[i] = new ItemFeatures(i, itemVec[i]);
         }
 
         HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap = new HashMap<BytesRef, LinkedList<ItemFeatures>>();
         LocalitySensitiveHash<double[]> lsh = new LocalitySensitiveHash<>(handler, splitVec);
-        for(int i =0; i < 1000000; i++){
+        for(int i =0; i < itemVec.length; i++){
             BytesRef hashcode = lsh.getHashBit(itemVec[i]);
-            LinkedList t = hashMap.get(hashcode);
+            LinkedList<ItemFeatures> t = hashMap.get(hashcode);
             if (t == null){
-                t = new LinkedList();
+                t = new LinkedList<>();
+                hashMap.put(hashcode, t);
             }
             t.addFirst(itemArr[i]);
-            hashMap.put(hashcode, t);
+
         }
-        BytesRef hashcode = lsh.getHashBit(itemArr[1000000].features);
-        LinkedList<ItemFeatures> bucket = hashMap.get(hashcode);
-        Container<ItemFeatures> arr = new Container<ItemFeatures>((ItemFeatures [])bucket.toArray()) {
+        double[] query = itemArr[1000000].features;
+        BytesRef hashcode = lsh.getHashBit(query);
+        ItemFeatures[] bucket = (ItemFeatures[]) hashMap.get(hashcode).toArray();
+        PriorityQueue<ItemFeatures> ranker = new PriorityQueue<ItemFeatures>(10, ItemFeatures::new) {
             @Override
             protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
-                if (a.similarity == b.similarity)
-                    return a.docID > b.docID;
-                else
-                    return a.similarity < b.similarity;
-            }
-
-            @Override
-            public void calculateScore(ItemFeatures target){
-                assert target.features.length == arr[0].features.length;
-                //target.vecLength = vecLength(target.features);
-                Iterator<ItemFeatures> it = iterator();
-                while (it.hasNext()){
-                    ItemFeatures a = it.next();
-                    //a.vecLength = vecLength(a.features);
-                    a.similarity = handler.similarity(a.features, target.features);
-                }
+                return a.similarity < b.similarity;
             }
         };
 
-        System.out.println(arr.size());
-        arr.calculateScore(itemArr[1000000]);
-        arr.pullTopK(10, false, false);
+        for (int i = 0; i < bucket.length; i++) {
+            if ((bucket[i].similarity = handler.similarity(bucket[i].features, query)) > ranker.top().similarity)
+                ranker.updateTop(bucket[i]);
+        }
+
+        System.out.println(bucket.length);
         System.out.println("ID of 10 items closest to the target according to LSH is :");
-        for(int i = arr.size() - 10; i < arr.size(); i++){
-            System.out.print(arr.get(i) + " ");
+        Iterator<ItemFeatures> iterator = ranker.iterator();
+        while (iterator.hasNext()){
+            System.out.print(iterator.next().docID);
         }
     }
 

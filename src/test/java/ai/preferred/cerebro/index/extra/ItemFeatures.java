@@ -7,8 +7,12 @@ package ai.preferred.cerebro.index.extra;
 public class ItemFeatures extends Object{
     public final int docID;
     public final double [] features;
-    public double similarity = Double.MIN_VALUE;
+    public double similarity = 0;
     //public ItemFeatures nextItem;
+    public ItemFeatures(){
+        docID = -1;
+        features = null;
+    }
     public ItemFeatures(int id, double[] features){
         this.docID = id;
         this.features = features;
