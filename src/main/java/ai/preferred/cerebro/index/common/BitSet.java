@@ -55,8 +55,10 @@ public class BitSet implements Serializable {
      * @param id
      */
     public void flip(int id){
-        if(isTrue(id))
+        if(isTrue(id)){
             flipFalse(id);
+            return;
+        }
         flipTrue(id);
     }
 
@@ -66,8 +68,10 @@ public class BitSet implements Serializable {
      * @param val
      */
     public void set(int id, boolean val){
-        if(val)
+        if(val){
             flipTrue(id);
+            return;
+        }
         flipFalse(id);
     }
 

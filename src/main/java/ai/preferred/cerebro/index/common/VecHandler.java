@@ -64,8 +64,7 @@ public interface VecHandler<TVector> {
      */
     default float scoreDocument(TVector query, Document doc){
         TVector vec = getFeatureVector(doc.getField(IndexConst.VecFieldName).binaryValue().bytes);
-        double dot = dotProduct(query, vec);
-        return (float) (dot /(vecLength(query) * vecLength(vec)));
+        return (float) similarity(vec, query);
     }
 }
 
