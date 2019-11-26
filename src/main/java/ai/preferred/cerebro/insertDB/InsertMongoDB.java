@@ -24,10 +24,12 @@ public class InsertMongoDB {
      * Change to read from file application.property later
      */
     private final static String CSV_FILE_PATH = "E:\\demo_data";
-
+    /*
     public static void main(String[] args) {
 
     }
+
+     */
 
     /**
      * Read and insert into user collection
