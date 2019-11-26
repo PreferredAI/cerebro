@@ -1,8 +1,15 @@
 package ai.preferred.cerebro.index.common;
 
+import ai.preferred.cerebro.index.common.VecDoubleHandler;
+
+/**
+ * @author hpminh@apcs.vn
+ */
+
+
 public class DoubleCosineHandler extends VecDoubleHandler {
     @Override
-    public double distance(double[] a, double[] b) {
+    public double similarity(double[] a, double[] b) {
         double dot = 0.0f;
         double nru = 0.0f;
         double nrv = 0.0f;
@@ -12,7 +19,6 @@ public class DoubleCosineHandler extends VecDoubleHandler {
             nrv += b[i] * b[i];
         }
 
-        double similarity = dot / (Math.sqrt(nru) * Math.sqrt(nrv));
-        return 1 - similarity;
+        return dot / (Math.sqrt(nru) * Math.sqrt(nrv));
     }
 }

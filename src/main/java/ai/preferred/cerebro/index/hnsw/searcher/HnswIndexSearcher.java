@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
+/**
+ * @author hpminh@apcs.vn
+ * @param <TVector>
+ */
 public class HnswIndexSearcher<TVector> extends HnswManager<TVector> {
     ExecutorService executor;
     public HnswIndexSearcher(String idxDir){

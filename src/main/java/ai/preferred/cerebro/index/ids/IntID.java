@@ -2,7 +2,9 @@ package ai.preferred.cerebro.index.ids;
 
 import ai.preferred.cerebro.index.utils.IndexUtils;
 
-
+/**
+ * @author hpminh@apcs.vn
+ */
 public class IntID extends ExternalID {
     private final int val;
     public IntID(int val){

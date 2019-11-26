@@ -33,10 +33,10 @@ import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
  * <p>
  * @author hpminh@apcs.vn
  */
-public abstract class LSHIndexWriter<TVector> implements Closeable {
+public class LSHIndexWriter<TVector> implements Closeable {
     protected final IndexWriter delegate;
     protected final VecHandler<TVector> handler;
-    private LocalitySensitiveHash<TVector> hashFunc = null;
+    private LocalitySensitiveHash<TVector>[] hashFuncs = null;
     //protected PersonalizedDocFactory<TVector> docFactory = null;
 
     /**
@@ -49,7 +49,7 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
      * @param splitVecs Hashing vectors.
      * @throws IOException this is triggered when a path or file does not exist.
      */
-    public LSHIndexWriter(String indexDirectoryPath, TVector[] splitVecs, VecHandler<TVector> handler) throws Exception {
+    public LSHIndexWriter(String indexDirectoryPath, VecHandler<TVector> handler, TVector[]... splitVecs) throws Exception {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexDirectoryPath));
         IndexWriterConfig iwc = new IndexWriterConfig(new StandardAnalyzer());
         delegate = new IndexWriter(indexDirectory, iwc);
@@ -62,11 +62,17 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
 
         //assign and save hashing vectors
         if(splitVecs != null){
-            hashFunc = new LocalitySensitiveHash<>(handler, splitVecs);
+            hashFuncs = new LocalitySensitiveHash[splitVecs.length];
+            for (int i = 0; i < splitVecs.length; i++) {
+                hashFuncs[i] = new LocalitySensitiveHash(handler, splitVecs[i]);
+            }
             handler.save(indexDirectoryPath + Sp + IndexConst.HASHVECFILE, splitVecs);
         }
         else
-            System.out.println("Hash function not provided");
+            throw new Exception("Hash function not provided");
+
+
+
     }
 
 
@@ -89,8 +95,11 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
         splitVecPath = splitVecPath == null ? indexDirectoryPath + Sp + IndexConst.HASHVECFILE : splitVecPath;
         File vectorFile = new File(splitVecPath);
         if(IndexUtils.checkFileExist(vectorFile)){
-            TVector[] splitVecs = handler.load(vectorFile);
-            hashFunc = new LocalitySensitiveHash<>(handler, splitVecs);
+            TVector[][] splitVecs = handler.load(vectorFile);
+            hashFuncs = new LocalitySensitiveHash[splitVecs.length];
+            for (int i = 0; i < splitVecs.length; i++) {
+                hashFuncs[i] = new LocalitySensitiveHash<>(handler, splitVecs[i]);
+            }
         }
         else
             System.out.println("Hash file not present");
@@ -217,7 +226,7 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
      * @param features the latent feature vector to index.
      */
     public void idxPersonalizedDoc(ExternalID ID, TVector features, IndexableField... fields) throws Exception {
-        if(this.hashFunc == null)
+        if(this.hashFuncs == null)
             throw new Exception("Hashing Vecs not provided");
         Document doc = new Document();
         StringField idField = new StringField(IndexConst.IDFieldName, new BytesRef(ID.getByteValues()), Field.Store.YES);
@@ -226,9 +235,10 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
         StoredField vecField = new StoredField(IndexConst.VecFieldName, handler.vecToBytes(features));
         doc.add(vecField);
         /* adding hashcode */
-        BytesRef hashcode = hashFunc.getHashBit(features);
-        doc.add(new StringField(IndexConst.HashFieldName, hashcode, Field.Store.YES));
-
+        for (int i = 0; i < hashFuncs.length; i++) {
+            BytesRef hashcode = hashFuncs[i].getHashBit(features);
+            doc.add(new StringField(IndexConst.HashFieldName + i, hashcode, Field.Store.YES));
+        }
         for(IndexableField field : fields){
             if(checkReservedFieldName(field.name()))
                 throw new SameNameException();
@@ -270,7 +280,7 @@ public abstract class LSHIndexWriter<TVector> implements Closeable {
     public static boolean checkReservedFieldName(String fieldname){
         boolean a = fieldname.equals(IndexConst.IDFieldName);
         boolean b = fieldname.equals(IndexConst.VecFieldName);
-        boolean c = fieldname.equals(IndexConst.HashFieldName);
+        boolean c = fieldname.contains(IndexConst.HashFieldName);
         return a || b || c ;
     }
 

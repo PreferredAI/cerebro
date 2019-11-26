@@ -8,6 +8,10 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.eclipse.collections.impl.list.mutable.primitive.IntArrayList;
 
+/**
+ * @author hpminh@apcs.vn
+ * @param <TVector>
+ */
 public class LeafSegmentSearcher<TVector> extends LeafSegment<TVector> {
 
     LeafSegmentSearcher(HnswManager parent, int numName, String idxDir) {

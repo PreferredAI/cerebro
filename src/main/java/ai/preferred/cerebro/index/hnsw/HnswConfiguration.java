@@ -5,7 +5,9 @@ import ai.preferred.cerebro.index.common.VecHandler;
 import java.util.Comparator;
 
 
-
+/**
+ * @author hpminh@apcs.vn
+ */
 public class HnswConfiguration {
     private static final int DEFAULT_M = 10;
     private static final int DEFAULT_EF = 10;

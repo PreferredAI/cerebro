@@ -22,8 +22,11 @@ import java.util.List;
  *
  */
 public class IndexMovieLens {
+    /*
     public static void main(String[] args) {
     }
+
+     */
     /*
     static public void testSearch(){
         MongoClientURI connectionString = new MongoClientURI("mongodb://localhost:27017");

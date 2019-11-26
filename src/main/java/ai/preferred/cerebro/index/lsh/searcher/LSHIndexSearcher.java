@@ -1,6 +1,7 @@
 package ai.preferred.cerebro.index.lsh.searcher;
 
 import ai.preferred.cerebro.index.common.VecHandler;
+import ai.preferred.cerebro.index.lsh.DirectoryFactory;
 import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
 import ai.preferred.cerebro.index.utils.IndexConst;
 import ai.preferred.cerebro.index.utils.IndexUtils;
@@ -35,15 +36,15 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
     protected final LeafSlice[] leafSlices;
     protected IndexReader reader;
     private QueryParser defaultParser;
-    protected LocalitySensitiveHash<TVector> lsh;
+    protected LocalitySensitiveHash<TVector>[] lshs;
     private VectorSimilarity vectorSimilarity;
 
 
     /**
      * Create a searcher from the provided index and set of hashing vectors.
      */
-    public LSHIndexSearcher(String indexDirectory) throws IOException {
-        this(indexDirectory, null);
+    public LSHIndexSearcher(String indexDirectory, boolean useRAM) throws IOException {
+        this(indexDirectory, useRAM, null);
     }
 
     /** Runs searches for each segment separately, using the
@@ -56,8 +57,8 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
      *  close file descriptors (see <a
      *  href="https://issues.apache.org/jira/browse/LUCENE-2239">LUCENE-2239</a>).
      */
-    public LSHIndexSearcher(String indexDirectory, ExecutorService executor) throws IOException {
-        super(DirectoryReader.open(FSDirectory.open(Paths.get(indexDirectory))).getContext(), executor);
+    public LSHIndexSearcher(String indexDirectory, boolean useRAM, ExecutorService executor) throws IOException {
+        super(DirectoryReader.open(DirectoryFactory.getDirectory(indexDirectory, useRAM)).getContext(), executor);
         this.executor = executor;
         this.reader = super.getIndexReader();
         this.defaultParser = new QueryParser(IndexConst.CONTENTS, new StandardAnalyzer());
@@ -69,8 +70,11 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
         File vecFile = new File(indexDirectory + Sp + IndexConst.HASHVECFILE);
 
         if(IndexUtils.checkFileExist(vecFile)) {
-            TVector[] splitVecs = (TVector[]) handler.load(vecFile);
-            lsh = new LocalitySensitiveHash<>(handler, splitVecs);
+            TVector[][] splitVecs = (TVector[][]) handler.load(vecFile);
+            lshs = new LocalitySensitiveHash[splitVecs.length];
+            for (int i = 0; i < splitVecs.length; i++) {
+                lshs[i] = new LocalitySensitiveHash<>(handler, splitVecs[i]);
+            }
         }
         else {
             IndexUtils.notifyLazyImplementation("LSHIndexSearcher: implement when hash is null");
@@ -81,22 +85,37 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
      * Set the hashing vectors outside of constructor
      * @param hashingVecs hashing vectors
      */
-    public void setLSH(VecHandler<TVector> handler, TVector[] hashingVecs){
-        lsh = new LocalitySensitiveHash<>(handler, hashingVecs);
+    public void setLSH(VecHandler<TVector> handler, TVector[][] hashingVecs){
+        lshs = new LocalitySensitiveHash[hashingVecs.length];
+        for (int i = 0; i < hashingVecs.length; i++) {
+            lshs[i] = new LocalitySensitiveHash<>(handler, hashingVecs[i]);
+        }
     }
 
 
     public TopDocs personalizedSearch(TVector vQuery, int topK)
             throws Exception{
-        if(lsh == null)
+        if(lshs == null)
             throw new Exception("LocalitySensitiveHash not initialized");
-        Term t = new Term(IndexConst.HashFieldName, lsh.getHashBit(vQuery));
-        VectorQuery<TVector> query = new VectorQuery<>(vQuery, t);
-        // count the number of document that matches with this hashcode
-        int count = count(query);
-        if (count == 0)
-            return null;
-        return search(query, Math.min(topK, count));
+        if(lshs.length > 1){
+            TopDocs[] subs = new TopDocs[lshs.length];
+            for (int i = 0; i < lshs.length; i++) {
+                Term t = new Term(IndexConst.HashFieldName, lshs[i].getHashBit(vQuery));
+                VectorQuery<TVector> query = new VectorQuery<>(vQuery, t);
+                int count = count(query);
+                subs[i] =  search(query, Math.min(topK, count));
+            }
+            return TopDocs.merge(topK, subs);
+        }
+        else{
+            Term t = new Term(IndexConst.HashFieldName, lshs[0].getHashBit(vQuery));
+            VectorQuery<TVector> query = new VectorQuery<>(vQuery, t);
+            int count = count(query);
+            if (count == 0)
+                return null;
+            return search(query, Math.min(topK, count));
+        }
+
     }
 
     @Override

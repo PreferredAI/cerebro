@@ -11,8 +11,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-
+/**
+ * @author hpminh@apcs.vn
+ */
 public abstract class VecFloatHandler implements VecHandler<float[]> {
+
     @Override
     public double dotProduct(float[] a, float[] b) {
         float re = 0;
@@ -79,10 +82,11 @@ public abstract class VecFloatHandler implements VecHandler<float[]> {
     }
 
     @Override
-    public void save(String vecFilename, float[][] vecs) {
+    public void save(String vecFilename, float[][]... vecs) {
         Kryo kryo = new Kryo();
         kryo.register(float[].class);
         kryo.register(float[][].class);
+        kryo.register(float[][][].class);
         try (Output output = new Output(new FileOutputStream(vecFilename))){
             kryo.writeObject(output, vecs);
         } catch (
@@ -92,12 +96,13 @@ public abstract class VecFloatHandler implements VecHandler<float[]> {
     }
 
     @Override
-    public float[][] load(File vecsFile) {
+    public float[][][] load(File vecsFile) {
         Kryo kryo = new Kryo();
         kryo.register(float[].class);
         kryo.register(float[][].class);
+        kryo.register(float[][][].class);
         try (Input input = new Input(new FileInputStream(vecsFile))) {
-            return kryo.readObject(input, float[][].class);
+            return kryo.readObject(input, float[][][].class);
         } catch (
                 FileNotFoundException e) {
             e.printStackTrace();

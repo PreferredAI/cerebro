@@ -4,6 +4,8 @@ import java.util.EmptyStackException;
 import java.util.Vector;
 
 /**
+ * @author hpminh@apcs.vn
+ *
  * Same as the class {@link java.util.Stack} but support constructor
  * with initial capacity and is not synchronized so a bit faster.
  * @param <E>

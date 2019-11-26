@@ -6,17 +6,24 @@ import org.apache.lucene.document.Document;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-
+/**
+ * @author hpminh@apcs.vn
+ */
 public interface VecHandler<TVector> {
     void saveNodes(String vecFilename, Node<TVector>[] nodes, int nodeCount);
 
     void saveNodesBlocking(String vecFilename, AtomicReferenceArray<Node<TVector>> nodes, int nodeCount);
 
-    void save(String vecFilename, TVector[] vecs);
+    void save(String vecFilename, TVector[]... vecs);
 
-    TVector[] load(File vecsFile);
+    TVector[][] load(File vecsFile);
 
-    double distance(TVector a, TVector b);
+    double similarity(TVector a, TVector b);
+
+    default double distance(TVector a, TVector b){
+        return 1 - similarity(a, b);
+    }
+
 
     default boolean computeBit(TVector a, TVector b){
         return dotProduct(a, b) > 0;
@@ -48,6 +55,7 @@ public interface VecHandler<TVector> {
      */
     TVector getFeatureVector(byte[] data);
 
+
     /**
      * Function to conform to Lucene's internal working.
      * @param query
@@ -56,8 +64,7 @@ public interface VecHandler<TVector> {
      */
     default float scoreDocument(TVector query, Document doc){
         TVector vec = getFeatureVector(doc.getField(IndexConst.VecFieldName).binaryValue().bytes);
-        double dot = dotProduct(query, vec);
-        return (float) (dot /(vecLength(query) * vecLength(vec)));
+        return (float) similarity(vec, query);
     }
 }
 

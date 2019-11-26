@@ -3,6 +3,28 @@ package ai.preferred.cerebro.index.extra;
 //import com.preferred.ai.DumpIndexSearcher;
 
 
+import ai.preferred.cerebro.index.common.DoubleCosineHandler;
+import ai.preferred.cerebro.index.common.VecDoubleHandler;
+import ai.preferred.cerebro.index.hnsw.HnswConfiguration;
+import ai.preferred.cerebro.index.hnsw.Item;
+import ai.preferred.cerebro.index.hnsw.builder.HnswIndexWriter;
+import ai.preferred.cerebro.index.ids.IntID;
+import ai.preferred.cerebro.index.lsh.builder.LSHIndexWriter;
+import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
+import ai.preferred.cerebro.index.lsh.searcher.LSHIndexSearcher;
+import ai.preferred.cerebro.index.utils.IndexUtils;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.PriorityQueue;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * class that house functions to measure the library performance
  * or generating data necessary to do so
@@ -10,7 +32,6 @@ package ai.preferred.cerebro.index.extra;
 
 public class TestUtils {
 
-/*
     public static double entropy(HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap, int nTotal){
         double res = 0.0;
         Iterator it = hashMap.entrySet().iterator();
@@ -27,7 +48,7 @@ public class TestUtils {
     public static double[][] extractQuerySet(String existingQuery){
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
-            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + existingQuery);
+            queryAndTopK = IndexUtils.readDoubleQueryAndTopK(TestConst.DIM_50_PATH + existingQuery);
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -57,13 +78,8 @@ public class TestUtils {
     public void refindTop20() throws IOException {
         String itemsObjectName = "itemVec_1M.o";
         String existingQuery = "query_top20_1M.o";
-        double[][] itemVec = null;
-        try {
-            itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + itemsObjectName);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        DoubleCosineHandler handler = new DoubleCosineHandler();
+        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + itemsObjectName))[0];
 
         Container<ItemFeatures> itemArr = new Container<ItemFeatures>(itemVec.length) {
             @Override
@@ -80,7 +96,7 @@ public class TestUtils {
                 Iterator<ItemFeatures> it = iterator();
                 while (it.hasNext()){
                     ItemFeatures a = it.next();
-                    a.similarity = dotProduct(target.features, a.features) / (target.vecLength * a.vecLength);
+                    a.similarity = handler.similarity(a.features, target.features);
                 }
             }
         };
@@ -104,20 +120,13 @@ public class TestUtils {
             long endTime = System.currentTimeMillis();
             System.out.println("Whole array 20M time: " + (endTime - startTime) + "ms");
         }
-        IndexUtils.saveQueryAndTopK(queryAndTopK, "E:\\data\\imdb_data\\new_query_top20_50k.o");
+        IndexUtils.saveDoubleQueryAndTopK(queryAndTopK, "E:\\data\\imdb_data\\new_query_top20_50k.o");
     }
 
 
     public static void generateQueryAndFindTopK(int nQuery, int k, String itemVecObject){
-
-        double[][] itemVec = null;
-        try {
-            itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + itemVecObject);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        DoubleCosineHandler handler = new DoubleCosineHandler();
+        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + itemVecObject))[0];
         Container<ItemFeatures> itemArr = new Container<ItemFeatures>(itemVec.length) {
             @Override
             protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
@@ -133,7 +142,7 @@ public class TestUtils {
                 Iterator<ItemFeatures> it = iterator();
                 while (it.hasNext()){
                     ItemFeatures a = it.next();
-                    a.similarity = dotProduct(target.features, a.features) / (target.vecLength * a.vecLength);
+                    a.similarity = handler.similarity(a.features, target.features);
                 }
             }
         };
@@ -153,40 +162,38 @@ public class TestUtils {
             }
             queryAndTopK.put(query, list);
         }
-        IndexUtils.saveQueryAndTopK(queryAndTopK, TestConst.DIM_50_PATH +"ex.o");
+        IndexUtils.saveDoubleQueryAndTopK(queryAndTopK, TestConst.DIM_50_PATH +"ex.o");
     }
 
 
-    public void createIndex(){
+    public void createLSHIndex(){
         double[][] vec = null;
         int optimalLeavesNum = Runtime.getRuntime().availableProcessors();
+        DoubleCosineHandler handler = new DoubleCosineHandler();
+        double[][] hashingVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o"))[0];
         try (
-                LuIndexWriter writer = new LuIndexWriter(TestConst.DIM_50_PATH + "index_32bits",
-                        TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o")
-                {
-                    @Override
-                    public void indexFile(File file) throws IOException {}
-                })
+                LSHIndexWriter<double[]> writer = new LSHIndexWriter<>(TestConst.DIM_50_PATH + "index_32bits", handler, hashingVec))
         {
-            vec = IndexUtils.readVectors(TestConst.DIM_50_PATH + "itemVec_1M.o");
+            vec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
             writer.setMaxBufferRAMSize(2048);
             writer.setMaxBufferDocNum((vec.length/optimalLeavesNum) + 1);
-            writer.createIndexFromVecData(vec);
+            //write vector to index
+            for (int i = 0; i < vec.length; i++) {
+                writer.idxPersonalizedDoc(new IntID(i), vec[i]);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-   // @Test
-    public void compareAccuracyAndSpeed() throws Exception {
-        LoadSearcherRequest loadSearcherRequest = new LoadSearcherRequest(TestConst.DIM_50_PATH + "index_16bits",
-                TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o",
-                                                                    false,
-                                                                false);
-        LSHIndexSearcher searcher = (LSHIndexSearcher) loadSearcherRequest.getSearcher();
+    public void searchLSH() throws Exception {
+
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        LSHIndexSearcher<double[]> searcher =  new LSHIndexSearcher<>(TestConst.DIM_50_PATH + "index_16bits", false, executorService);
+
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
-            queryAndTopK = IndexUtils.readQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_1M.o");
+            queryAndTopK = IndexUtils.readDoubleQueryAndTopK(TestConst.DIM_50_PATH + "query_top20_1M.o");
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -200,16 +207,17 @@ public class TestUtils {
             double[] query = (double[]) entry.getKey();
             ArrayList<Integer> setBrute = (ArrayList<Integer>) entry.getValue();
             long startTime = System.currentTimeMillis();
-            ScoreDoc[] res = searcher.similaritySearch(query, 20);
-            if(res != null && res.length == 20){
+            TopDocs res = searcher.personalizedSearch(query, 20);
+
+            if(res != null && res.scoreDocs.length == 20){
                 long endSearchTime = System.currentTimeMillis();
                 System.out.println("Top-20 query time: " +(endSearchTime-startTime)+" ms");
                 totalTime += endSearchTime - startTime;
 
                 ArrayList<Integer> setHash = new ArrayList<>();
-                for(int i = 0; i < res.length; i++){
+                for(int i = 0; i < res.scoreDocs.length; i++){
                     //Document document = searcher.doc(res.scoreDocs[i].doc);
-                    int id = res[i].doc; //IndexUtils.byteToInt(document.getField(IndexConst.IDFieldName).binaryValue().bytes);
+                    int id = res.scoreDocs[i].doc; //IndexUtils.byteToInt(document.getField(IndexConst.IDFieldName).binaryValue().bytes);
                     setHash.add(id);
                 }
                 if(setHash.retainAll(setBrute)){
@@ -227,115 +235,76 @@ public class TestUtils {
         System.out.println("Average overlap :" + totalHit/(1000 - totalMiss));
     }
 
-    public static void generateHashVectorEntropyMetric(){
-        double[][] itemVec = null;
-        try {
-            itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + "itemVec_20M.o");
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        ItemFeatures[] itemArr = new ItemFeatures[itemVec.length];
-        for(int i = 0; i < itemVec.length; i++){
-            itemArr[i] = new ItemFeatures(i, itemVec[i]);
-        }
-        HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap = null;
-        double[][] splitVec = null;
-        LocalitySensitiveHash lsh = null;
-        while (true){
-            try {
-                splitVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o");//CerebroUtilities.randomizeFeatureVectors(32, 50, true, true);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            lsh = new LocalitySensitiveHash(bitComputer, splitVec);
-            hashMap = new HashMap<BytesRef, LinkedList<ItemFeatures>>();
-            for(int i =0; i < itemVec.length; i++){
-                BytesRef hashcode = lsh.getHashBit(itemVec[i]);
-                LinkedList t = hashMap.get(hashcode);
-                if (t == null){
-                    t = new LinkedList();
-                }
-                t.addFirst(itemArr[i]);
-                hashMap.put(hashcode, t);
-            }
-            double entropy = entropy(hashMap, itemVec.length);
-            System.out.println("Unique hashcode occured: " + hashMap.keySet().size());
-            System.out.println("Entrophy metric: " + entropy);
-            System.out.println(" ");
-            break;
-//            if(entropy > 12 && entropy < 14){
-//                CerebroUtilities.saveVector(splitVec, CerebroConstants.DIM_50_PATH + "splitVec.o");
-//                break;
-//            }
 
+    public void createHNSWIndex(){
+        double[][] vecs = null;
+        String indexDir = TestConst.HNSW_PATH_MULTI + "1M";
+        DoubleCosineHandler handler = new DoubleCosineHandler();
+        vecs = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
+        List<Item<double[]>> vecList = new ArrayList<>(vecs.length);
+        for (int i = 0; i < vecs.length; i++) {
+            vecList.add(new Item<>(new IntID(i), vecs[i]));
+        }
+        HnswConfiguration configuration= new HnswConfiguration(handler);
+        configuration.setM(20);
+        configuration.setEf(20);
+        configuration.setEfConstruction(400);
+        HnswIndexWriter<double[]> index = new HnswIndexWriter<>(configuration, indexDir);
+
+        try {
+            index.addAll(vecList);
+            index.save();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     public static void test(){
-        double[][] itemVec = null;
-        double[][] splitVec = null;
-        try {
-            itemVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + "itemVec.o");
-            splitVec = IndexUtils.readVectors(TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o");
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        ItemFeatures[] itemArr = new ItemFeatures[1000001];
-        for(int i = 0; i < 1000000; i++){
+        DoubleCosineHandler handler = new DoubleCosineHandler();
+        double[][] itemVec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
+        double[][] splitVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_16bits\\splitVec.o"))[0];
+
+        ItemFeatures[] itemArr = new ItemFeatures[itemVec.length];
+        for(int i = 0; i < itemVec.length; i++){
             itemArr[i] = new ItemFeatures(i, itemVec[i]);
         }
-//        orderStatistic(itemArr, 0, 1000000, 1000000 - 10, itemArr[1000000]);
-//        System.out.println("ID of 10 items closest to the target is :");
-//        for(int i = 1000000 - 10; i < 1000000; i++){
-//            System.out.print(itemArr[i].docID + " ");
-//        }
 
         HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap = new HashMap<BytesRef, LinkedList<ItemFeatures>>();
-        LocalitySensitiveHash lsh = new LocalitySensitiveHash(bitComputer, splitVec);
-        for(int i =0; i < 1000000; i++){
+        LocalitySensitiveHash<double[]> lsh = new LocalitySensitiveHash<>(handler, splitVec);
+        for(int i =0; i < itemVec.length; i++){
             BytesRef hashcode = lsh.getHashBit(itemVec[i]);
-            LinkedList t = hashMap.get(hashcode);
+            LinkedList<ItemFeatures> t = hashMap.get(hashcode);
             if (t == null){
-                t = new LinkedList();
+                t = new LinkedList<>();
+                hashMap.put(hashcode, t);
             }
             t.addFirst(itemArr[i]);
-            hashMap.put(hashcode, t);
+
         }
-        BytesRef hashcode = lsh.getHashBit(itemArr[1000000].features);
-        LinkedList<ItemFeatures> bucket = hashMap.get(hashcode);
-        Container<ItemFeatures> arr = new Container<ItemFeatures>((ItemFeatures [])bucket.toArray()) {
+        double[] query = itemArr[1000000].features;
+        BytesRef hashcode = lsh.getHashBit(query);
+        ItemFeatures[] bucket = (ItemFeatures[]) hashMap.get(hashcode).toArray();
+        PriorityQueue<ItemFeatures> ranker = new PriorityQueue<ItemFeatures>(10, ItemFeatures::new) {
             @Override
             protected boolean lessThan(ItemFeatures a, ItemFeatures b) {
-                if (a.similarity == b.similarity)
-                    return a.docID > b.docID;
-                else
-                    return a.similarity < b.similarity;
-            }
-
-            @Override
-            public void calculateScore(ItemFeatures target){
-                assert target.features.length == arr[0].features.length;
-                //target.vecLength = vecLength(target.features);
-                Iterator<ItemFeatures> it = iterator();
-                while (it.hasNext()){
-                    ItemFeatures a = it.next();
-                    //a.vecLength = vecLength(a.features);
-                    a.similarity = dotProduct(target.features, a.features) / (target.vecLength * a.vecLength);
-                }
+                return a.similarity < b.similarity;
             }
         };
 
-        System.out.println(arr.size());
-        arr.calculateScore(itemArr[1000000]);
-        arr.pullTopK(10, false, false);
+        for (int i = 0; i < bucket.length; i++) {
+            if ((bucket[i].similarity = handler.similarity(bucket[i].features, query)) > ranker.top().similarity)
+                ranker.updateTop(bucket[i]);
+        }
+
+        System.out.println(bucket.length);
         System.out.println("ID of 10 items closest to the target according to LSH is :");
-        for(int i = arr.size() - 10; i < arr.size(); i++){
-            System.out.print(arr.get(i) + " ");
+        Iterator<ItemFeatures> iterator = ranker.iterator();
+        while (iterator.hasNext()){
+            System.out.print(iterator.next().docID);
         }
     }
- */
 
 }
 

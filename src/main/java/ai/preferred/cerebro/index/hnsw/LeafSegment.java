@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
 
 /**
+ * @author hpminh@apcs.vn
+ *
  * Implementation of {@link ConcurrentWriter} that implements the hnsw algorithm.
  *
  //* @param <T> Type of distance between items (expect any numeric type: float, double, int, ..)
@@ -242,7 +244,7 @@ abstract public class LeafSegment<TVector> {
 
 
         int entryID = loadConfig(configFile);
-        TVector[] vecs = handler.load(vecsFile);
+        TVector[] vecs = handler.load(vecsFile)[0];
         IntArrayList[][] outConns = loadConns(outConnectionFile);
         IntArrayList[][] inConns = null;
 
