@@ -357,6 +357,7 @@ public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
                 invertLookUp[i] = nodes[i].item.externalId;
             }
             Kryo kryo = new Kryo();
+            kryo.register(ExternalID[].class);
             kryo.register(invertLookUp[0].getClass());
             kryo.register(Array.newInstance(invertLookUp[0].getClass(), 0).getClass());
             try (Output outputInvert = new Output(new FileOutputStream(dirPath + LOCAL_INVERT))){

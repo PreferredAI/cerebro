@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         implements ConcurrentWriter<TVector> {
-
+    private final int DEFAULT_INITIAL_MAX_NUM_LEAVES  = 4;
     private final int OPTIMAL_NUM_LEAVES;
 
     //Create Constructor
@@ -39,6 +39,11 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
 
         if (configuration.isLowMemoryMode())
             nleaves = 1;
+        //not sure whether to make this a feature, decide later. For now this is only for experiment.
+        //In case we don't want to commit every threads available to the first insertion, but still want
+        //to adopt the segment-wise approach
+        else if(OPTIMAL_NUM_LEAVES > DEFAULT_INITIAL_MAX_NUM_LEAVES)
+            nleaves = DEFAULT_INITIAL_MAX_NUM_LEAVES;
         else
             //Initialize all leaves with default max num of nodes
             nleaves = OPTIMAL_NUM_LEAVES;
@@ -272,11 +277,14 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
             }
         }
         synchronized (lookup){
+            ExternalID h = getNode(0).item.externalId;
             Kryo kryo = new Kryo();
+            kryo.register(h.getClass());
             kryo.register(Integer.class);
             kryo.register(ConcurrentHashMap.class);
             try {
                 Output output = new Output(new FileOutputStream(idxDir + globalLookupFileName));
+                kryo.writeObject(output, h.getClass().getCanonicalName());
                 kryo.writeObject(output, lookup);
                 output.close();
             } catch (FileNotFoundException e) {

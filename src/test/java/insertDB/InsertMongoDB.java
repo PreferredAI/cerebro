@@ -1,9 +1,8 @@
-package ai.preferred.cerebro.insertDB;
+package insertDB;
 
 import com.mongodb.*;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.util.JSON;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -24,13 +23,6 @@ public class InsertMongoDB {
      * Change to read from file application.property later
      */
     private final static String CSV_FILE_PATH = "E:\\demo_data";
-    /*
-    public static void main(String[] args) {
-
-    }
-
-     */
-
     /**
      * Read and insert into user collection
      */

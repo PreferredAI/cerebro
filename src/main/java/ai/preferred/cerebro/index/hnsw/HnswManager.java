@@ -32,7 +32,7 @@ abstract public class HnswManager<TVector> {
     }
 
     //Load Up configuration and lookup table
-    public HnswManager(String dir){
+    public HnswManager(String dir) {
         idxDir = dir;
         Kryo kryo = new Kryo();
         kryo.register(Integer.class);
@@ -75,9 +75,13 @@ abstract public class HnswManager<TVector> {
         //Load up lookup table
         try {
             input = new Input(new FileInputStream(idxDir + globalLookupFileName));
-        } catch (FileNotFoundException e) {
+            String idClassName = kryo.readObject(input, String.class);
+            System.out.println(idClassName);
+            kryo.register(Class.forName(idClassName));
+        } catch (FileNotFoundException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+
         lookup = kryo.readObject(input, ConcurrentHashMap.class);
         input.close();
     }
