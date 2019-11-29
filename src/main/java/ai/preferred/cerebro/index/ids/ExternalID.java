@@ -11,7 +11,6 @@ import java.util.Arrays;
  * then from these IDs go to the database and get the actual objects.
  */
 public abstract class ExternalID {
-
     public abstract byte[] getByteValues();
 
     @Override

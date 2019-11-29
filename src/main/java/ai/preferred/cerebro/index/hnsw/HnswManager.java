@@ -72,11 +72,13 @@ abstract public class HnswManager<TVector> {
         configuration.setMaxItemLeaf(kryo.readObject(input, int.class));
         nleaves = kryo.readObject(input, int.class);
         input.close();
-        //Load up lookup table
+        //buffer the lookup table
+        lookup = new ConcurrentHashMap<>(configuration.maxItemLeaf * nleaves);
+        /*
         try {
             input = new Input(new FileInputStream(idxDir + globalLookupFileName));
             String idClassName = kryo.readObject(input, String.class);
-            System.out.println(idClassName);
+            //System.out.println(idClassName);
             kryo.register(Class.forName(idClassName));
         } catch (FileNotFoundException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -84,6 +86,7 @@ abstract public class HnswManager<TVector> {
 
         lookup = kryo.readObject(input, ConcurrentHashMap.class);
         input.close();
+         */
     }
 
     public HnswConfiguration getConfiguration() {

@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         implements ConcurrentWriter<TVector> {
-    private final int DEFAULT_INITIAL_MAX_NUM_LEAVES  = 4;
+    private final int DEFAULT_INITIAL_MAX_NUM_LEAVES  = 16;
     private final int OPTIMAL_NUM_LEAVES;
 
     //Create Constructor
@@ -276,6 +276,7 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
                 e.printStackTrace();
             }
         }
+        /*
         synchronized (lookup){
             ExternalID h = getNode(0).item.externalId;
             Kryo kryo = new Kryo();
@@ -291,6 +292,8 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
                 e.printStackTrace();
             }
         }
+         */
+
         for (int i = 0; i < nleaves; i++) {
             ((LeafSegmentWriter)leaves[i]).save(idxDir);
         }

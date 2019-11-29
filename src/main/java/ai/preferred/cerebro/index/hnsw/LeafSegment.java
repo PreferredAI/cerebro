@@ -96,7 +96,7 @@ abstract public class LeafSegment<TVector> {
         this.parent = parent;
         this.lookup = parent.getLookup();
         this.leafName = numName + "_";
-
+        this.baseID = this.maxNodeCount * numName;
         LOCAL_CONFIG = Sp + leafName + "config.o";
         LOCAL_DELETED = Sp + leafName + "deleted.o";
         LOCAL_INCONN = Sp + leafName + "inconns.o";
@@ -111,7 +111,6 @@ abstract public class LeafSegment<TVector> {
         this(parent, numName);
         this.nodes = new Node[this.maxNodeCount];
         this.freedIds = new IntArrayStack();
-        this.baseID = baseID;
         mode = Mode.CREATE;
     }
 
@@ -269,6 +268,7 @@ abstract public class LeafSegment<TVector> {
                                 outConns[i],
                                 inconn,
                                 new Item<>(invertLookUp[i], vecs[i]));
+                this.lookup.put(invertLookUp[i], baseID + i);
             }
         }
         this.entryPoint = nodes[entryID];
@@ -287,6 +287,7 @@ abstract public class LeafSegment<TVector> {
         } catch (FileNotFoundException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+        System.out.println("finish lookup");
         return null;
     }
 

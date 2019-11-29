@@ -7,3 +7,4 @@
 /.DS_Store
 /src/test/java/netflix
 /src/test/java/insertDB
+/src/test/java/kryo
