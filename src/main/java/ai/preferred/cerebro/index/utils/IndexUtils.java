@@ -96,10 +96,13 @@ public class IndexUtils{
                 if(splitFeature)
                     res[i][j] = (float) random.nextGaussian();
                 else {
-                    if(j == 0)
+                    res[i][j] = 2 * random.nextFloat() - 1;
+                    /*if(j == 0)
                         res[i][j] = 1.0f;
                     else
                         res[i][j] = (float) random.nextDouble();
+
+                     */
                 }
             }
         }
@@ -139,20 +142,20 @@ public class IndexUtils{
     }
 
     /**
-     * @param data
-     * @param filename
      *
-     * Utility function for testing
+     * @param dir
+     * @param hashMap
+     * @param subclasses
      */
-    public static void saveDoubleQueryAndTopK(HashMap<double[], ArrayList<Integer>> data, String filename){
+    public static void saveHashMap(String dir, HashMap hashMap, Class... subclasses){
         Kryo kryo = new Kryo();
         kryo.register(HashMap.class);
-        kryo.register(double[].class);
-        kryo.register(ArrayList.class);
-        kryo.register(Integer.class);
+        for (Class clazz: subclasses) {
+            kryo.register(clazz);
+        }
         try {
-            Output output = new Output(new FileOutputStream(filename));
-            kryo.writeObject(output, data);
+            Output output = new Output(new FileOutputStream(dir));
+            kryo.writeObject(output, hashMap);
             output.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -160,65 +163,27 @@ public class IndexUtils{
     }
 
     /**
-     * @param filename
+     *
+     * @param dir
+     * @param subclasses
      * @return
-     * @throws FileNotFoundException
-     *
-     * Utility function for testing
      */
-    public static HashMap readDoubleQueryAndTopK(String filename) throws FileNotFoundException {
+    public static HashMap loadHashMap(String dir, Class... subclasses){
         Kryo kryo = new Kryo();
         kryo.register(HashMap.class);
-        kryo.register(double[].class);
-        kryo.register(ArrayList.class);
-        kryo.register(Integer.class);
-        Input input = new Input(new FileInputStream(filename));
-        HashMap arr= kryo.readObject(input, HashMap.class);
-        input.close();
-        return arr;
-    }
-
-
-    /**
-     * @param data
-     * @param filename
-     *
-     * Utility function for testing
-     */
-    public static void saveFloatQueryAndTopK(HashMap<float[], ArrayList<Integer>> data, String filename){
-        Kryo kryo = new Kryo();
-        kryo.register(HashMap.class);
-        kryo.register(float[].class);
-        kryo.register(ArrayList.class);
-        kryo.register(Integer.class);
+        for (Class clazz: subclasses) {
+            kryo.register(clazz);
+        }
+        Input input = null;
         try {
-            Output output = new Output(new FileOutputStream(filename));
-            kryo.writeObject(output, data);
-            output.close();
+            input = new Input(new FileInputStream(dir));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * @param filename
-     * @return
-     * @throws FileNotFoundException
-     *
-     * Utility function for testing
-     */
-    public static HashMap readFloatQueryAndTopK(String filename) throws FileNotFoundException {
-        Kryo kryo = new Kryo();
-        kryo.register(HashMap.class);
-        kryo.register(float[].class);
-        kryo.register(ArrayList.class);
-        kryo.register(Integer.class);
-        Input input = new Input(new FileInputStream(filename));
         HashMap arr= kryo.readObject(input, HashMap.class);
         input.close();
         return arr;
     }
-
 
 
 

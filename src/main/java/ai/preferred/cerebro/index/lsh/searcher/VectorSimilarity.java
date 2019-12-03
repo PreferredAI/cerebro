@@ -61,21 +61,20 @@ public class VectorSimilarity<TVector> extends Similarity{
     private class VectorDocScorer<TVector> extends Similarity.SimScorer {
         private final VectorStats<TVector> stats;
         private final int docBase;
-        private final DocumentStoredFieldVisitor fieldVisitor;
+        //private final DocumentStoredFieldVisitor fieldVisitor;
         private final VecHandler<TVector> handler;
 
         VectorDocScorer(VectorStats stats, int docBase, VecHandler<TVector> handler){
             this.stats = stats;
             this.docBase = docBase;
-            this.fieldVisitor = new DocumentStoredFieldVisitor(IndexConst.VecFieldName);
+            //this.fieldVisitor = new DocumentStoredFieldVisitor(IndexConst.VecFieldName);
             this.handler = handler;
         }
 
         @Override
         public float score(int doc, float freq) throws IOException {
             doc += docBase;
-            stats.reader.document(doc, fieldVisitor);
-            Document document = fieldVisitor.getDocument();
+            Document document = stats.reader.document(doc);;
             return handler.scoreDocument(stats.vquery, document);
         }
 

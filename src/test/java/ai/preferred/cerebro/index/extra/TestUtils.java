@@ -32,7 +32,7 @@ import java.util.concurrent.Executors;
  */
 
 public class TestUtils {
-
+    /*
     public static double entropy(HashMap<BytesRef, LinkedList<ItemFeatures>> hashMap, int nTotal){
         double res = 0.0;
         Iterator it = hashMap.entrySet().iterator();
@@ -307,5 +307,6 @@ public class TestUtils {
         }
     }
 
+     */
 }
 
