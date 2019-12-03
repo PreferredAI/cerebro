@@ -100,7 +100,7 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
         if(lshs.length > 1){
             TopDocs[] subs = new TopDocs[lshs.length];
             for (int i = 0; i < lshs.length; i++) {
-                Term t = new Term(IndexConst.HashFieldName, lshs[i].getHashBit(vQuery));
+                Term t = new Term(IndexConst.HashFieldName + i, lshs[i].getHashBit(vQuery));
                 VectorQuery<TVector> query = new VectorQuery<>(vQuery, t);
                 int count = count(query);
                 subs[i] =  search(query, Math.min(topK, count));
@@ -108,7 +108,7 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
             return TopDocs.merge(topK, subs);
         }
         else{
-            Term t = new Term(IndexConst.HashFieldName, lshs[0].getHashBit(vQuery));
+            Term t = new Term(IndexConst.HashFieldName + 0, lshs[0].getHashBit(vQuery));
             VectorQuery<TVector> query = new VectorQuery<>(vQuery, t);
             int count = count(query);
             if (count == 0)

@@ -70,9 +70,6 @@ public class LSHIndexWriter<TVector> implements Closeable {
         }
         else
             throw new Exception("Hash function not provided");
-
-
-
     }
 
 

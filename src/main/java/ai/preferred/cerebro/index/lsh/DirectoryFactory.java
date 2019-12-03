@@ -25,6 +25,7 @@ public class DirectoryFactory {
                 e.printStackTrace();
             }
         }
+        System.out.println(fsDirectory.getClass().getCanonicalName());
         return fsDirectory;
     }
 }

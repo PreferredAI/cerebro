@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 
 class LocalitySensitiveHashTest {
 
-    byte[] code1 = {0, 0, 0, 0x38};
-    byte[] code2 = {0, 0, 0, 0x39};
-    byte[] code3 = {0, 0, 0, 0x3d};
+    byte[] code1 = {0x38};
+    byte[] code2 = {0x39};
+    byte[] code3 = {0x3d};
     
     @Test
     void test(){

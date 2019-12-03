@@ -7,11 +7,11 @@ public class Main {
     static public void main(String[] args){
 
     }
-    static public void createLSHIndex(){
+    static public void createLSHIndex(String idxDir, String dataDir, int nHashBit, int numSegments){
 
     }
 
-    static public void searchLSHIndex(){
+    static public void searchLSHIndex(String idxDir, String queryDir, String labelDir, int nCores){
 
     }
 

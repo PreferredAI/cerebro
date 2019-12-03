@@ -243,5 +243,58 @@ public class IndexUtils{
     public static boolean checkFileExist(File file){
         return file.exists() && !file.isDirectory();
     }
+
+
+    public static void saveFloat2D(String vecFilename, float[][] vecs) {
+        Kryo kryo = new Kryo();
+        kryo.register(float[].class);
+        kryo.register(float[][].class);
+        try (Output output = new Output(new FileOutputStream(vecFilename))){
+            kryo.writeObject(output, vecs);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static float[][] loadFloat2D(File vecsFile) {
+        Kryo kryo = new Kryo();
+        kryo.register(float[].class);
+        kryo.register(float[][].class);
+        try (Input input = new Input(new FileInputStream(vecsFile))) {
+            return kryo.readObject(input, float[][].class);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void saveDouble2D(String vecFilename, double[][] vecs) {
+        Kryo kryo = new Kryo();
+        kryo.register(double[].class);
+        kryo.register(double[][].class);
+        try (Output output = new Output(new FileOutputStream(vecFilename))){
+            kryo.writeObject(output, vecs);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static double[][] loadDouble2D(File vecsFile) {
+        Kryo kryo = new Kryo();
+        kryo.register(double[].class);
+        kryo.register(double[][].class);
+        try (Input input = new Input(new FileInputStream(vecsFile))) {
+            return kryo.readObject(input, double[][].class);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
 

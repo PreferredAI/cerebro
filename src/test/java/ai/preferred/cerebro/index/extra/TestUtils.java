@@ -16,6 +16,7 @@ import ai.preferred.cerebro.index.utils.IndexUtils;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.PriorityQueue;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -165,16 +166,16 @@ public class TestUtils {
         IndexUtils.saveDoubleQueryAndTopK(queryAndTopK, TestConst.DIM_50_PATH +"ex.o");
     }
 
-
+    @Test
     public void createLSHIndex(){
         double[][] vec = null;
         int optimalLeavesNum = Runtime.getRuntime().availableProcessors();
         DoubleCosineHandler handler = new DoubleCosineHandler();
-        double[][] hashingVec = handler.load(new File(TestConst.DIM_50_PATH + "splitVec_32bits\\splitVec.o"))[0];
+        double[][] hashingVec = IndexUtils.loadDouble2D(new File(TestConst.DIM_50_PATH + "splitVec_8bits\\splitVec.o"));//handler.load(new File(TestConst.DIM_50_PATH + "splitVec_8bits\\splitVec.o"))[0];
         try (
-                LSHIndexWriter<double[]> writer = new LSHIndexWriter<>(TestConst.DIM_50_PATH + "index_32bits", handler, hashingVec))
+                LSHIndexWriter<double[]> writer = new LSHIndexWriter<>(TestConst.DIM_50_PATH + "index_8bits", handler, hashingVec))
         {
-            vec = handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
+            vec = IndexUtils.loadDouble2D(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"));//handler.load(new File(TestConst.DIM_50_PATH + "itemVec_1M.o"))[0];
             writer.setMaxBufferRAMSize(2048);
             writer.setMaxBufferDocNum((vec.length/optimalLeavesNum) + 1);
             //write vector to index
@@ -185,11 +186,11 @@ public class TestUtils {
             e.printStackTrace();
         }
     }
-
+    @Test
     public void searchLSH() throws Exception {
 
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        LSHIndexSearcher<double[]> searcher =  new LSHIndexSearcher<>(TestConst.DIM_50_PATH + "index_16bits", false, executorService);
+        LSHIndexSearcher<double[]> searcher =  new LSHIndexSearcher<>(TestConst.DIM_50_PATH + "index_8bits", false, executorService);
 
         HashMap<double[], ArrayList<Integer>> queryAndTopK = null;
         try {
