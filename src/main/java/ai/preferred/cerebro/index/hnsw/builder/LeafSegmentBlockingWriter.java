@@ -553,7 +553,7 @@ public class LeafSegmentBlockingWriter<TVector> extends LeafSegmentWriter<TVecto
         synchronized (nodes){
             if(nodes.length() == 0)
                 return;
-            ExternalID[] invertLookUp = new ExternalID[nodeCount];
+            ExternalID[] invertLookUp = (ExternalID[]) Array.newInstance(nodes.get(0).item.externalId.getClass(), nodeCount);
             for (int i = 0; i < nodeCount; i++) {
                 invertLookUp[i] = nodes.get(i).item.externalId;
             }

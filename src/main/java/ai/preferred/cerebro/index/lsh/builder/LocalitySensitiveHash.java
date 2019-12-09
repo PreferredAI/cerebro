@@ -16,6 +16,11 @@ import java.util.BitSet;
  */
 public class LocalitySensitiveHash<TVector> {
     protected final int numHashBit;
+
+    public VecHandler<TVector> getHandler() {
+        return handler;
+    }
+
     protected final VecHandler<TVector> handler;
     protected final TVector[] splitVecs;
 
