@@ -38,7 +38,7 @@ public class GenericObjectPool<T> implements Serializable {
         try {
             return items.take();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e); // TODO jk any more elegant way to do this ?
+            throw new RuntimeException(e);
         }
     }
 

@@ -7,18 +7,18 @@ import ai.preferred.cerebro.index.utils.IndexUtils;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.PriorityQueue;
+import org.apache.lucene.util.ThreadInterruptedException;
 
 import javax.persistence.Index;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
+import java.util.*;
+import java.util.concurrent.*;
 
 import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
 
@@ -77,6 +77,44 @@ public class RamLSH<TVector> implements Closeable {
         currentBuffer.insert(numItems++, vector);
     }
 
+    public int count(Term t){
+        int num = 0;
+        for (LeafRAMLSH<TVector> leaf: leaves) {
+            num += leaf.count(t);
+        }
+        return num;
+    }
+
+    public TopDocs search(TVector query, int k){
+        VectorQuery<TVector> vecAndHashcode = new VectorQuery<>(query, lsh, null);
+        final int limit = count(vecAndHashcode.getTerm());
+        final int cappedNumHits = Math.min(k, limit);
+
+
+        final List<Future<TopDocs>> topDocsFutures = new ArrayList<>(leaves.size());
+        for (LeafRAMLSH<TVector> leaf: leaves) {
+            topDocsFutures.add(executor.submit(new Callable<TopDocs>() {
+                @Override
+                public TopDocs call() throws Exception {
+                    return leaf.search(k, vecAndHashcode);
+                }
+            }));
+        }
+        int i =0;
+        final TopDocs[] collectedTopdocs = new TopDocs[leaves.size()];
+        for (Future<TopDocs> future : topDocsFutures) {
+            try {
+                collectedTopdocs[i] = future.get();
+                i++;
+            } catch (InterruptedException e) {
+                throw new ThreadInterruptedException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return TopDocs.merge(0, cappedNumHits, collectedTopdocs, true);
+    }
+
 
 
     @Override
@@ -93,32 +131,6 @@ public class RamLSH<TVector> implements Closeable {
         }
         leaves.clear();
     }
-
-    static class Shard{
-        ScoreDoc[] docs;
-        int topidx;
-
-        public Shard(ScoreDoc[] docs) {
-            this.docs = docs;
-            this.topidx = 0;
-        }
-
-        public Shard() {
-            this.topidx = 0;
-            docs = new ScoreDoc[1];
-            docs[0].score = Float.MIN_VALUE;
-        }
-
-        public float getTopScore(){
-            return docs[topidx].score;
-        }
-
-        public ScoreDoc getTop() {
-            return docs[topidx++];
-        }
-    }
-
-
 
     static class LeafRAMLSH<TVector>{
         final static String lshtable = Sp + "lshtable.o";
@@ -180,6 +192,13 @@ public class RamLSH<TVector> implements Closeable {
             return size;
         }
 
+        public int count(Term t){
+            BytesRef hashcode = t.bytes();
+            ArrayList<Integer> ids = invertidx.get(hashcode);
+            if (ids == null)
+                return 0;
+            return ids.size();
+        }
 
         public void insert(int globalID, TVector vector){
             assert size() < maxCapacity;
@@ -191,12 +210,14 @@ public class RamLSH<TVector> implements Closeable {
             idlist.add(size);
             ++size;
         }
-        public Shard search(int k, VectorQuery<TVector> query){
+        public TopDocs search(int k, VectorQuery<TVector> query){
             BytesRef hashcode = query.getTerm().bytes();
             TVector queryVector = query.getVec();
             ArrayList<Integer> ids = invertidx.get(hashcode);
+
+
             if (ids == null)
-                return new Shard();
+                return null;
             k = Math.min(k, ids.size());
             int baseID = numName * maxCapacity;
             VecHandler handler = lsh.getHandler();
@@ -223,7 +244,7 @@ public class RamLSH<TVector> implements Closeable {
             while(ranker.size() != 0){
                 docs[i--] = ranker.pop();
             }
-            return new Shard(docs);
+            return new TopDocs(k, docs, docs[0].score);
         }
     }
 }
