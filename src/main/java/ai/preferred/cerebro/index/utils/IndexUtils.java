@@ -5,8 +5,6 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-import ai.preferred.cerebro.core.entity.AbstractVector;
-
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
@@ -109,15 +107,7 @@ public class IndexUtils{
         return res;
     }
 
-
-
-    /**
-     * @param aVector
-     * @return
-     *
-     * Function to transform a {@link AbstractVector} instance to
-     * a double vector
-     */
+   /*
     public static double[] toDoubles(AbstractVector aVector){
         double[] elements = new double[aVector.length()];
         for (int id = 0; id < aVector.length(); id ++){
@@ -125,7 +115,7 @@ public class IndexUtils{
         }
         return elements;
     }
-
+    */
 
     /**
      *
