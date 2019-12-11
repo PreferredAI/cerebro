@@ -92,14 +92,13 @@ public class RamLSH<TVector> implements Closeable {
 
 
         final List<Future<TopDocs>> topDocsFutures = new ArrayList<>(leaves.size());
-        for (LeafRAMLSH<TVector> leaf: leaves) {
+        for (LeafRAMLSH<TVector> leaf: leaves)
             topDocsFutures.add(executor.submit(new Callable<TopDocs>() {
                 @Override
                 public TopDocs call() throws Exception {
                     return leaf.search(k, vecAndHashcode);
                 }
             }));
-        }
         int i =0;
         final TopDocs[] collectedTopdocs = new TopDocs[leaves.size()];
         for (Future<TopDocs> future : topDocsFutures) {

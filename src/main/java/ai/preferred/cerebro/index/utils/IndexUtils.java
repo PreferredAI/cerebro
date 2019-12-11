@@ -261,5 +261,18 @@ public class IndexUtils{
         }
         return null;
     }
+
+    public static int countIntersection(int[] returnedIds, int[] truthIds){
+        int res = 0;
+        HashSet<Integer> hashSet = new HashSet<>(truthIds.length);
+        for (int id: truthIds) {
+            hashSet.add(id);
+        }
+        for (int id: returnedIds) {
+            if (hashSet.contains(id))
+                res++;
+        }
+        return res;
+    }
 }
 
