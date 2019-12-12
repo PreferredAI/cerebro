@@ -29,7 +29,7 @@ import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
  * @see <a href="https://arxiv.org/abs/1603.09320">
  * Efficient and robust approximate nearest neighbor search using Hierarchical Navigable Small World graphs</a>
  */
-abstract public class LeafSegment<TVector> {
+abstract public class      LeafSegment<TVector> {
     //constants
     protected final String LOCAL_CONFIG;
     protected final String LOCAL_DELETED;

@@ -209,6 +209,13 @@ public class IndexUtils{
         return file.exists() && !file.isDirectory();
     }
 
+    public static void ensureDirExist(String dir){
+        File file = new File(dir);
+        if (!file.exists() || !file.isDirectory()){
+            file.mkdir();
+        }
+    }
+
 
     public static void saveFloat2D(String vecFilename, float[][] vecs) {
         Kryo kryo = new Kryo();
