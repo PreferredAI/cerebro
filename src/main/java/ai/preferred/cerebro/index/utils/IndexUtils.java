@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.utils;
 
+import ai.preferred.cerebro.index.common.VecHandler;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
@@ -7,6 +8,7 @@ import com.esotericsoftware.kryo.io.Output;
 import ai.preferred.cerebro.core.entity.AbstractVector;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -16,11 +18,32 @@ import java.util.*;
  *
  * @author hpminh@apcs.vn
  */
-public class IndexUtils {
+public class IndexUtils{
 
+    public static void saveVectorHandler(String filepath, VecHandler handler){
+        Kryo kryo = new Kryo();
+        kryo.register(String.class);
+        try (Output output = new Output(new FileOutputStream(filepath))){
+            kryo.writeObject(output, handler.getClass().getCanonicalName());
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 
-    public static void notifyFutureImplementation(){
-        System.out.println("Warning: To be Implemented");
+    public static VecHandler loadVectorHandler(String filepath){
+        VecHandler handler = null;
+        Kryo kryo = new Kryo();
+        kryo.register(String.class);
+        try (Input input = new Input(new FileInputStream(filepath))){
+            String className = kryo.readObject(input, String.class);
+            Class<?> clazz = Class.forName(className);
+            Constructor<?> constructor = clazz.getConstructor();
+            handler = (VecHandler) constructor.newInstance(new Object[] {});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return handler;
     }
 
     public static void notifyLazyImplementation(String msg){
@@ -35,18 +58,15 @@ public class IndexUtils {
      *                     be used as hashing function or not.
      *                     If so the range of distribution range
      *                     from -1 to 1.
-     * @param cosineSimilarity
      * @return A set of randomized vectors.
      */
-    public static double[][] randomizeFeatureVectors(int n, int nFeatures, boolean splitFeature, boolean cosineSimilarity){
+    public static double[][] randomizeDoubleFeatureVectors(int n, int nFeatures, boolean splitFeature){
         Random random = new Random();
         double[][] res = new double[n][nFeatures];
         for (int i =0; i < n; i++){
             for(int j = 0; j < nFeatures; j++){
                 if(splitFeature)
-                    res[i][j] = random.nextDouble() * 2 - 1;
-                if(cosineSimilarity)
-                    res[i][j] = random.nextDouble();
+                    res[i][j] = random.nextGaussian();
                 else {
                     if(j == 0)
                         res[i][j] = 1.0;
@@ -57,6 +77,39 @@ public class IndexUtils {
         }
         return res;
     }
+
+    /**
+     *
+     * @param n the number of vector to generate.
+     * @param nFeatures the number of dimension each vector has.
+     * @param splitFeature flag to specify whether the vector to
+     *                     be used as hashing function or not.
+     *                     If so the range of distribution range
+     *                     from -1 to 1.
+     * @return A set of randomized vectors.
+     */
+    public static float[][] randomizeFloatFeatureVectors(int n, int nFeatures, boolean splitFeature){
+        Random random = new Random();
+        float[][] res = new float[n][nFeatures];
+        for (int i =0; i < n; i++){
+            for(int j = 0; j < nFeatures; j++){
+                if(splitFeature)
+                    res[i][j] = (float) random.nextGaussian();
+                else {
+                    res[i][j] = 2 * random.nextFloat() - 1;
+                    /*if(j == 0)
+                        res[i][j] = 1.0f;
+                    else
+                        res[i][j] = (float) random.nextDouble();
+
+                     */
+                }
+            }
+        }
+        return res;
+    }
+
+
 
     /**
      * @param aVector
@@ -89,57 +142,20 @@ public class IndexUtils {
     }
 
     /**
-     * @param splitVector
-     * @param filename
      *
-     * Save a set of vectors to hard disk in the specified path
+     * @param dir
+     * @param hashMap
+     * @param subclasses
      */
-    public static void saveVectors(double [][] splitVector, String filename){
-        Kryo kryo = new Kryo();
-        kryo.register(double[][].class);
-        kryo.register(double[].class);
-        try {
-            Output output = new Output(new FileOutputStream(filename));
-            kryo.writeObject(output, splitVector);
-            output.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     *
-     * @param filename
-     * @return A set of vectors from the specified filename
-     * @throws IOException
-     *
-     * Load a set of vectors from the specified filename
-     */
-    public static double[][] readVectors(String filename) throws IOException {
-        Kryo kryo = new Kryo();
-        kryo.register(double[][].class);
-        kryo.register(double[].class);
-        Input input = new Input(new FileInputStream(filename));
-        double[][] arr= kryo.readObject(input, double[][].class);
-        input.close();
-        return arr;
-    }
-
-    /**
-     * @param data
-     * @param filename
-     *
-     * Utility function for testing
-     */
-    public static void saveQueryAndTopK(HashMap<double[], ArrayList<Integer>> data, String filename){
+    public static void saveHashMap(String dir, HashMap hashMap, Class... subclasses){
         Kryo kryo = new Kryo();
         kryo.register(HashMap.class);
-        kryo.register(double[].class);
-        kryo.register(ArrayList.class);
-        kryo.register(Integer.class);
+        for (Class clazz: subclasses) {
+            kryo.register(clazz);
+        }
         try {
-            Output output = new Output(new FileOutputStream(filename));
-            kryo.writeObject(output, data);
+            Output output = new Output(new FileOutputStream(dir));
+            kryo.writeObject(output, hashMap);
             output.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -147,47 +163,29 @@ public class IndexUtils {
     }
 
     /**
-     * @param filename
+     *
+     * @param dir
+     * @param subclasses
      * @return
-     * @throws FileNotFoundException
-     *
-     * Utility function for testing
      */
-    public static HashMap readQueryAndTopK(String filename) throws FileNotFoundException {
+    public static HashMap loadHashMap(String dir, Class... subclasses){
         Kryo kryo = new Kryo();
         kryo.register(HashMap.class);
-        kryo.register(double[].class);
-        kryo.register(ArrayList.class);
-        kryo.register(Integer.class);
-        Input input = new Input(new FileInputStream(filename));
+        for (Class clazz: subclasses) {
+            kryo.register(clazz);
+        }
+        Input input = null;
+        try {
+            input = new Input(new FileInputStream(dir));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         HashMap arr= kryo.readObject(input, HashMap.class);
         input.close();
         return arr;
     }
 
 
-    /**
-     * Calculate the the inner product between 2 vectors
-     */
-    static public double dotProduct(double [] a, double [] b){
-        double re = 0;
-        for (int i=0; i < a.length; i++){
-            re += a[i] * b[i];
-        }
-        return re;
-    }
-
-    /**
-     * @param vec
-     * @return The Euclidean length of vector passed in
-     */
-    static public double vecLength(double[] vec) {
-        double hold = 0;
-        for (int i = 0; i < vec.length; i++) {
-            hold += vec[i] * vec[i];
-        }
-        return Math.sqrt(hold);
-    }
 
     /**
      * @param num
@@ -207,5 +205,81 @@ public class IndexUtils {
         return ByteBuffer.wrap(bytes, 0, Integer.BYTES).getInt();
     }
 
+    public static boolean checkFileExist(File file){
+        return file.exists() && !file.isDirectory();
+    }
+
+    public static void ensureDirExist(String dir){
+        File file = new File(dir);
+        if (!file.exists() || !file.isDirectory()){
+            file.mkdir();
+        }
+    }
+
+
+    public static void saveFloat2D(String vecFilename, float[][] vecs) {
+        Kryo kryo = new Kryo();
+        kryo.register(float[].class);
+        kryo.register(float[][].class);
+        try (Output output = new Output(new FileOutputStream(vecFilename))){
+            kryo.writeObject(output, vecs);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static float[][] loadFloat2D(File vecsFile) {
+        Kryo kryo = new Kryo();
+        kryo.register(float[].class);
+        kryo.register(float[][].class);
+        try (Input input = new Input(new FileInputStream(vecsFile))) {
+            return kryo.readObject(input, float[][].class);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static void saveDouble2D(String vecFilename, double[][] vecs) {
+        Kryo kryo = new Kryo();
+        kryo.register(double[].class);
+        kryo.register(double[][].class);
+        try (Output output = new Output(new FileOutputStream(vecFilename))){
+            kryo.writeObject(output, vecs);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static double[][] loadDouble2D(File vecsFile) {
+        Kryo kryo = new Kryo();
+        kryo.register(double[].class);
+        kryo.register(double[][].class);
+        try (Input input = new Input(new FileInputStream(vecsFile))) {
+            return kryo.readObject(input, double[][].class);
+        } catch (
+                FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static int countIntersection(int[] returnedIds, int[] truthIds){
+        int res = 0;
+        HashSet<Integer> hashSet = new HashSet<>(truthIds.length);
+        for (int id: truthIds) {
+            hashSet.add(id);
+        }
+        for (int id: returnedIds) {
+            if (hashSet.contains(id))
+                res++;
+        }
+        return res;
+    }
 }
 
