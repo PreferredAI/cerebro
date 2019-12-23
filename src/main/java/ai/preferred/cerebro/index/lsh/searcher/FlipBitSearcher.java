@@ -34,8 +34,6 @@ public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
         if(lshs == null)
             throw new Exception("LocalitySensitiveHash not initialized");
         BytesRef[] hashcodes = lshs[0].getFlipHashBit(vQuery);
-        LinkedList<Weight> weights = new LinkedList<>();
-
         final int cappedNumHits = topK;
         final CollectorManager<TopScoreDocCollector, TopDocs> manager = new CollectorManager<TopScoreDocCollector, TopDocs>() {
 
@@ -63,21 +61,23 @@ public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
         final List<Future<Collector>> topDocsFutures = new ArrayList<>(leafSlices.length * hashcodes.length);
 
         for (int i = 0; i < hashcodes.length; i++) {
-            Term term = new Term(IndexConst.HashFieldName, hashcodes[i]);
+            Term term = new Term(IndexConst.HashFieldName + 0, hashcodes[i]);
             for (LeafReaderContext leaf : reader.leaves()){
+                Collector collector = collectors.pollFirst();
+                VectorQuery<TVector> query = new VectorQuery<>(vQuery, term);
+                query = (VectorQuery<TVector>) rewrite(query);
+                final Weight weight = createWeight(query, true, 1);
+                topDocsFutures.add(executor.submit(new Callable<Collector>() {
+                    @Override
+                    public Collector call() throws Exception {
+                        search(Arrays.asList(leaf), weight, collector);
+                        return collector;
+                    }
+                }));
+                /*
                 if(leaf.reader().docFreq(term) > 0){
-                    Collector collector = collectors.pollFirst();
-                    VectorQuery<TVector> query = new VectorQuery<>(vQuery, term);
-                    query = (VectorQuery<TVector>) rewrite(query);
-                    final Weight weight = createWeight(query, true, 1);
-                    topDocsFutures.add(executor.submit(new Callable<Collector>() {
-                        @Override
-                        public Collector call() throws Exception {
-                            search(Arrays.asList(leaf), weight, collector);
-                            return collector;
-                        }
-                    }));
-                }
+
+                }*/
             }
 
         }
