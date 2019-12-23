@@ -57,7 +57,7 @@ public class LocalitySensitiveHash<TVector> {
      * @param features the vector to compute hashcode.
      * @return two hashcodes
      */
-    public BytesRef[] getFlipHashBit(TVector features){
+    public BytesRef[] getFlipNearestHashBit(TVector features){
         BytesRef[] result = new BytesRef[2];
         BitSet hashbits = new BitSet(numHashBit);
         BitSet hashbitsflip = new BitSet(numHashBit);
@@ -77,6 +77,21 @@ public class LocalitySensitiveHash<TVector> {
         hashbitsflip.flip(indexShortest);
         result[0] = new BytesRef(hashbits.toByteArray());
         result[1] = new BytesRef(hashbitsflip.toByteArray());
+        return result;
+    }
+
+    public BytesRef[] getFlipHashBit(TVector features){
+        BytesRef[] result = new BytesRef[splitVecs.length + 1];
+        BitSet hashbits = new BitSet(numHashBit);
+        for(int i=0; i < numHashBit; i++){
+            hashbits.set(i, handler.computeBit(features, splitVecs[i]));
+        }
+        result[0] = new BytesRef(hashbits.toByteArray());
+        for (int i = 1; i <= splitVecs.length; i++) {
+            hashbits.flip(i - 1);
+            result[i] = new BytesRef(hashbits.toByteArray());
+            hashbits.flip(i - 1);
+        }
         return result;
     }
 }

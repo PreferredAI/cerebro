@@ -33,34 +33,69 @@ public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
     public TopDocs personalizedSearch(TVector vQuery, int topK)throws Exception{
         if(lshs == null)
             throw new Exception("LocalitySensitiveHash not initialized");
-        BytesRef[] hashAndFlip = lshs[0].getFlipHashBit(vQuery);
-        Term term = new Term(IndexConst.HashFieldName, hashAndFlip[0]);
-        Term flipTerm = new Term(IndexConst.HashFieldName, hashAndFlip[1]);
+        BytesRef[] hashcodes = lshs[0].getFlipHashBit(vQuery);
+        LinkedList<Weight> weights = new LinkedList<>();
 
-        // count the number of document that matches with this hashcode
-        int countTerm = 0;
-        int countFlip = 0;
-        for (LeafReaderContext leaf : reader.leaves()){
-            countTerm += leaf.reader().docFreq(term);
-            countFlip += leaf.reader().docFreq(flipTerm);
-        }
+        final int cappedNumHits = topK;
+        final CollectorManager<TopScoreDocCollector, TopDocs> manager = new CollectorManager<TopScoreDocCollector, TopDocs>() {
 
-        if(countTerm == 0 && countFlip == 0)
-            return null;
-        VectorQuery<TVector> query = new VectorQuery<>(vQuery, term);
-        VectorQuery<TVector> flipQuery = new VectorQuery<>(vQuery, flipTerm);
-        if (countTerm > 0 && countFlip == 0){
+            @Override
+            public TopScoreDocCollector newCollector() throws IOException {
+                return TopScoreDocCollector.create(cappedNumHits, null);
+            }
 
-            return search(query, Math.min(topK, countTerm));
+            @Override
+            public TopDocs reduce(Collection<TopScoreDocCollector> collectors) throws IOException {
+                final TopDocs[] topDocs = new TopDocs[collectors.size()];
+                int i = 0;
+                for (TopScoreDocCollector collector : collectors) {
+                    topDocs[i++] = collector.topDocs();
+                }
+                return TopDocs.merge(0, cappedNumHits, topDocs, true);
+            }
+
+        };
+        final LinkedList<Collector> collectors = new LinkedList<>();
+        for (int i = 0; i < leafSlices.length * hashcodes.length; ++i) {
+            final Collector collector = manager.newCollector();
+            collectors.add(collector);
         }
-        else if(countTerm == 0 && countFlip > 0){
-            return search(flipQuery, Math.min(topK, countFlip));
+        final List<Future<Collector>> topDocsFutures = new ArrayList<>(leafSlices.length * hashcodes.length);
+
+        for (int i = 0; i < hashcodes.length; i++) {
+            Term term = new Term(IndexConst.HashFieldName, hashcodes[i]);
+            for (LeafReaderContext leaf : reader.leaves()){
+                if(leaf.reader().docFreq(term) > 0){
+                    Collector collector = collectors.pollFirst();
+                    VectorQuery<TVector> query = new VectorQuery<>(vQuery, term);
+                    query = (VectorQuery<TVector>) rewrite(query);
+                    final Weight weight = createWeight(query, true, 1);
+                    topDocsFutures.add(executor.submit(new Callable<Collector>() {
+                        @Override
+                        public Collector call() throws Exception {
+                            search(Arrays.asList(leaf), weight, collector);
+                            return collector;
+                        }
+                    }));
+                }
+            }
+
         }
-        else {
-            return searchAfter(null, query, flipQuery, Math.min(topK, countTerm + countFlip));
+        final List<TopScoreDocCollector> collectedCollectors = new ArrayList<>();
+        for (Future<Collector> future : topDocsFutures) {
+            try {
+                collectedCollectors.add((TopScoreDocCollector) future.get());
+            } catch (InterruptedException e) {
+                throw new ThreadInterruptedException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
         }
+        return manager.reduce(collectedCollectors);
     }
 
+
+    /*
     public TopDocs searchAfter(ScoreDoc after, Query query, Query flip, int numHits) throws IOException {
         final int limit = Math.max(1, reader.maxDoc());
         if (after != null && after.doc >= limit) {
@@ -143,6 +178,6 @@ public class FlipBitSearcher<TVector> extends LSHIndexSearcher<TVector> {
             return collectorManager.reduce(collectors);
         }
     }
-
+*/
 
 }

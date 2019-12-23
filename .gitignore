@@ -5,7 +5,7 @@
 /.settings/
 /.project
 /.DS_Store
-/src/test/java/netflix
+/src/test/java/performance_test
 /src/test/java/insertDB
 /src/test/java/kryo
 /src/main/java/ai/preferred/cerebro/core
