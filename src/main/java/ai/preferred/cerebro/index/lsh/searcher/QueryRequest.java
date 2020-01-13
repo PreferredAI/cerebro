@@ -1,10 +1,5 @@
 package ai.preferred.cerebro.index.lsh.searcher;
 
-
-//import ai.preferred.cerebro.core.entity.DenseVector;
-
-import ai.preferred.cerebro.core.entity.DenseVector;
-
 /**
  *
  * This class is a search request to be passed into
@@ -84,7 +79,7 @@ public class QueryRequest {
     private static boolean checkType(Object queryData, QueryType type){
         switch (type){
             case VECTOR:
-                return queryData instanceof DenseVector || queryData instanceof double[];
+                return queryData instanceof double[];
             case KEYWORD:
                 return queryData instanceof String || queryData instanceof String[];
             default:
