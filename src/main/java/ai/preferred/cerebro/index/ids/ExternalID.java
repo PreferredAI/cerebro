@@ -5,13 +5,17 @@ import java.util.Arrays;
 /**
  * @author hpminh@apcs.vn
  *
- * Since this library only supports index creation and searching on built index,
+ * Because this library only supports index creation and searching on built index,
  * There must be a database storing the original form of the data somewhere else.
  * The main idea here is that searchers from this library will return IDs of item,
  * then from these IDs go to the database and get the actual objects.
+ *
+ * Since there is no way to enforce an empty constructor in Java, it is necessary
+ * that an empty constructor is provided in the specific class implementation.
  */
 public abstract class ExternalID {
     public abstract byte[] getByteValues();
+
 
     @Override
     public int hashCode() {

@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.core.utils;
+package ai.preferred.cerebro.cli;
 
 import java.io.FileInputStream;
 import java.io.IOException;
