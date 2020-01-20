@@ -21,6 +21,9 @@ Our goal is to create a closed-loop engine for recommendations with blazingly fa
 #### Closed-loop Recommendation Engine
    - Tracking and recording users' feedbacks
    - Scheduling preference learning models for users' recommendations. 
+   
+![](closed_loop.png)
+<p align="center"><i>Cerebro supports closed-loop recommendation</i></p>
 ## Getting started
 
 ### Add a dependency
