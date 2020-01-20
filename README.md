@@ -24,6 +24,7 @@ Our goal is to create a closed-loop engine for recommendations with blazingly fa
    
 ![](closed_loop.png)
 <p align="center"><i>Cerebro supports closed-loop recommendation</i></p>
+
 ## Getting started
 
 ### Add a dependency
