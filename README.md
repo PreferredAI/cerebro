@@ -10,10 +10,20 @@ Your preferred open source personalized recommendation retrieval engine.
 ## Overview
 Our goal is to create a closed-loop engine for recommendations with blazingly fast retrieval of objects.
 
-### Features
-- Session Management
-- Efficient Retrieval of Personalized Search
-- Closed-loop Recommendation Engine
+#### Efficient Retrieval of Objects (Demo: [https://cerebro-demo.preferred.ai](https://cerebro-demo.preferred.ai/))
+   - Personalized Recommendation
+   - Keyword Search
+   - Related Objects Search
+   
+![](efficient_retrieval.png)
+<p align="center"><i>Cerebro supports various efficient similarity search</i></p>
+
+#### Closed-loop Recommendation Engine
+   - Tracking and recording users' feedbacks
+   - Scheduling preference learning models for users' recommendations. 
+   
+![](closed_loop.png)
+<p align="center"><i>Cerebro supports closed-loop recommendation</i></p>
 
 ## Getting started
 
@@ -26,72 +36,6 @@ If you already have a project then just add Cerebro as a dependency to your pom.
   	<artifactId>cerebro</artifactId>
   	<version>1.0</version>
 </dependency>
-```
-### Example
-Clone the repository to your computer then build jar file with maven. Make sure in your build folder there is a file 
-"cerebro-1.0-jar-with-dependencies.jar". The configuration has been tweeted to build standalone jar file.
-
-Download and extract the data file [here](https://drive.google.com/open?id=1CkBqu7nEH7m4an-IGk02xu_k1BbA9bbO). 
-
-Look into the extracted folder. It includes: 
-+ File containing hashing vectors: splitVec.o 
-+ File containing query vectors and the ids of their associated true top 20 vec: query_top20_50k.o
-+ A folder "imdb_data" contain txt files. Each file has the following format:
-    - First line is text information.
-    - Second line is the associated latent vector.
-
-Open your CLI and navigate to your build folder.
-
-Note: in the following example assumes that the file is downloaded and extract in the directory E:\
-
-#### Build index
-```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op build -idx E:\index -data E:\data\imdb_data -hsh E:\data\splitVec.o
-
-
-Building index, plz wait
-
-Build index for text successfully
-
-
-\..\cerebro\target>_
-```
-#### Text search on an index
-After building your index, you may want to check if it is functioning.
-
-```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op sText -idx E:\index -q horseman
-
-File: E:\data\imdb_data\8694_0.txt; DocID:48547
-File: E:\data\imdb_data\48661_0.txt; DocID:42955
-File: E:\data\imdb_data\8688_0.txt; DocID:48540
-File: E:\data\imdb_data\26062_0.txt; DocID:17846
-File: E:\data\imdb_data\5144_0.txt; DocID:44604
-File: E:\data\imdb_data\38439_0.txt; DocID:31597
-File: E:\data\imdb_data\39343_0.txt; DocID:32602
-File: E:\data\imdb_data\20746_0.txt; DocID:11939
-File: E:\data\imdb_data\47139_0.txt; DocID:41264
-File: E:\data\imdb_data\19349_0.txt; DocID:10386
-//files containing keywords you entered
-
-\..\cerebro\target>_
-```
- 
-#### Vector search on an index
-```ssh
-\..\cerebro\target>java -jar cerebro-1.0-jar-with-dependencies.jar -op sVec -idx E:\index -hsh E:\data\splitVec.o -qV E:\data\query_top20_50k.o
-Top-20 query time: 4 ms
-Overlapp between truth and and result (over top 20) is : 4
-
-Top-20 query time: 3 ms
-Overlapp between truth and and result (over top 20) is : 5
-
-Top-20 query time: 2 ms
-Overlapp between truth and and result (over top 20) is : 4
-
-Top-20 query time: 4 ms
-Overlapp between truth and and result (over top 20) is : 4
-.....
 ```
  
 
