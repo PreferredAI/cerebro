@@ -14,3 +14,4 @@ public abstract class Interaction {
 
     abstract public void inferScore();
 }
+ 
