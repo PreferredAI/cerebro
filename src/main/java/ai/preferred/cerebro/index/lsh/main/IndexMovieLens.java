@@ -2,6 +2,7 @@ package ai.preferred.cerebro.index.lsh.main;
 
 import ai.preferred.cerebro.index.lsh.searcher.LSHIndexSearcher;
 import ai.preferred.cerebro.index.utils.IndexConst;
+
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
@@ -18,15 +19,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
+
 public class IndexMovieLens {
-    /*
+
     public static void main(String[] args) {
     }
 
-     */
     /*
     static public void testSearch(){
         MongoClientURI connectionString = new MongoClientURI("mongodb://localhost:27017");
@@ -54,9 +52,7 @@ public class IndexMovieLens {
         }
 
     }
-     */
 
-    /*
     ignore all code that use old API for now
     static public void createIndex(){
         try (LSHIndexWriter writer = new LSHIndexWriter("E:\\movieLens_idx", 8, 50) {
@@ -90,5 +86,7 @@ public class IndexMovieLens {
             e.printStackTrace();
         }
     }
+
      */
+
 }

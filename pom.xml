@@ -227,6 +227,7 @@
         
     </build>
     <dependencies>
+        <!-- spring framework dependencies-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -235,10 +236,14 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-rest-hal-browser</artifactId>
         </dependency>
+
+        <!-- mongodb dependencies-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
+
+        <!-- test dependencies-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -255,6 +260,8 @@
             <artifactId>eclipse-collections</artifactId>
             <version>9.2.0</version>
         </dependency>
+
+        <!-- syntax sugar dependencies-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -265,6 +272,8 @@
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
         </dependency>
+
+        <!-- file loader dependencies-->
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>minlog</artifactId>
@@ -285,6 +294,8 @@
             <artifactId>kryo</artifactId>
             <version>5.0.0-RC2</version>
         </dependency>
+
+        <!-- lucene dependencies-->
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
@@ -315,16 +326,14 @@
 	    	<artifactId>log4j-core</artifactId>
 	    	<version>2.11.2</version>
 	  	</dependency>
+
+        <!-- csv reader dependencies-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>1.6</version>
         </dependency>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>3.10.2</version>
-        </dependency>
+
     </dependencies>
     
     <distributionManagement>

@@ -8,7 +8,6 @@ import ai.preferred.cerebro.index.ids.ExternalID;
 public class Interaction {
     public String userID;
     public String itemID;
-    public String description;
     public float rating;
 
 
@@ -28,14 +27,6 @@ public class Interaction {
 
     public void setItemID(String itemID) {
         this.itemID = itemID;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public float getRating() {
