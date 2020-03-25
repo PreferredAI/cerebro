@@ -30,9 +30,11 @@ public class RatingController {
     String cornacURL;
 
     RatingController(){
+
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
         Properties properties = new Properties();
-        try (InputStream is = getClass().getResourceAsStream("application.properties")) {
-            properties.load(is);
+        try (InputStream resourceStream = loader.getResourceAsStream("application.properties")) {
+            properties.load(resourceStream);
         } catch (IOException e) {
             e.printStackTrace();
         }
