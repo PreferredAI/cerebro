@@ -9,9 +9,9 @@ import java.util.List;
 public class Users {
     @Id
     public ObjectId _id;
-    public List<Double> vec;
+    public List<Float> vec;
 
-    public Users(ObjectId _id, List<Double> vec) {
+    public Users(ObjectId _id, List<Float> vec) {
         this._id = _id;
         this.vec = vec;
     }
@@ -24,11 +24,11 @@ public class Users {
         this._id = _id;
     }
 
-    public List<Double> getVec() {
+    public List<Float> getVec() {
         return vec;
     }
 
-    public void setVec(List<Double> vec) {
+    public void setVec(List<Float> vec) {
         this.vec = vec;
     }
 }

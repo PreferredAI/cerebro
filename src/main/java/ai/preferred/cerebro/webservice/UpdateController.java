@@ -23,13 +23,17 @@ import java.util.Properties;
  */
 
 @RestController
-@RequestMapping("/")
-public class RatingController {
+@RequestMapping("/update")
+public class UpdateController {
 
     MongoCollection<Document> ratingCollection;
     String cornacURL;
 
-    RatingController(){
+
+    private RecomController recomController;
+
+
+    UpdateController(){
 
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         Properties properties = new Properties();
@@ -39,11 +43,11 @@ public class RatingController {
             e.printStackTrace();
         }
 
-        String host = (String) properties.getOrDefault("MONGO_HOST", "localhost");
+        String host = (String) properties.getOrDefault("spring.data.mongodb.host", "localhost");
         //System.getenv("MONGO_HOST");
-        String port =(String) properties.getOrDefault("MONGO_PORT", "27017");
+        String port =(String) properties.getOrDefault("spring.data.mongodb.port", "27017");
         //System.getenv("MONGO_PORT");
-        String db = (String) properties.getOrDefault("MONGO_DATABASE", "movieLens");
+        String db = (String) properties.getOrDefault("spring.data.mongodb.database", "movieLens");
         //System.getenv("MONGO_DATABASE");
         String collectionName = (String) properties.getOrDefault("RATING_COLLECTION", "user_rating");
         //System.getenv("RATING_COLLECTION");
@@ -58,8 +62,12 @@ public class RatingController {
         MongoDatabase database = mongoClient.getDatabase(db);
         ratingCollection = database.getCollection(collectionName);
 
+        ControllerHook.getInstance().putUpdateController(this);
     }
 
+    public void setRecomController(RecomController recomController) {
+        this.recomController = recomController;
+    }
 
     @CrossOrigin
     @RequestMapping(value="/feedback", method = RequestMethod.POST)
@@ -68,8 +76,10 @@ public class RatingController {
                 new Document("$set", new Document(interaction.itemID, interaction.rating)));
     }
 
+
+
     @CrossOrigin
-    @RequestMapping(value="/update", method = RequestMethod.GET)
+    @RequestMapping(value="/invoke", method = RequestMethod.POST)
     public void update(){
         try {
             tellCornacToUpdate();
@@ -77,6 +87,16 @@ public class RatingController {
             e.printStackTrace();
         }
         // update index after this
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/buildIdx", method = RequestMethod.POST)
+    public void buildIdx(){
+        String idxDir = ""; //whatever fill this in later
+        int embeddingSize = 50;//whatever fill this in later
+        BuildHNSWIdxTask task = new BuildHNSWIdxTask(idxDir, embeddingSize, recomController);
+        Thread t = new Thread(task);
+        t.start();
     }
 
     public void tellCornacToUpdate() throws IOException {
