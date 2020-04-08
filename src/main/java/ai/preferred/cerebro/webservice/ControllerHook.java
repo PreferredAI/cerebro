@@ -46,6 +46,7 @@ public class ControllerHook {
     }
 
     private void hook(){
+        updateController.setRatingCollection(recomController.ratingCollection);
         updateController.setRecomController(recomController);
     }
 }

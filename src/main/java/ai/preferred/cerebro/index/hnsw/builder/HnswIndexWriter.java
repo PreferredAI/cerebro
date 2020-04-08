@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         implements ConcurrentWriter<TVector> {
-    private final int DEFAULT_INITIAL_MAX_NUM_LEAVES  = 16;
+    private final int DEFAULT_INITIAL_MAX_NUM_LEAVES  = 2;
     private final int OPTIMAL_NUM_LEAVES;
 
     //Create Constructor

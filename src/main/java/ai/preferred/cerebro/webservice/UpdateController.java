@@ -29,39 +29,15 @@ public class UpdateController {
     MongoCollection<Document> ratingCollection;
     String cornacURL;
 
+    public void setRatingCollection(MongoCollection<Document> ratingCollection) {
+        this.ratingCollection = ratingCollection;
+    }
 
     private RecomController recomController;
 
 
     UpdateController(){
-
-        ClassLoader loader = Thread.currentThread().getContextClassLoader();
-        Properties properties = new Properties();
-        try (InputStream resourceStream = loader.getResourceAsStream("application.properties")) {
-            properties.load(resourceStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        String host = (String) properties.getOrDefault("spring.data.mongodb.host", "localhost");
-        //System.getenv("MONGO_HOST");
-        String port =(String) properties.getOrDefault("spring.data.mongodb.port", "27017");
-        //System.getenv("MONGO_PORT");
-        String db = (String) properties.getOrDefault("spring.data.mongodb.database", "movieLens");
-        //System.getenv("MONGO_DATABASE");
-        String collectionName = (String) properties.getOrDefault("RATING_COLLECTION", "user_rating");
-        //System.getenv("RATING_COLLECTION");
-        cornacURL = (String) properties.getOrDefault("CORNAC", "https://localhost:5000/generate");
-
-        System.out.println("Read MONGO_HOST: " +  host);
-        System.out.println("Read MONGO_PORT: " +  port);
-        System.out.println("Read MONGO_DATABASE: " +  db);
-        System.out.println("Read RATING_COLLECTION: " +  collectionName);
-
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://" + host + ":" + port));
-        MongoDatabase database = mongoClient.getDatabase(db);
-        ratingCollection = database.getCollection(collectionName);
-
+        cornacURL = "https://localhost:5000/generate";
         ControllerHook.getInstance().putUpdateController(this);
     }
 
@@ -92,9 +68,18 @@ public class UpdateController {
     @CrossOrigin
     @RequestMapping(value = "/buildIdx", method = RequestMethod.POST)
     public void buildIdx(){
-        String idxDir = ""; //whatever fill this in later
+        String idxDir = "./idx"; //whatever fill this in later
         int embeddingSize = 50;//whatever fill this in later
         BuildHNSWIdxTask task = new BuildHNSWIdxTask(idxDir, embeddingSize, recomController);
+        Thread t = new Thread(task);
+        t.start();
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/textIdx", method = RequestMethod.POST)
+    public void buildTxtIdx(){
+        String idxDir = "./txtIdx"; //whatever fill this in later
+        BuildTxtIdxTask task = new BuildTxtIdxTask(idxDir, recomController);
         Thread t = new Thread(task);
         t.start();
     }

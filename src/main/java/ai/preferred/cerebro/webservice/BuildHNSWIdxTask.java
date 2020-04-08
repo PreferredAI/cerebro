@@ -47,6 +47,9 @@ public class BuildHNSWIdxTask implements Runnable {
         }
         FloatDotHandler handler = new FloatDotHandler();
         HnswConfiguration configuration = new HnswConfiguration(handler, 500_000);
+
+
+
         HnswIndexWriter<float[]> index = new HnswIndexWriter<>(configuration, idxDir);
 
         try {
@@ -55,7 +58,7 @@ public class BuildHNSWIdxTask implements Runnable {
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
-        HnswIndexSearcher<float[]> searcher = new HnswIndexSearcher<>(index);// to implement;
+        HnswIndexSearcher<float[]> searcher = new HnswIndexSearcher<>(idxDir);// to implement;
         controller.switchSearcher(searcher);
     }
 }
