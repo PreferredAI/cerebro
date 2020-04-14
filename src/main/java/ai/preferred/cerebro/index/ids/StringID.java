@@ -6,6 +6,10 @@ package ai.preferred.cerebro.index.ids;
 public class StringID extends ExternalID{
     private String val;
 
+    public String getVal() {
+        return val;
+    }
+
     public StringID(){};
 
     public StringID(String val) {
