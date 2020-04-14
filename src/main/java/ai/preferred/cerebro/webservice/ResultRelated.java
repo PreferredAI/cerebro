@@ -9,21 +9,22 @@ import java.util.List;
  */
 public class ResultRelated {
     Items query;
-    float rating;
+    double rating;
     List<Items> items;
     long time;
 
-    public ResultRelated(Items query, List<Items> items, long time) {
+    public ResultRelated(Items query, double rating, List<Items> items, long time) {
         this.query = query;
+        this.rating = rating;
         this.items = items;
         this.time = time;
     }
 
-    public float getRating() {
+    public double getRating() {
         return rating;
     }
 
-    public void setRating(float rating) {
+    public void setRating(double rating) {
         this.rating = rating;
     }
 

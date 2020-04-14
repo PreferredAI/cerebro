@@ -54,7 +54,7 @@ public class RecomController {
         System.out.println("Switch new text searcher");
     }
 
-    HnswIndexSearcher<float[]> searcher;
+    HnswIndexSearcher<double[]> searcher;
     private QueryParser defaultParser;
     IndexSearcher textSearch;
     private final Object dummyLock;
@@ -118,7 +118,7 @@ public class RecomController {
 
     }
 
-    public void switchSearcher(HnswIndexSearcher<float[]> searcher){
+    public void switchSearcher(HnswIndexSearcher<double[]> searcher){
         synchronized (dummyLock){
             this.searcher = searcher;
         }
@@ -141,8 +141,8 @@ public class RecomController {
     @RequestMapping(value = "/getRecom/{id}", method = RequestMethod.GET)
     public ResultAndTime getRecommendations(@PathVariable("id")ObjectId id) throws IOException {
         Document user = ratingCollection.find(new Document("_id", id)).first();
-        List<Float> vec = (List<Float>) user.get("vec");
-        float[] vectorQuery = ArrayUtils.toPrimitive((Float[])(vec.toArray(new Float[embeddingSize])));
+        List<Double> vec = (List<Double>) user.get("vec");
+        double[] vectorQuery = ArrayUtils.toPrimitive((Double[])(vec.toArray(new Double[embeddingSize])));
 
         long first = System.nanoTime();
         ArrayList<ObjectId> ids = new ArrayList<>(topK);
@@ -169,10 +169,11 @@ public class RecomController {
 
 
     @CrossOrigin
-    @RequestMapping(value = "/relatedItems/{id}", method = RequestMethod.POST)
+    @RequestMapping(value = "/relatedItems", method = RequestMethod.POST)
     public ResultRelated relatedItems(@Valid @RequestBody PairIds pairIds) throws IOException{
         Items qItem = itemsRepository.findBy_id(new ObjectId(pairIds.itemId));
-        float[] vectorQuery = ArrayUtils.toPrimitive(qItem.vec.toArray(new Float[embeddingSize]));
+        double rating = ratingCollection.find(new Document("_id", pairIds.userId)).first().getDouble(pairIds.itemId);
+        double[] vectorQuery = ArrayUtils.toPrimitive(qItem.vec.toArray(new Double[embeddingSize]));
         long first = System.nanoTime();
         ArrayList<ObjectId> ids = new ArrayList<>(topK + 1);
 
@@ -190,14 +191,13 @@ public class RecomController {
 
         long second = System.nanoTime();
         ArrayList<Items> results = (ArrayList<Items>) itemsRepository.findAllById(ids);
-        return new ResultRelated(qItem, results, (second - first) / 1_000_000);
+        return new ResultRelated(qItem, rating, results, (second - first) / 1_000_000);
     }
 
     @CrossOrigin
     @RequestMapping(value = "/searchTitle", method = RequestMethod.POST)
-    public ResultAndTime searchKeyword(@Valid @RequestBody String qObject) throws IOException {
-        String keyword = qObject.split(":")[1];
-        keyword = keyword.substring(1, keyword.length() - 2).toLowerCase();
+    public ResultAndTime searchKeyword(@Valid @RequestBody TextQuery qObject) throws IOException {
+        String keyword = qObject.keyword;
         Query query = null;
         try {
             query = defaultParser.parse(keyword);

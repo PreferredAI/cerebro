@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.webservice;
 
+import ai.preferred.cerebro.index.common.DoubleDotHandler;
 import ai.preferred.cerebro.index.common.FloatDotHandler;
 import ai.preferred.cerebro.index.hnsw.HnswConfiguration;
 import ai.preferred.cerebro.index.hnsw.Item;
@@ -38,19 +39,19 @@ public class BuildHNSWIdxTask implements Runnable {
 
     @Override
     public void run() {
-        List<Item<float[]>> idxData = new ArrayList<>((int)respository.count());
+        List<Item<double[]>> idxData = new ArrayList<>((int)respository.count());
 
         for (Items item : respository.findAll()) {
             StringID id = new StringID(item._id.toString());
-            float[] vec = ArrayUtils.toPrimitive(item.vec.toArray(new Float[embeddingSize]));
+            double[] vec = ArrayUtils.toPrimitive(item.vec.toArray(new Double[embeddingSize]));
             idxData.add(new Item<>(id , vec));
         }
-        FloatDotHandler handler = new FloatDotHandler();
+        DoubleDotHandler handler = new DoubleDotHandler();
         HnswConfiguration configuration = new HnswConfiguration(handler, 500_000);
 
 
 
-        HnswIndexWriter<float[]> index = new HnswIndexWriter<>(configuration, idxDir);
+        HnswIndexWriter<double[]> index = new HnswIndexWriter<>(configuration, idxDir);
 
         try {
             index.addAll(idxData);
@@ -58,7 +59,7 @@ public class BuildHNSWIdxTask implements Runnable {
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
-        HnswIndexSearcher<float[]> searcher = new HnswIndexSearcher<>(idxDir);// to implement;
+        HnswIndexSearcher<double[]> searcher = new HnswIndexSearcher<>(idxDir);// to implement;
         controller.switchSearcher(searcher);
     }
 }

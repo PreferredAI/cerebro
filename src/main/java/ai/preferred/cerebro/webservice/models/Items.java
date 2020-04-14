@@ -10,9 +10,9 @@ public class Items {
     public ObjectId _id;
     public String title;
     public String genre;
-    public List<Float> vec;
+    public List<Double> vec;
 
-    public Items(ObjectId _id, String title, String genre, List<Float> vec) {
+    public Items(ObjectId _id, String title, String genre, List<Double> vec) {
         this._id = _id;
         this.title = title;
         this.genre = genre;
@@ -43,11 +43,11 @@ public class Items {
         this.genre = genre;
     }
 
-    public List<Float> getVec() {
+    public List<Double> getVec() {
         return vec;
     }
 
-    public void setVec(List<Float> vec) {
+    public void setVec(List<Double> vec) {
         this.vec = vec;
     }
 }
