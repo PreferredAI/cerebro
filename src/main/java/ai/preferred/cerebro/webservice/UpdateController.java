@@ -24,12 +24,12 @@ import java.util.Properties;
 
 @RestController
 @RequestMapping("/")
-public class RatingController {
+public class UpdateController {
 
     MongoCollection<Document> ratingCollection;
     String cornacURL;
 
-    RatingController(){
+    UpdateController(){
 
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         Properties properties = new Properties();
@@ -93,4 +93,6 @@ public class RatingController {
             System.out.println("Update request failed");
         }
     }
+
+    public
 }
