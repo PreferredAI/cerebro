@@ -9,6 +9,7 @@ import java.util.List;
  */
 public class ResultRelated {
     Items query;
+    float rating;
     List<Items> items;
     long time;
 
@@ -16,6 +17,14 @@ public class ResultRelated {
         this.query = query;
         this.items = items;
         this.time = time;
+    }
+
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 
     public Items getQuery() {

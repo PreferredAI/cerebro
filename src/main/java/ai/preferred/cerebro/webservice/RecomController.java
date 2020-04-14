@@ -169,9 +169,9 @@ public class RecomController {
 
 
     @CrossOrigin
-    @RequestMapping(value = "/relatedItems/{id}", method = RequestMethod.GET)
-    public ResultRelated relatedItems(@PathVariable("id") ObjectId id) throws IOException{
-        Items qItem = itemsRepository.findBy_id(id);
+    @RequestMapping(value = "/relatedItems/{id}", method = RequestMethod.POST)
+    public ResultRelated relatedItems(@Valid @RequestBody PairIds pairIds) throws IOException{
+        Items qItem = itemsRepository.findBy_id(new ObjectId(pairIds.itemId));
         float[] vectorQuery = ArrayUtils.toPrimitive(qItem.vec.toArray(new Float[embeddingSize]));
         long first = System.nanoTime();
         ArrayList<ObjectId> ids = new ArrayList<>(topK + 1);
@@ -181,7 +181,7 @@ public class RecomController {
             if(res != null){
                 for(int i = 0; i < res.scoreDocs.length; i++){
                     StringID dbId = (StringID) searcher.getExternalID(res.scoreDocs[i].doc);
-                    if(dbId.getVal().equals(id.toString()))
+                    if(dbId.getVal().equals(pairIds.itemId))
                         continue;
                     ids.add(new ObjectId(dbId.getVal()));
                 }

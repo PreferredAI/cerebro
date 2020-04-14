@@ -9,10 +9,10 @@ public class Items {
     @Id
     public ObjectId _id;
     public String title;
-    public List<String> genre;
+    public String genre;
     public List<Float> vec;
 
-    public Items(ObjectId _id, String title, List<String> genre, List<Float> vec) {
+    public Items(ObjectId _id, String title, String genre, List<Float> vec) {
         this._id = _id;
         this.title = title;
         this.genre = genre;
@@ -35,11 +35,11 @@ public class Items {
         this.title = title;
     }
 
-    public List<String> getGenre() {
+    public String getGenre() {
         return genre;
     }
 
-    public void setGenre(List<String> genre) {
+    public void setGenre(String genre) {
         this.genre = genre;
     }
 
