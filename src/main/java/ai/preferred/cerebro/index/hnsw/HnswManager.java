@@ -121,17 +121,13 @@ abstract public class HnswManager<TVector> {
         return getNode(globalID).externalID();
     }
 
-    static public void printIndexInfo(String idxFolder){
+    static public void printIndexInfo(String idxFolder) throws FileNotFoundException {
         Kryo kryo = new Kryo();
         kryo.register(Integer.class);
         kryo.register(ConcurrentHashMap.class);
         //Load up configuration
         Input input = null;
-        try {
-            input = new Input(new FileInputStream(idxFolder + globalConfigFileName));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        input = new Input(new FileInputStream(idxFolder + globalConfigFileName));
         int nConnsInHighLayer = kryo.readObject(input, int.class);
 
         kryo.readObject(input, int.class);

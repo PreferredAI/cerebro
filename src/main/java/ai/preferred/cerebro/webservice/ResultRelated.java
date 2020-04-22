@@ -9,11 +9,11 @@ import java.util.List;
  */
 public class ResultRelated {
     Items query;
-    double rating;
+    Double rating;
     List<Items> items;
-    long time;
+    float time;
 
-    public ResultRelated(Items query, double rating, List<Items> items, long time) {
+    public ResultRelated(Items query, Double rating, List<Items> items, float time) {
         this.query = query;
         this.rating = rating;
         this.items = items;
@@ -44,11 +44,11 @@ public class ResultRelated {
         this.items = items;
     }
 
-    public long getTime() {
+    public float getTime() {
         return time;
     }
 
-    public void setTime(long time) {
+    public void setTime(float time) {
         this.time = time;
     }
 }

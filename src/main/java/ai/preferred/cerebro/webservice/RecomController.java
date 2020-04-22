@@ -75,7 +75,7 @@ public class RecomController {
         //System.getenv("MONGO_PORT");
         String db = (String) properties.getOrDefault("spring.data.mongodb.database", "movieLens");
         //System.getenv("MONGO_DATABASE");
-        String collectionName = (String) properties.getOrDefault("RATING_COLLECTION", "user_rating");
+        String collectionName = (String) properties.getOrDefault("RATING_COLLECTION", "users_rating");
         //System.getenv("RATING_COLLECTION");
 
 
@@ -94,14 +94,14 @@ public class RecomController {
         dummyLock = new Object();
         embeddingSize = 50;
         topK = 20;
-        Throwable error = null;
+        Exception error = null;
         try {
             HnswManager.printIndexInfo(idxDir);
         }catch(Exception e){
             error = e;
         }
 
-        if(error != null) {
+        if(error == null) {
             searcher = new HnswIndexSearcher(idxDir);
         }
         String txtIdx = "./txtIdx";
@@ -113,7 +113,7 @@ public class RecomController {
         catch(IOException e){
             error = e;
         }
-        if(error != null)
+        if(error == null)
             textSearch = new IndexSearcher(reader , Executors.newFixedThreadPool(2));
 
     }
@@ -139,13 +139,13 @@ public class RecomController {
 
     @CrossOrigin
     @RequestMapping(value = "/getRecom/{id}", method = RequestMethod.GET)
-    public ResultAndTime getRecommendations(@PathVariable("id")ObjectId id) throws IOException {
+    public ResultAndTime getRecommendations(@PathVariable("id")String id) throws IOException {
         Document user = ratingCollection.find(new Document("_id", id)).first();
         List<Double> vec = (List<Double>) user.get("vec");
         double[] vectorQuery = ArrayUtils.toPrimitive((Double[])(vec.toArray(new Double[embeddingSize])));
 
         long first = System.nanoTime();
-        ArrayList<ObjectId> ids = new ArrayList<>(topK);
+        ArrayList<String> ids = new ArrayList<>(topK);
         synchronized(dummyLock){
             TopDocs res = searcher.search(vectorQuery, topK);
 
@@ -153,7 +153,7 @@ public class RecomController {
 
                 for (int j = 0; j < res.scoreDocs.length; j++) {
                     StringID realId = (StringID) searcher.getExternalID(res.scoreDocs[j].doc);
-                    ids.add(new ObjectId(realId.getVal()));
+                    ids.add(realId.getVal());
                 }
             }
         }
@@ -171,11 +171,20 @@ public class RecomController {
     @CrossOrigin
     @RequestMapping(value = "/relatedItems", method = RequestMethod.POST)
     public ResultRelated relatedItems(@Valid @RequestBody PairIds pairIds) throws IOException{
-        Items qItem = itemsRepository.findBy_id(new ObjectId(pairIds.itemId));
-        double rating = ratingCollection.find(new Document("_id", pairIds.userId)).first().getDouble(pairIds.itemId);
+        Items qItem = itemsRepository.findBy_id(pairIds.itemId);
+        //Document user = ratingCollection.find(new Document("_id", pairIds.userId)).first();
+        Double rating = null;
+        try{
+            rating = ratingCollection.find(new Document("_id", pairIds.userId)).first().getDouble(pairIds.itemId);
+        }
+        catch (NullPointerException e){
+            rating = 0.0;
+        }
+        if(rating == null)
+            rating = 0.0;
         double[] vectorQuery = ArrayUtils.toPrimitive(qItem.vec.toArray(new Double[embeddingSize]));
         long first = System.nanoTime();
-        ArrayList<ObjectId> ids = new ArrayList<>(topK + 1);
+        ArrayList<String> ids = new ArrayList<>(topK + 1);
 
         synchronized(dummyLock){
             TopDocs res = searcher.search(vectorQuery, topK + 1);
@@ -184,14 +193,14 @@ public class RecomController {
                     StringID dbId = (StringID) searcher.getExternalID(res.scoreDocs[i].doc);
                     if(dbId.getVal().equals(pairIds.itemId))
                         continue;
-                    ids.add(new ObjectId(dbId.getVal()));
+                    ids.add(dbId.getVal());
                 }
             }
         }
 
         long second = System.nanoTime();
         ArrayList<Items> results = (ArrayList<Items>) itemsRepository.findAllById(ids);
-        return new ResultRelated(qItem, rating, results, (second - first) / 1_000_000);
+        return new ResultRelated(qItem, rating, results, (second - first) / 1_000_000f);
     }
 
     @CrossOrigin
@@ -207,14 +216,14 @@ public class RecomController {
 
         long first = System.nanoTime();
         TopDocs hits = textSearch.search(query, topK);
-        ArrayList<ObjectId> ids = new ArrayList<>();
+        ArrayList<String> ids = new ArrayList<>();
         for (ScoreDoc hit: hits.scoreDocs) {
             String ID = textSearch.doc(hit.doc).get("ID");
-            ids.add(new ObjectId(ID));
+            ids.add(ID);
         }
         long second = System.nanoTime();
         ArrayList<Items> result = (ArrayList<Items>) itemsRepository.findAllById(ids);
-        return new ResultAndTime(result, (second - first) / 1000_000);
+        return new ResultAndTime(result, (second - first) / 1000_000f);
     }
 
 }

@@ -9,9 +9,9 @@ import java.util.List;
  */
 public class ResultAndTime {
     List<Items> items;
-    long time;
+    float time;
 
-    public ResultAndTime(List<Items> items, long time) {
+    public ResultAndTime(List<Items> items, float time) {
         this.items = items;
         this.time = time;
     }
@@ -24,11 +24,11 @@ public class ResultAndTime {
         this.items = items;
     }
 
-    public long getTime() {
+    public float getTime() {
         return time;
     }
 
-    public void setTime(long time) {
+    public void setTime(float time) {
         this.time = time;
     }
 }

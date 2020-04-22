@@ -28,7 +28,7 @@ public class BuildHNSWIdxTask implements Runnable {
     String idxDir;
     int embeddingSize;
     RecomController controller;
-    MongoRepository<Items, ObjectId> respository;
+    MongoRepository<Items, String> respository;
 
     public BuildHNSWIdxTask(String idxDir,  int embeddingSize, RecomController controller) {
         this.idxDir = idxDir;
@@ -42,14 +42,16 @@ public class BuildHNSWIdxTask implements Runnable {
         List<Item<double[]>> idxData = new ArrayList<>((int)respository.count());
 
         for (Items item : respository.findAll()) {
-            StringID id = new StringID(item._id.toString());
+            if(item.vec == null || item.vec.size() < embeddingSize) {
+                System.out.println(item._id);
+                continue;
+            }
+            StringID id = new StringID(item._id);
             double[] vec = ArrayUtils.toPrimitive(item.vec.toArray(new Double[embeddingSize]));
             idxData.add(new Item<>(id , vec));
         }
         DoubleDotHandler handler = new DoubleDotHandler();
         HnswConfiguration configuration = new HnswConfiguration(handler, 500_000);
-
-
 
         HnswIndexWriter<double[]> index = new HnswIndexWriter<>(configuration, idxDir);
 

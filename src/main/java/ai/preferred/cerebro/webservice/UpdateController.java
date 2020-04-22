@@ -37,7 +37,7 @@ public class UpdateController {
 
 
     UpdateController(){
-        cornacURL = "https://localhost:5000/generate";
+        cornacURL = "http://localhost:5000/generate";
         ControllerHook.getInstance().putUpdateController(this);
     }
 
@@ -48,6 +48,7 @@ public class UpdateController {
     @CrossOrigin
     @RequestMapping(value="/feedback", method = RequestMethod.POST)
     public void receiveUpdate(@Valid @RequestBody Interaction interaction){
+        //System.out.print("called update feedback");
         ratingCollection.updateOne(new Document("_id", interaction.userID),
                 new Document("$set", new Document(interaction.itemID, interaction.rating)));
     }
@@ -67,12 +68,13 @@ public class UpdateController {
 
     @CrossOrigin
     @RequestMapping(value = "/buildIdx", method = RequestMethod.POST)
-    public void buildIdx(){
+    public String buildIdx(){
         String idxDir = "./idx"; //whatever fill this in later
         int embeddingSize = 50;//whatever fill this in later
         BuildHNSWIdxTask task = new BuildHNSWIdxTask(idxDir, embeddingSize, recomController);
         Thread t = new Thread(task);
         t.start();
+        return "Building index";
     }
 
     @CrossOrigin

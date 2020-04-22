@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 public class BuildTxtIdxTask implements Runnable{
     String idxDir;
     RecomController controller;
-    MongoRepository<Items, ObjectId> itemRespository;
+    MongoRepository<Items, String> itemRespository;
 
 
     public BuildTxtIdxTask(String idxDir, RecomController controller) {
@@ -43,7 +43,7 @@ public class BuildTxtIdxTask implements Runnable{
             writer = new IndexWriter(indexDirectory, iwc);
             for(Items item : itemRespository.findAll()){
                 Document doc = new Document();
-                doc.add(new StringField("ID", item._id.toString(), Field.Store.YES));
+                doc.add(new StringField("ID", item._id, Field.Store.YES));
                 doc.add(new TextField("title", item.title, Field.Store.NO));
                 writer.addDocument(doc);
             }
