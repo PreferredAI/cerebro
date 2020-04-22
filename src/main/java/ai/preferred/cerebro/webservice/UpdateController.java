@@ -29,6 +29,7 @@ public class UpdateController {
     MongoCollection<Document> ratingCollection;
     String cornacURL;
 
+
     public void setRatingCollection(MongoCollection<Document> ratingCollection) {
         this.ratingCollection = ratingCollection;
     }
@@ -100,4 +101,5 @@ public class UpdateController {
             System.out.println("Update request failed");
         }
     }
+
 }
