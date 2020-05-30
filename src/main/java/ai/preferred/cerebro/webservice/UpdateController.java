@@ -12,6 +12,7 @@ import org.bson.Document;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -62,6 +63,10 @@ public class UpdateController {
     @RequestMapping(value = "/buildIdx", method = RequestMethod.POST)
     public String buildIdx(){
         String idxDir = "./idx"; //whatever fill this in later
+        File file = new File(idxDir);
+        if(!file.exists() || !file.isDirectory()){
+            file.mkdir();
+        }
         int embeddingSize = 50;//whatever fill this in later
         BuildHNSWIdxTask task = new BuildHNSWIdxTask(idxDir, embeddingSize, recomController);
         Thread t = new Thread(task);
