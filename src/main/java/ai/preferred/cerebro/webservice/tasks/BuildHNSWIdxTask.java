@@ -1,25 +1,19 @@
-package ai.preferred.cerebro.webservice;
+package ai.preferred.cerebro.webservice.tasks;
 
 import ai.preferred.cerebro.index.common.DoubleDotHandler;
-import ai.preferred.cerebro.index.common.FloatDotHandler;
 import ai.preferred.cerebro.index.hnsw.HnswConfiguration;
 import ai.preferred.cerebro.index.hnsw.Item;
 import ai.preferred.cerebro.index.hnsw.builder.HnswIndexWriter;
 import ai.preferred.cerebro.index.hnsw.searcher.HnswIndexSearcher;
 import ai.preferred.cerebro.index.ids.StringID;
-import ai.preferred.cerebro.index.lsh.searcher.Searcher;
+import ai.preferred.cerebro.webservice.RecomController;
 import ai.preferred.cerebro.webservice.models.Items;
-import com.mongodb.client.MongoCollection;
 import org.apache.commons.lang3.ArrayUtils;
-import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * @author hpminh@apcs.vn
@@ -43,7 +37,7 @@ public class BuildHNSWIdxTask implements Runnable {
 
         for (Items item : respository.findAll()) {
             if(item.vec == null || item.vec.size() < embeddingSize) {
-                System.out.println(item._id);
+                //System.out.println(item._id);
                 continue;
             }
             StringID id = new StringID(item._id);
@@ -52,6 +46,8 @@ public class BuildHNSWIdxTask implements Runnable {
         }
         DoubleDotHandler handler = new DoubleDotHandler();
         HnswConfiguration configuration = new HnswConfiguration(handler, 500_000);
+        configuration.setM(5);
+        configuration.setEfConstruction(100);
 
         HnswIndexWriter<double[]> index = new HnswIndexWriter<>(configuration, idxDir);
 
@@ -62,6 +58,7 @@ public class BuildHNSWIdxTask implements Runnable {
             e.printStackTrace();
         }
         HnswIndexSearcher<double[]> searcher = new HnswIndexSearcher<>(idxDir);// to implement;
+        System.out.println("New Index built successfully");
         controller.switchSearcher(searcher);
     }
 }

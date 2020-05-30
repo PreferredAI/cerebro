@@ -4,7 +4,15 @@ import ai.preferred.cerebro.index.hnsw.HnswManager;
 import ai.preferred.cerebro.index.hnsw.searcher.HnswIndexSearcher;
 import ai.preferred.cerebro.index.ids.StringID;
 import ai.preferred.cerebro.webservice.models.Items;
+import ai.preferred.cerebro.webservice.models.Users;
+import ai.preferred.cerebro.webservice.reponses.ListID;
+import ai.preferred.cerebro.webservice.reponses.ResultAndTime;
+import ai.preferred.cerebro.webservice.reponses.ResultRelated;
 import ai.preferred.cerebro.webservice.repositories.ItemsRepository;
+import ai.preferred.cerebro.webservice.repositories.RatingsRespository;
+import ai.preferred.cerebro.webservice.repositories.UsersRespository;
+import ai.preferred.cerebro.webservice.request.PairIds;
+import ai.preferred.cerebro.webservice.request.TextQuery;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
@@ -13,7 +21,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -21,13 +28,18 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.bson.Document;
-import org.bson.types.ObjectId;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,12 +54,12 @@ import java.util.concurrent.Executors;
 @RequestMapping("/search")
 public class RecomController {
 
-    //@Autowired
-    //private UsersRepository usersRepository;
-    MongoCollection<Document> ratingCollection;
-
     @Autowired
-    private ItemsRepository itemsRepository;
+    UsersRespository usersRepository;
+    @Autowired
+    ItemsRepository itemsRepository;
+    @Autowired
+    RatingsRespository ratingsRespository;
 
     public void setTextSearch(IndexSearcher textSearch) {
         this.textSearch = textSearch;
@@ -60,6 +72,7 @@ public class RecomController {
     private final Object dummyLock;
     int embeddingSize;
     int topK;
+    String cornacURL;
     RecomController() {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         Properties properties = new Properties();
@@ -68,32 +81,69 @@ public class RecomController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        checkImportDatabase(properties);
+        ControllerHook.getInstance().putRecomController(this);
+
+        dummyLock = new Object();
+        embeddingSize = 50;
+        topK = 20;
+        checkIndex(properties);
+    }
+    private void checkImportDatabase(Properties properties){
 
         String host = (String) properties.getOrDefault("spring.data.mongodb.host", "localhost");
         //System.getenv("MONGO_HOST");
         String port =(String) properties.getOrDefault("spring.data.mongodb.port", "27017");
         //System.getenv("MONGO_PORT");
-        String db = (String) properties.getOrDefault("spring.data.mongodb.database", "movieLens");
+        String db = (String) properties.getOrDefault("spring.data.mongodb.database", "cerebro");
         //System.getenv("MONGO_DATABASE");
-        String collectionName = (String) properties.getOrDefault("RATING_COLLECTION", "users_rating");
-        //System.getenv("RATING_COLLECTION");
-
-
-        System.out.println("Read MONGO_HOST: " +  host);
-        System.out.println("Read MONGO_PORT: " +  port);
-        System.out.println("Read MONGO_DATABASE: " +  db);
-        System.out.println("Read RATING_COLLECTION: " +  collectionName);
+        cornacURL = (String) properties.get("cornac.url");
 
         MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://" + host + ":" + port));
         MongoDatabase database = mongoClient.getDatabase(db);
-        ratingCollection = database.getCollection(collectionName);
-        ControllerHook.getInstance().putRecomController(this);
 
+        //this mean the database is empty -> import from a defined source
+        if(!database.listCollectionNames().iterator().hasNext()){
+            System.out.println("Found empty database, importing from defined source");
+            String importdbUrl = (String) properties.get("importdb.url");
+            try {
+                importDatabase(importdbUrl, host, port);
+            } catch (Exception e) {
+                System.out.println("import failed.");
+                e.printStackTrace();
+            }
+        }
+    }
+    private void importDatabase(String importurl, String dbhost, String dbport) throws IOException, ParseException {
+        System.out.println("importing data from: " + dbhost + ":" + dbport);
+        //object to hold request body
+        JSONObject requestObj = new JSONObject();
+        requestObj.put("dbhost", dbhost);
+        requestObj.put("dbport", dbport);
+        URL obj = new URL(importurl);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json; utf-8");
 
-        String idxDir = "./idx";//System.getenv("IDX");
-        dummyLock = new Object();
-        embeddingSize = 50;
-        topK = 20;
+        // For POST only - START
+        con.setDoOutput(true);
+        OutputStream os = con.getOutputStream();
+        os.write(requestObj.toJSONString().getBytes());
+        os.flush();
+        os.close();
+        // For POST only - END
+
+        int responseCode = con.getResponseCode();
+        System.out.println("POST Response Code :: " + responseCode);
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            System.out.println("Import data successful.");
+            UpdateController.tellCornacToUpdate(cornacURL);
+        } else {
+            System.out.println("POST request not worked, import failed");
+        }
+    }
+    private void checkIndex(Properties properties){
+        String idxDir = (String) properties.getOrDefault("idxpath", "./idx");
         Exception error = null;
         try {
             HnswManager.printIndexInfo(idxDir);
@@ -104,30 +154,17 @@ public class RecomController {
         if(error == null) {
             searcher = new HnswIndexSearcher(idxDir);
         }
-        String txtIdx = "./txtIdx";
-        this.defaultParser = new QueryParser("title", new StandardAnalyzer());
-        IndexReader reader = null;
-        try{
-            reader = DirectoryReader.open(FSDirectory.open(Paths.get(txtIdx)));
-        }
-        catch(IOException e){
-            error = e;
-        }
-        if(error == null)
-            textSearch = new IndexSearcher(reader , Executors.newFixedThreadPool(2));
-
     }
-
     public void switchSearcher(HnswIndexSearcher<double[]> searcher){
         synchronized (dummyLock){
             this.searcher = searcher;
         }
-        System.out.println("Switch new searcher");
+        System.out.println("new index searcher is ready");
     }
-
     public ItemsRepository getItemsRepository() {
         return itemsRepository;
     }
+
 
     @CrossOrigin
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
@@ -136,12 +173,12 @@ public class RecomController {
     }
 
 
-
     @CrossOrigin
-    @RequestMapping(value = "/getRecom/{id}", method = RequestMethod.GET)
-    public ResultAndTime getRecommendations(@PathVariable("id")String id) throws IOException {
-        Document user = ratingCollection.find(new Document("_id", id)).first();
-        List<Double> vec = (List<Double>) user.get("vec");
+    @RequestMapping(value = "/getRecom", method = RequestMethod.POST)
+    public ListID getRecommendations(@Valid @RequestBody TextQuery id) throws IOException {
+        //Document user = ratingCollection.find(new Document("_id", id.getText())).first();
+        Users user = usersRepository.findBy_id(id.getText());
+        List<Double> vec = user.vec;
         double[] vectorQuery = ArrayUtils.toPrimitive((Double[])(vec.toArray(new Double[embeddingSize])));
 
         long first = System.nanoTime();
@@ -158,40 +195,30 @@ public class RecomController {
             }
         }
         long second = System.nanoTime();
-
+        return new ListID(ids);
+        /*
+        legacy function return type
         ArrayList<Items> result = (ArrayList<Items>) itemsRepository.findAllById(ids);
-        //long third = System.nanoTime();
-        //System.out.println("Lucene time: "+ (second - first));
-        //System.out.println("DB time: "+ (third - second));
         return new ResultAndTime(result, (second - first)/1000_000);
+
+         */
     }
 
 
 
     @CrossOrigin
     @RequestMapping(value = "/relatedItems", method = RequestMethod.POST)
-    public ResultRelated relatedItems(@Valid @RequestBody PairIds pairIds) throws IOException{
-        Items qItem = itemsRepository.findBy_id(pairIds.itemId);
-        //Document user = ratingCollection.find(new Document("_id", pairIds.userId)).first();
-        Double rating = null;
-        try{
-            rating = ratingCollection.find(new Document("_id", pairIds.userId)).first().getDouble(pairIds.itemId);
-        }
-        catch (NullPointerException e){
-            rating = 0.0;
-        }
-        if(rating == null)
-            rating = 0.0;
+    public ListID relatedItems(@Valid @RequestBody TextQuery id) throws IOException{
+        Items qItem = itemsRepository.findBy_id(id.getText());
         double[] vectorQuery = ArrayUtils.toPrimitive(qItem.vec.toArray(new Double[embeddingSize]));
         long first = System.nanoTime();
         ArrayList<String> ids = new ArrayList<>(topK + 1);
-
         synchronized(dummyLock){
             TopDocs res = searcher.search(vectorQuery, topK + 1);
             if(res != null){
                 for(int i = 0; i < res.scoreDocs.length; i++){
                     StringID dbId = (StringID) searcher.getExternalID(res.scoreDocs[i].doc);
-                    if(dbId.getVal().equals(pairIds.itemId))
+                    if(dbId.getVal().equals(id.getText()))
                         continue;
                     ids.add(dbId.getVal());
                 }
@@ -199,14 +226,19 @@ public class RecomController {
         }
 
         long second = System.nanoTime();
+        return new ListID(ids);
+        /*
+        legacy function return type
         ArrayList<Items> results = (ArrayList<Items>) itemsRepository.findAllById(ids);
         return new ResultRelated(qItem, rating, results, (second - first) / 1_000_000f);
+         */
     }
 
+    /*
     @CrossOrigin
     @RequestMapping(value = "/searchTitle", method = RequestMethod.POST)
     public ResultAndTime searchKeyword(@Valid @RequestBody TextQuery qObject) throws IOException {
-        String keyword = qObject.keyword;
+        String keyword = qObject.getKeyword();
         Query query = null;
         try {
             query = defaultParser.parse(keyword);
@@ -225,5 +257,7 @@ public class RecomController {
         ArrayList<Items> result = (ArrayList<Items>) itemsRepository.findAllById(ids);
         return new ResultAndTime(result, (second - first) / 1000_000f);
     }
+
+     */
 
 }

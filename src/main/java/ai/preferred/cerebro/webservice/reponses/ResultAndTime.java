@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.webservice;
+package ai.preferred.cerebro.webservice.reponses;
 
 import ai.preferred.cerebro.webservice.models.Items;
 

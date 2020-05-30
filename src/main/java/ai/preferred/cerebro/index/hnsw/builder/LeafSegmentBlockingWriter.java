@@ -35,6 +35,7 @@ public class LeafSegmentBlockingWriter<TVector> extends LeafSegmentWriter<TVecto
     private BitSet activeConstruction;
     private AtomicReferenceArray<Node<TVector>> nodes;
 
+
     //Create constructor
     public LeafSegmentBlockingWriter(HnswIndexWriter parent, int numName, int base) {
         super(parent, numName, base);
@@ -125,8 +126,6 @@ public class LeafSegmentBlockingWriter<TVector> extends LeafSegmentWriter<TVecto
         globalLock.lock();
         try {
             Integer globalId = lookup.get(item.externalId);
-
-
             //check if there is nodes with similar id in the graph
             if(globalId != null){
                 //if there is similar id but index does not support removal then abort operation

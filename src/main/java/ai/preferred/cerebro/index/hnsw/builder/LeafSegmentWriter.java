@@ -91,8 +91,6 @@ public class LeafSegmentWriter<TVector> extends LeafSegment<TVector> {
     }
 
     public boolean add(Item<TVector> item) {
-        //System.out.println(item.externalId);
-        //globalID is internalID + baseID of the segment
         Integer globalId = lookup.get(item.externalId);
 
         //check if there is nodes with similar id in the graph

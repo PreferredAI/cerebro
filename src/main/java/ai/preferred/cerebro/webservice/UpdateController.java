@@ -1,9 +1,11 @@
 package ai.preferred.cerebro.webservice;
 
-import ai.preferred.cerebro.feedback.Interaction;
-import com.mongodb.*;
+import ai.preferred.cerebro.feedback.Rating;
+import ai.preferred.cerebro.webservice.models.Ratings;
+import ai.preferred.cerebro.webservice.repositories.RatingsRespository;
+import ai.preferred.cerebro.webservice.tasks.BuildHNSWIdxTask;
+import ai.preferred.cerebro.webservice.tasks.BuildTxtIdxTask;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 
 
 import org.bson.Document;
@@ -11,12 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.Properties;
 
 /**
  * @author hpminh@apcs.vn
@@ -25,42 +23,35 @@ import java.util.Properties;
 @RestController
 @RequestMapping("/update")
 public class UpdateController {
-
-    MongoCollection<Document> ratingCollection;
+    private RecomController recomController;
+    RatingsRespository ratingRespo;
     String cornacURL;
 
 
-    public void setRatingCollection(MongoCollection<Document> ratingCollection) {
-        this.ratingCollection = ratingCollection;
-    }
-
-    private RecomController recomController;
-
-
     UpdateController(){
-        cornacURL = "http://localhost:5000/generate";
         ControllerHook.getInstance().putUpdateController(this);
     }
 
-    public void setRecomController(RecomController recomController) {
+    public void setParams(RatingsRespository ratingRespo, RecomController recomController ,String cornacURL){
+        this.ratingRespo = ratingRespo;
+        this.cornacURL = cornacURL;
         this.recomController = recomController;
     }
 
+
     @CrossOrigin
     @RequestMapping(value="/feedback", method = RequestMethod.POST)
-    public void receiveUpdate(@Valid @RequestBody Interaction interaction){
-        //System.out.print("called update feedback");
-        ratingCollection.updateOne(new Document("_id", interaction.userID),
-                new Document("$set", new Document(interaction.itemID, interaction.rating)));
+    public void receiveUpdate(@Valid @RequestBody Ratings rating){
+        ratingRespo.insert(rating);
     }
 
 
 
     @CrossOrigin
-    @RequestMapping(value="/invoke", method = RequestMethod.POST)
+    @RequestMapping(value="/invoke", method = RequestMethod.GET)
     public void update(){
         try {
-            tellCornacToUpdate();
+            tellCornacToUpdate(cornacURL);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -87,8 +78,8 @@ public class UpdateController {
         t.start();
     }
 
-    public void tellCornacToUpdate() throws IOException {
-        URL url = new URL(cornacURL);
+    public static void tellCornacToUpdate(String urlstr) throws IOException {
+        URL url = new URL(urlstr);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         con.setRequestProperty("User-Agent", "Cerebro");

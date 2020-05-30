@@ -1,5 +1,6 @@
-package ai.preferred.cerebro.webservice;
+package ai.preferred.cerebro.webservice.tasks;
 
+import ai.preferred.cerebro.webservice.RecomController;
 import ai.preferred.cerebro.webservice.models.Items;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -12,7 +13,6 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.io.IOException;

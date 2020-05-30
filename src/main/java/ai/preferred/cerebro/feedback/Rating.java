@@ -2,16 +2,26 @@ package ai.preferred.cerebro.feedback;
 
 import ai.preferred.cerebro.index.ids.ExternalID;
 
+import java.util.Date;
+
 /**
  * @author hpminh@apcs.vn
  */
-public class Interaction {
+public class Rating {
     public String userID;
     public String itemID;
     public float rating;
+    public Date date;
 
+    Rating(){}
 
-    Interaction(){}
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
     public String getUserID() {
         return userID;

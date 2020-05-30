@@ -1,4 +1,4 @@
-package ai.preferred.cerebro.webservice;
+package ai.preferred.cerebro.webservice.request;
 
 /**
  * @author hpminh@apcs.vn
