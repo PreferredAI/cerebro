@@ -46,6 +46,9 @@ public class ControllerHook {
     }
 
     private void hook(){
-        updateController.setParams(recomController.ratingsRespository, recomController, recomController.cornacURL);
+        updateController.setParams(recomController.ratingsRespository,
+                recomController.usersRepository,
+                recomController.itemsRepository,
+                recomController, recomController.cornacURL);
     }
 }

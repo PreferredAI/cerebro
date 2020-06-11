@@ -1,8 +1,12 @@
 package ai.preferred.cerebro.webservice;
 
 import ai.preferred.cerebro.feedback.Rating;
+import ai.preferred.cerebro.webservice.models.Items;
 import ai.preferred.cerebro.webservice.models.Ratings;
+import ai.preferred.cerebro.webservice.models.Users;
+import ai.preferred.cerebro.webservice.repositories.ItemsRepository;
 import ai.preferred.cerebro.webservice.repositories.RatingsRespository;
+import ai.preferred.cerebro.webservice.repositories.UsersRespository;
 import ai.preferred.cerebro.webservice.tasks.BuildHNSWIdxTask;
 import ai.preferred.cerebro.webservice.tasks.BuildTxtIdxTask;
 import com.mongodb.client.MongoCollection;
@@ -26,6 +30,8 @@ import java.net.URL;
 public class UpdateController {
     private RecomController recomController;
     RatingsRespository ratingRespo;
+    UsersRespository usersRespository;
+    ItemsRepository itemsRepository;
     String cornacURL;
 
 
@@ -33,8 +39,14 @@ public class UpdateController {
         ControllerHook.getInstance().putUpdateController(this);
     }
 
-    public void setParams(RatingsRespository ratingRespo, RecomController recomController ,String cornacURL){
+    public void setParams(RatingsRespository ratingRespo,
+                          UsersRespository usersRespository,
+                          ItemsRepository itemsRepository,
+                          RecomController recomController ,
+                          String cornacURL){
         this.ratingRespo = ratingRespo;
+        this.usersRespository = usersRespository;
+        this.itemsRepository = itemsRepository;
         this.cornacURL = cornacURL;
         this.recomController = recomController;
     }
@@ -46,7 +58,17 @@ public class UpdateController {
         ratingRespo.insert(rating);
     }
 
+    @CrossOrigin
+    @RequestMapping(value="/addUser", method = RequestMethod.POST)
+    public void addUser(@Valid @RequestBody Users user){
+        usersRespository.insert(user);
+    }
 
+    @CrossOrigin
+    @RequestMapping(value="/addItem", method = RequestMethod.POST)
+    public void addUser(@Valid @RequestBody Items item){
+        itemsRepository.insert(item);
+    }
 
     @CrossOrigin
     @RequestMapping(value="/invoke", method = RequestMethod.GET)
