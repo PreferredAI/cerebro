@@ -65,7 +65,7 @@ public class RecomController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        checkImportDatabase(properties);
+        //checkImportDatabase(properties);
         ControllerHook.getInstance().putRecomController(this);
 
         dummyLock = new Object();

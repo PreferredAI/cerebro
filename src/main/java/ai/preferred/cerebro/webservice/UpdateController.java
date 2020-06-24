@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Properties;
 
 /**
  * @author hpminh@apcs.vn
@@ -32,10 +34,22 @@ public class UpdateController {
     RatingsRespository ratingRespo;
     UsersRespository usersRespository;
     ItemsRepository itemsRepository;
+    int newRating = 0;
+    int updateThreshold;
     String cornacURL;
 
 
+
     UpdateController(){
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
+        Properties properties = new Properties();
+        try (InputStream resourceStream = loader.getResourceAsStream("application.properties")) {
+            properties.load(resourceStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        updateThreshold = (int) properties.get("newRatingsTillUpdate");
+        cornacURL = (String) properties.get("cornac.url");
         ControllerHook.getInstance().putUpdateController(this);
     }
 
@@ -56,6 +70,13 @@ public class UpdateController {
     @RequestMapping(value="/feedback", method = RequestMethod.POST)
     public void receiveUpdate(@Valid @RequestBody Ratings rating){
         ratingRespo.insert(rating);
+        if(++newRating == updateThreshold){
+            try {
+                tellCornacToUpdate(cornacURL);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @CrossOrigin
