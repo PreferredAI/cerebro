@@ -4,6 +4,7 @@ package ai.preferred.cerebro.index.lsh.searcher;
 
 
 
+import ai.preferred.cerebro.index.Searcher;
 import org.apache.lucene.index.*;
 import org.apache.lucene.search.*;
 import org.apache.lucene.search.similarities.Similarity;

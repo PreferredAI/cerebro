@@ -1,5 +1,7 @@
 package ai.preferred.cerebro.index.lsh.searcher;
 
+import ai.preferred.cerebro.index.Searcher;
+
 /**
  *
  * This class is a search request to be passed into

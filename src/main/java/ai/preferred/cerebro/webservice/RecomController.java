@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.webservice;
 
+import ai.preferred.cerebro.index.Searcher;
 import ai.preferred.cerebro.index.hnsw.HnswManager;
 import ai.preferred.cerebro.index.hnsw.searcher.HnswIndexSearcher;
 import ai.preferred.cerebro.index.ids.StringID;
@@ -26,9 +27,7 @@ import javax.validation.Valid;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * @author hpminh@apcs.vn
@@ -50,7 +49,7 @@ public class RecomController {
         System.out.println("Switch new text searcher");
     }
 
-    HnswIndexSearcher<double[]> searcher;
+    Searcher<double[]> searcher;
     private QueryParser defaultParser;
     IndexSearcher textSearch;
     private final Object dummyLock;
@@ -139,7 +138,7 @@ public class RecomController {
             searcher = new HnswIndexSearcher(idxDir);
         }
     }
-    public void switchSearcher(HnswIndexSearcher<double[]> searcher){
+    public void switchSearcher(Searcher<double[]> searcher){
         synchronized (dummyLock){
             this.searcher = searcher;
         }
@@ -164,28 +163,14 @@ public class RecomController {
         Users user = usersRepository.findBy_id(id.getText());
         List<Double> vec = user.vec;
         double[] vectorQuery = ArrayUtils.toPrimitive((Double[])(vec.toArray(new Double[embeddingSize])));
-
         long first = System.nanoTime();
-        ArrayList<String> ids = new ArrayList<>(topK);
-        synchronized(dummyLock){
-            TopDocs res = searcher.search(vectorQuery, topK);
-
-            if(res != null){
-
-                for (int j = 0; j < res.scoreDocs.length; j++) {
-                    StringID realId = (StringID) searcher.getExternalID(res.scoreDocs[j].doc);
-                    ids.add(realId.getVal());
-                }
-            }
+        List<String> ids;
+        synchronized(dummyLock){;
+            String[] res = searcher.similaritySearch(vectorQuery, topK);
+            ids = Arrays.asList(res);
         }
         long second = System.nanoTime();
         return new ListID(ids);
-        /*
-        legacy function return type
-        ArrayList<Items> result = (ArrayList<Items>) itemsRepository.findAllById(ids);
-        return new ResultAndTime(result, (second - first)/1000_000);
-
-         */
     }
 
 
@@ -196,26 +181,13 @@ public class RecomController {
         Items qItem = itemsRepository.findBy_id(id.getText());
         double[] vectorQuery = ArrayUtils.toPrimitive(qItem.vec.toArray(new Double[embeddingSize]));
         long first = System.nanoTime();
-        ArrayList<String> ids = new ArrayList<>(topK + 1);
+        List<String> ids;
         synchronized(dummyLock){
-            TopDocs res = searcher.search(vectorQuery, topK + 1);
-            if(res != null){
-                for(int i = 0; i < res.scoreDocs.length; i++){
-                    StringID dbId = (StringID) searcher.getExternalID(res.scoreDocs[i].doc);
-                    if(dbId.getVal().equals(id.getText()))
-                        continue;
-                    ids.add(dbId.getVal());
-                }
-            }
+            String[] res = searcher.similaritySearch(vectorQuery, topK + 1);
+            ids = Arrays.asList(res);
         }
-
         long second = System.nanoTime();
         return new ListID(ids);
-        /*
-        legacy function return type
-        ArrayList<Items> results = (ArrayList<Items>) itemsRepository.findAllById(ids);
-        return new ResultRelated(qItem, rating, results, (second - first) / 1_000_000f);
-         */
     }
 
     /*

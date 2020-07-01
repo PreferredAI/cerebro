@@ -1,5 +1,6 @@
 package ai.preferred.cerebro.index.lsh.searcher;
 
+import ai.preferred.cerebro.index.Searcher;
 import ai.preferred.cerebro.index.common.VecHandler;
 import ai.preferred.cerebro.index.lsh.DirectoryFactory;
 import ai.preferred.cerebro.index.lsh.builder.LocalitySensitiveHash;
@@ -9,12 +10,10 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.NIOFSDirectory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 
 import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
@@ -31,7 +30,7 @@ import static ai.preferred.cerebro.index.utils.IndexConst.Sp;
  *
  * @author hpminh@apcs.vn
  */
-public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher<TVector>{
+public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher<TVector> {
     protected final ExecutorService executor;
     protected final LeafSlice[] leafSlices;
     protected IndexReader reader;
@@ -143,17 +142,25 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
         return hits == null ? null : hits.scoreDocs;
     }
 
-    /**
-     * Query and return docs on a personalized search
-     * @param vQuery The vector query.
-     * @param resultSize Top result size.
-     * @return A set of {@link ScoreDoc} of Document having latent vector producing.
-     * the highest inner product with the query vector.
-     * @throws Exception
-     */
-    public ScoreDoc[] similaritySearch(TVector vQuery, int resultSize) throws Exception {
-        TopDocs hits = personalizedSearch(vQuery, resultSize);
-        return hits == null ? null : hits.scoreDocs;
+
+    @Override
+    public String[] similaritySearch(TVector vQuery, int resultSize) {
+        TopDocs hits = null;
+        try {
+            hits = personalizedSearch(vQuery, resultSize);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String[] ret = new String[hits.scoreDocs.length];
+        int i = 0;
+        try{
+            for (ScoreDoc docId: hits.scoreDocs) {
+                ret[i++] = this.doc(docId.doc).get(IndexConst.IDFieldName);
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return ret;
     }
 
     /*

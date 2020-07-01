@@ -1,8 +1,11 @@
 package ai.preferred.cerebro.index.hnsw.searcher;
 
+import ai.preferred.cerebro.index.Searcher;
 import ai.preferred.cerebro.index.common.BitSet;
 import ai.preferred.cerebro.index.hnsw.GenericObjectPool;
 import ai.preferred.cerebro.index.hnsw.HnswManager;
+import ai.preferred.cerebro.index.ids.StringID;
+import ai.preferred.cerebro.index.lsh.searcher.VectorSimilarity;
 import org.apache.lucene.search.*;
 import org.apache.lucene.util.ThreadInterruptedException;
 
@@ -15,7 +18,7 @@ import java.util.concurrent.*;
  * @author hpminh@apcs.vn
  * @param <TVector>
  */
-public class HnswIndexSearcher<TVector> extends HnswManager<TVector> {
+public class HnswIndexSearcher<TVector> extends HnswManager<TVector> implements Searcher<TVector> {
     ExecutorService executor;
     public HnswIndexSearcher(String idxDir){
         super(idxDir);
@@ -59,5 +62,26 @@ public class HnswIndexSearcher<TVector> extends HnswManager<TVector> {
             }
         }
         return TopDocs.merge(0, cappedNumHits, collectedTopdocs, true);
+    }
+
+    /**
+     * for LSH use only. Dummy implementation.
+     * @return
+     */
+    @Override
+    public VectorSimilarity getVectorSimilarity() {
+        return null;
+    }
+
+    @Override
+    public String[] similaritySearch(TVector vQuery, int resultSize) throws Exception {
+        TopDocs res = search(vQuery, resultSize);
+        if(res == null)
+            return null;
+        String[] ret = new String[res.scoreDocs.length];
+        for (int j = 0; j < res.scoreDocs.length; j++) {
+            ret[j] =  ((StringID)getExternalID(res.scoreDocs[j].doc)).getVal();
+        }
+        return ret;
     }
 }
