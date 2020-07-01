@@ -166,7 +166,12 @@ public class RecomController {
         long first = System.nanoTime();
         List<String> ids;
         synchronized(dummyLock){;
-            String[] res = searcher.similaritySearch(vectorQuery, topK);
+            String[] res = new String[0];
+            try {
+                res = searcher.similaritySearch(vectorQuery, topK);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             ids = Arrays.asList(res);
         }
         long second = System.nanoTime();
@@ -183,7 +188,12 @@ public class RecomController {
         long first = System.nanoTime();
         List<String> ids;
         synchronized(dummyLock){
-            String[] res = searcher.similaritySearch(vectorQuery, topK + 1);
+            String[] res = new String[0];
+            try {
+                res = searcher.similaritySearch(vectorQuery, topK + 1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             ids = Arrays.asList(res);
         }
         long second = System.nanoTime();

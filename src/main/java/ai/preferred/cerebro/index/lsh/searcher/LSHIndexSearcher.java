@@ -144,21 +144,12 @@ public class LSHIndexSearcher<TVector> extends IndexSearcher implements Searcher
 
 
     @Override
-    public String[] similaritySearch(TVector vQuery, int resultSize) {
-        TopDocs hits = null;
-        try {
-            hits = personalizedSearch(vQuery, resultSize);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public String[] similaritySearch(TVector vQuery, int resultSize) throws Exception{
+        TopDocs hits = personalizedSearch(vQuery, resultSize);
         String[] ret = new String[hits.scoreDocs.length];
         int i = 0;
-        try{
-            for (ScoreDoc docId: hits.scoreDocs) {
-                ret[i++] = this.doc(docId.doc).get(IndexConst.IDFieldName);
-            }
-        }catch (IOException e){
-            e.printStackTrace();
+        for (ScoreDoc docId: hits.scoreDocs) {
+            ret[i++] = this.doc(docId.doc).get(IndexConst.IDFieldName);
         }
         return ret;
     }

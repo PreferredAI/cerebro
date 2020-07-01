@@ -23,5 +23,5 @@ public interface Searcher<TVector> {
      * @return id strings of the objects for cross reference with database
      * @throws Exception
      */
-    String[] similaritySearch(TVector vQuery, int resultSize);
+    String[] similaritySearch(TVector vQuery, int resultSize) throws Exception;
 }
