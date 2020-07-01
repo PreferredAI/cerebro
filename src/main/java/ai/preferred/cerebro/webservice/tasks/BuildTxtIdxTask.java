@@ -22,20 +22,23 @@ import java.util.concurrent.Executors;
 /**
  * @author hpminh@apcs.vn
  */
-public class BuildTxtIdxTask implements Runnable{
-    String idxDir;
+public class BuildTxtIdxTask extends ValidFolder implements Runnable{
     RecomController controller;
     MongoRepository<Items, String> itemRespository;
 
-
     public BuildTxtIdxTask(String idxDir, RecomController controller) {
-        this.idxDir = idxDir;
+        super(idxDir);
         this.controller = controller;
         this.itemRespository = controller.getItemsRepository();;
     }
 
     @Override
     public void run(){
+        try {
+            archiveOrMakeFolder();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         IndexWriter writer = null;
         try {
             Directory indexDirectory = FSDirectory.open(Paths.get(idxDir));

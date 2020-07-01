@@ -11,6 +11,7 @@ import ai.preferred.cerebro.webservice.models.Items;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,14 +19,13 @@ import java.util.List;
 /**
  * @author hpminh@apcs.vn
  */
-public class BuildHNSWIdxTask implements Runnable {
-    String idxDir;
+public class BuildHNSWIdxTask extends ValidFolder implements Runnable {
     int embeddingSize;
     RecomController controller;
     MongoRepository<Items, String> respository;
 
     public BuildHNSWIdxTask(String idxDir,  int embeddingSize, RecomController controller) {
-        this.idxDir = idxDir;
+        super(idxDir);
         this.controller = controller;
         this.respository = controller.getItemsRepository();
         this.embeddingSize = embeddingSize;
@@ -33,8 +33,12 @@ public class BuildHNSWIdxTask implements Runnable {
 
     @Override
     public void run() {
+        try {
+            archiveOrMakeFolder();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         List<Item<double[]>> idxData = new ArrayList<>((int)respository.count());
-
         for (Items item : respository.findAll()) {
             if(item.vec == null || item.vec.size() < embeddingSize) {
                 //System.out.println(item._id);

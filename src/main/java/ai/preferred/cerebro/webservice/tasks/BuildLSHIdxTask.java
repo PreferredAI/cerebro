@@ -18,14 +18,13 @@ import java.util.concurrent.Executors;
 /**
  * @author hpminh@apcs.vn
  */
-public class BuildLSHIdxTask implements Runnable {
-    String idxDir;
+public class BuildLSHIdxTask extends ValidFolder implements Runnable {
     int embeddingSize;
     RecomController controller;
     MongoRepository<Items, String> respository;
 
     public BuildLSHIdxTask(String idxDir,  int embeddingSize, RecomController controller) {
-        this.idxDir = idxDir;
+        super(idxDir);
         this.controller = controller;
         this.respository = controller.getItemsRepository();
         this.embeddingSize = embeddingSize;
@@ -33,6 +32,11 @@ public class BuildLSHIdxTask implements Runnable {
 
     @Override
     public void run() {
+        try {
+            archiveOrMakeFolder();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         int optimal_leaves = 4;
         double[][] splitvec = IndexUtils.randomizeDoubleFeatureVectors(8, 50, true);
         DoubleDotHandler handler = new DoubleDotHandler();
