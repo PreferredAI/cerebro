@@ -6,6 +6,8 @@
  */
 package ai.preferred.cerebro.index.kdtree;
 
+import ai.preferred.cerebro.index.utils.IndexUtils;
+
 import java.io.Serializable;
 import java.util.Vector;
 
@@ -236,6 +238,14 @@ public class KDTree implements Serializable{
 			}
 			return o;
 		}
+	}
+
+	public void saveFile(String filename){
+		IndexUtils.serializeObject(this, filename);
+	}
+
+	public static KDTree loadFromFile(String filename){
+		return (KDTree) IndexUtils.deserializeObject(filename);
 	}
 
 	public String toString() {
