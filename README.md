@@ -10,7 +10,7 @@ Your preferred open source personalized recommendation retrieval engine.
 ## Overview
 Our goal is to create a closed-loop engine for recommendations with blazingly fast retrieval of objects.
 
-#### Efficient Retrieval of Objects (Demo: [https://cerebro-demo.preferred.ai](https://cerebro-demo.preferred.ai/))
+#### Efficient Retrieval of Objects (Demo: [https://cerebro.preferred.ai/demo/](https://cerebro.preferred.ai/demo/))
    - Personalized Recommendation
    - Keyword Search
    - Related Objects Search
