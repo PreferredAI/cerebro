@@ -39,6 +39,7 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
 
         if (configuration.isLowMemoryMode())
             nleaves = 1;
+
         //not sure whether to make this a feature, decide later. For now this is only for experiment.
         //In case we don't want to commit every threads available to the first insertion, but still want
         //to adopt the segment-wise approach

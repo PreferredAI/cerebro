@@ -16,6 +16,7 @@ public class HnswConfiguration {
     private static final int DEFAULT_MAX_ITEM = 2_000_000;
     private static final boolean DEFAULT_MEMORY_MODE = false;
     private static final boolean DEFAULT_HEURISTIC_MODE = true;
+    private static final int DEFAULT_LEAVES = 8;
 
     VecHandler handler;
     Comparator distanceComparator;
@@ -61,6 +62,15 @@ public class HnswConfiguration {
     //with large #n of nodes. Recommended when on average
     // amount of nodes each leaf > 5M
 
+    int leaves = DEFAULT_LEAVES;
+
+    public int getLeaves() {
+        return leaves;
+    }
+
+    public void setLeaves(int leaves) {
+        this.leaves = leaves;
+    }
 
     boolean useHeuristic = DEFAULT_HEURISTIC_MODE;
     boolean lowMemoryMode = DEFAULT_MEMORY_MODE;
