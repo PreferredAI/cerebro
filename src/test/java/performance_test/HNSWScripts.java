@@ -41,6 +41,7 @@ public class HNSWScripts {
         HnswConfiguration configuration= new HnswConfiguration(handler);
         configuration.setM(nconns);
         configuration.setEf(nconns);
+        configuration.setLeaves(nseg);
         if (nseg == 1)
             configuration.setLowMemoryMode(true);
         //configuration.setEfConstruction(500);
@@ -87,7 +88,7 @@ public class HNSWScripts {
                 overlap = IndexUtils.countIntersection(returnedIds, truthIds);
                 totalHit+= overlap;
             }
-            System.out.println("Overlapp between brute and hash (over top 20) is : " + overlap);
+            System.out.println("Overlapp between brute and index (over top 20) is : " + overlap);
             System.out.println(" ");
         }
         System.out.println("Average search time :" + totalTime/(entries.size()));
