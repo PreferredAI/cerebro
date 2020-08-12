@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         implements ConcurrentWriter<TVector> {
-    private final int DEFAULT_INITIAL_MAX_NUM_LEAVES  = 2;
+
     private final int OPTIMAL_NUM_LEAVES;
 
     //Create Constructor
@@ -37,17 +37,15 @@ public final class HnswIndexWriter<TVector> extends HnswManager<TVector>
         this.visitedBitSetPool = new GenericObjectPool<>(() -> new BitSet(configuration.getMaxItemLeaf()), Math.max(OPTIMAL_NUM_LEAVES, nleaves));
 
 
+        //building single segment require less memory
         if (configuration.isLowMemoryMode())
             nleaves = 1;
-
-        //not sure whether to make this a feature, decide later. For now this is only for experiment.
-        //In case we don't want to commit every threads available to the first insertion, but still want
-        //to adopt the segment-wise approach
-        else if(OPTIMAL_NUM_LEAVES > DEFAULT_INITIAL_MAX_NUM_LEAVES)
-            nleaves = DEFAULT_INITIAL_MAX_NUM_LEAVES;
-        else
-            //Initialize all leaves with default max num of nodes
+        //-1 mean use every cores possible
+        else if(configuration.getLeaves() == -1)
             nleaves = OPTIMAL_NUM_LEAVES;
+        //build according to num of segments defined
+        else
+            nleaves = configuration.getLeaves();
         lookup = new ConcurrentHashMap<>(nleaves * configuration.getMaxItemLeaf());
 
         leaves = new LeafSegmentWriter[nleaves];
