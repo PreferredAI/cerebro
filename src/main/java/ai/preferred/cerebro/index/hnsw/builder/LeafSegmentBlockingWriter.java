@@ -163,7 +163,6 @@ public class LeafSegmentBlockingWriter<TVector> extends LeafSegmentWriter<TVecto
 
             //randomize level
             int randomLevel = assignLevel(item.externalId.hashCode(), this.levelLambda);
-
             IntArrayList[] outConns = new IntArrayList[randomLevel + 1];
 
             for (int level = 0; level <= randomLevel; level++) {

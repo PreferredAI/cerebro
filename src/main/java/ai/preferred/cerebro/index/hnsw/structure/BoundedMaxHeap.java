@@ -20,18 +20,4 @@ public class BoundedMaxHeap extends PriorityQueue<Candidate> {
         //heap. Here we want a max heap so we should check if a > b
         return a.distance > b.distance;
     }
-
-    public int[] getCandidateIds(){
-        Object [] arr = getHeapArray();
-        //always call size() to know the number of elements
-        //in the heap, don't get it directly from the size
-        //of its internal array.
-        int[] ids = new int[size()];
-        for (int i = 0; i < size(); i++) {
-            //lucene's PriorityQueue start its array from 1
-            ids[i] = ((Candidate)arr[i + 1]).nodeId;
-        }
-        return ids;
-    }
-
 }

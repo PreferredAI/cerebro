@@ -10,7 +10,7 @@ import java.util.Comparator;
  */
 public class HnswConfiguration {
     private static final int DEFAULT_M = 10;
-    private static final int DEFAULT_EF = 10;
+    private static final int DEFAULT_EF = 100;
     private static final int DEFAULT_EF_CONSTRUCTION = 200;
     private static final boolean DEFAULT_REMOVE_ENABLED = true;
     private static final int DEFAULT_MAX_ITEM = 2_000_000;
